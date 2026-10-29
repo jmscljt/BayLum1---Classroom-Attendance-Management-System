@@ -12,7 +12,7 @@ abstract class TeachersController extends TeachersModel
 
     protected function isAuthenticated(array $session): bool
     {
-        return !empty($session['user_logged_in']) && !empty($session['unique_id']);
+        return !empty($session['user_logged_in']) && !empty($session['user_id']);
     }
 
     protected function requireAuthentication(array $session): ?array
@@ -20,7 +20,6 @@ abstract class TeachersController extends TeachersModel
         if (!$this->isAuthenticated($session)) {
             return ['redirect' => 'index.php?page=login'];
         }
-
         return null;
     }
 }

@@ -1,16 +1,16 @@
 <?php
-// app/Views/client/login.php
-// Expects $data array with keys: message, message_type
-$message = $data['message'] ?? '';
-$message_type = $data['message_type'] ?? '';
+// app/Views/Teachers/signup.php
+// Expects $data array with keys: message, message_type, auth_message, auth_message_type
+$message = $data['message'] ?? $_SESSION['auth_message'] ?? '';
+$message_type = $data['message_type'] ?? $_SESSION['auth_message_type'] ?? '';
+unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="<?php echo $base_url; ?>/public/css/teachers_style.css"> -->
-    <link rel="stylesheet" href="/public/css/teachers_style.css">
+    <link rel="stylesheet" href="<?php echo $base_url; ?>/public/css/teachers_style.css">
     <title>BL1ES - Sign Up</title>
 </head>
 <body>
@@ -27,14 +27,20 @@ $message_type = $data['message_type'] ?? '';
         <div class="form-box signup">
             <img src="/images/BL1-Logo.png" alt="Logo" class="logo">
             <div class="signup-card">
-                <h1 class="signup-label">Sign Up</h1>
+                <?php if (!empty($message)): ?>
+                    <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'error'; ?>">
+                        <span><?php echo htmlspecialchars($message); ?></span>
+                    </div>
+                <?php endif; ?>
+
+                <h1>Sign Up</h1>
                 <form action="index.php?page=signup" method="POST">
 
                     <div class="input-group">
                         <label for="role">Role</label>
                         <select id="role" name="role" class="custom-select">
-                            <option value="adviser" selected>Adviser</option>
-                            <option value="subject_teacher">Subject Teacher</option>
+                            <option selected>Adviser</option>
+                            <option >Subject Teacher</option>
                         </select>
                     </div>
 
@@ -74,25 +80,24 @@ $message_type = $data['message_type'] ?? '';
                         <div class="input-group">
                             <label for="assigned_grade_level">Assigned Grade Level</label>
                             <select id="assigned_grade_level" name="assigned_grade_level" class="custom-select">
-                                <option value="grade4" selected>Grade 4</option>
-                                <option value="grade5">Grade 5</option>
-                                <option value="grade6">Grade 6</option>
+                                <option selected>Grade 4</option>
+                                <option >Grade 5</option>
+                                <option >Grade 6</option>
                             </select>
                         </div>
 
                         <div class="input-group">
                             <label for="advisory_section">Advisory Section</label>
                             <select id="advisory_section" name="advisory_section" class="custom-select">
-                                <option value="section_mabait" selected>Mabait</option>
-                                <option value="section_masipag">Magalang</option>
-                                <option value="section_masipag">Masipag</option>
-                                <option value="section_masayahin">Masayahin</option>
-                                <option value="section_matapat">Matapat</option>
+                                <option selected>Mabait</option>
+                                <option >Magalang</option>
+                                <option >Masipag</option>
+                                <option >Masayahin</option>
+                                <option >Matapat</option>
                             </select>
                         </div>
                     </div>
                     
-
                     <button type="submit" class="signup-btn">Create Account</button>
 
                     <a href="index.php?page=login" class="signup-link">I already have an account.</a>
