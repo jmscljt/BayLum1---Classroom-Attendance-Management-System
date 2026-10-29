@@ -9,12 +9,20 @@
 </head>
 <body>
     <?php require_once __DIR__ . '/sidebar.php'; ?>
-    <header>
-        <div class="dashboard-header">
-        <h1>Bayan Luma 1 Elementary School</h1>
-        </div>
-    </header>
-    
+    <div>
+        <header>
+            <div class="dashboard-header">
+                <h1>Bayan Luma 1 Elementary School</h1>
+            </div>
+        </header>
+
+        <main class="dashboard-body">
+            <div class="overview-header">
+                <h2>ATTENDANCE OVERVIEW</h2>
+                <p class="overview-date"></p>
+            </div>
+        </main>
+    </div>
     
 </body>
 </html>

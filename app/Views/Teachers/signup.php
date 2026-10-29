@@ -70,7 +70,7 @@ $message_type = $data['message_type'] ?? '';
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
                     </div>
 
-                    <div class="input-row">
+                    <div class="input-row" id="advisory-container">
                         <div class="input-group">
                             <label for="assigned_grade_level">Assigned Grade Level</label>
                             <select id="assigned_grade_level" name="assigned_grade_level" class="custom-select">
@@ -100,5 +100,7 @@ $message_type = $data['message_type'] ?? '';
             </div>
         </div>
     </div>
+    
+    <script src="/public/js/signup.js"></script>
 </body>
 </html>
