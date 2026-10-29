@@ -43,7 +43,7 @@
 
                     <button type="submit" class="login-btn">Login</button>
 
-                    <a href="signup.php" class="signup-link">I don't have an account yet.</a>
+                    <a href="index.php?page=signup" class="signup-link">I don't have an account yet.</a>
                 </form>
             </div>
         </div>

@@ -1,11 +1,17 @@
+<?php
+// app/Views/client/login.php
+// Expects $data array with keys: message, message_type
+$message = $data['message'] ?? '';
+$message_type = $data['message_type'] ?? '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="?php echo $base_url; ?>/css/clientstyle.css"> -->
+    <!-- <link rel="stylesheet" href="<?php echo $base_url; ?>/public/css/teachers_style.css"> -->
     <link rel="stylesheet" href="/public/css/teachers_style.css">
-    <title>Sign Up</title>
+    <title>BL1ES - Sign Up</title>
 </head>
 <body>
     <div class="side-cover">
@@ -22,7 +28,7 @@
             <img src="/images/BL1-Logo.png" alt="Logo" class="logo">
             <div class="signup-card">
                 <h1 class="signup-label">Sign Up</h1>
-                <form action="index.php?page=login" method="POST">
+                <form action="index.php?page=signup" method="POST">
 
                     <div class="input-group">
                         <label for="role">Role</label>
@@ -34,7 +40,7 @@
 
                     <div class="input-group">
                         <label for="unique_id">Unique ID (Generated Automatically)</label>
-                        <input type="text" id="unique_id" name="unique_id" placeholder=" " readonly>
+                        <input type="text" id="unique_id" name="unique_id" value="<?php echo 'BL1es-' . date('Y') . mt_rand(1000, 9999); ?>" readonly>
                     </div>
 
                     <div class="input-row">
@@ -50,8 +56,13 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="user_password">Password</label>
-                        <input type="password" id="user_password" name="user_password" placeholder="Enter your password" required>
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
                     </div>
 
                     <div class="input-group">
@@ -61,8 +72,8 @@
 
                     <div class="input-row">
                         <div class="input-group">
-                            <label for="grade_level">Grade Level</label>
-                            <select id="grade_level" name="grade_level" class="custom-select">
+                            <label for="assigned_grade_level">Assigned Grade Level</label>
+                            <select id="assigned_grade_level" name="assigned_grade_level" class="custom-select">
                                 <option value="grade4" selected>Grade 4</option>
                                 <option value="grade5">Grade 5</option>
                                 <option value="grade6">Grade 6</option>
@@ -70,8 +81,8 @@
                         </div>
 
                         <div class="input-group">
-                            <label for="section">Section</label>
-                            <select id="section" name="section" class="custom-select">
+                            <label for="advisory_section">Advisory Section</label>
+                            <select id="advisory_section" name="advisory_section" class="custom-select">
                                 <option value="section_mabait" selected>Mabait</option>
                                 <option value="section_masipag">Magalang</option>
                                 <option value="section_masipag">Masipag</option>
