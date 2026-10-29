@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const advisoryContainer = document.getElementById('advisory-container');
 
     function toggleAdvisoryFields() {
-        if (roleSelect.value === 'subject_teacher') {
+        if (roleSelect.value === 'Subject Teacher') {
             advisoryContainer.style.display = 'none';
         } else {
             advisoryContainer.style.display = 'flex'; // Or 'block' depending on your CSS layout
