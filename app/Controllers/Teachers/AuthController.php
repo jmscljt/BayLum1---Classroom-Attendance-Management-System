@@ -13,8 +13,8 @@ require_once __DIR__ . '/TeachersController.php';
                 $email              = $_POST['email'] ?? '';
                 $password           = $_POST['password'] ?? '';
                 $confirmPassword    = $_POST['confirm_password'] ?? '';
-                $assignedGradeLevel = $_POST['assigned_grade_level'] ?? $_POST['grade_level'] ?? '';
-                $advisorySection    = $_POST['advisory_section'] ?? $_POST['section'] ?? '';
+                $assignedGradeLevel = $_POST['assigned_grade_level'] ?? $_POST['grade_level'] ?? 'Not Applicable';
+                $advisorySection    = $_POST['advisory_section'] ?? $_POST['section'] ?? 'Not Applicable';
 
                 // Support both first_name/last_name (new) and combined name (old) fields
                 $firstName = $_POST['first_name'] ?? '';
