@@ -233,30 +233,6 @@ body {
 
 
 
-/* ===== Header - Start ===== */
-
-header {
-    width: 100%;
-    height: 60px;
-    background-color: #0056b3;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding-left: 270px;
-}
-
-h1 {
-    color: #ffffff;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-/* ===== Header - End ===== */
-
-
-
-
-
 /* ===== Sidebar - Start ===== */
 
 .sidebar {
@@ -309,4 +285,193 @@ h1 {
     text-align: center;
 }
 
+<<<<<<< HEAD
 /* ===== Sidebar - End ===== */
+=======
+/* ===== Sidebar - End ===== */
+
+
+
+/* ===== Dashboard - Start ===== */
+
+header {
+    width: 100%;
+    margin-left: 250px;
+    height: 60px;
+    background-color: #0056b3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.dashboard-header h1 {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.main-content {
+    margin-left: 250px;
+    margin-top: 60px;
+    padding: 25px;
+    background-color: #f4f7f6;
+    min-height: 100vh;
+    overflow-y: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.overview-header-row {
+    margin-bottom: 20px;
+}
+
+.overview-titles h2 {
+    font-size: 22px;
+    color: #000;
+    font-weight: bold;
+    margin-bottom: 4px;
+    margin-top: 0;
+}
+
+.overview-date {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.metric-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 85px;
+    box-sizing: border-box;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.metric-card-blue {
+    border: 1.5px solid #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.metric-card-green {
+    border: 1.5px solid #22c55e;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+.metric-card-red {
+    border: 1.5px solid #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.metric-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #4a5568;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1a202c;
+    min-height: 34px;
+}
+
+.text-green { 
+    color: #22c55e; 
+}
+
+.text-red { 
+    color: #ef4444; 
+}
+
+.table-section-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.table-section-card h3 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2d3748;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.data-table th {
+    background-color: #f7fafc;
+    color: #4a5568;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: bold;
+}
+
+.data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf2f7;
+    color: #2d3748;
+}
+
+.data-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.badge.time-in {
+    background-color: #c6f6d5;
+    color: #22543d;
+}
+
+.badge.time-out {
+    background-color: #feebc8;
+    color: #744210;
+}
+/* ===== Dashboard - End ===== */
+>>>>>>> f527d6ce156c1fb34054f9b001dbb327ff96d859
