@@ -27,6 +27,10 @@ class TeachersModel{
             return ['success' => false, 'message' => 'Password must be at least 8 characters long!'];
         }
 
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return ['success' => false, 'message' => 'Invalid email format!'];
+        }
+
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $fullName = trim($firstName . ' ' . $lastName);
 

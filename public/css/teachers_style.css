@@ -292,12 +292,21 @@ h1 {
     border-radius: 8px;
 }
 
-.nav-links a:hover {
+.nav-links a.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-links a:not(.active):hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-links a.active:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .nav-links a i {
     width: 20px;
     text-align: center;
 }
+
 /* ===== Sidebar - End ===== */

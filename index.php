@@ -8,7 +8,8 @@ require_once 'app/Controllers/Teachers/TeachersController.php';
 
 $base_url = '';
 
-$page = $_GET['page'] ?? 'signup';
+$page = $_GET['page'] ?? 'login';
+$currentPage = $page;
 
 switch ($page) {
 
@@ -26,6 +27,10 @@ switch ($page) {
 
     case 'dashboard':
         $view = 'app/Views/Teachers/dashboard.php';
+        break;
+
+    case 'attendanceRecord':
+        $view = 'app/Views/Teachers/attendanceRecord.php';
         break;
         
     default:
