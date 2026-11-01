@@ -9,9 +9,9 @@ if (!isset($currentPage)) {
 <div class="sidebar">
     <img src="/images/BL1-Logo.png" alt="Logo" class="logo">
     <div class="nav-links">
-        <a href="<?php echo $base_url; ?>/index.php?page=teachers_dashboard" class="<?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=dashboard" class="<?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>">
             <i class="fa-solid fa-house"></i>Dashboard</a>
-        <a href="<?php echo $base_url; ?>/index.php?page=teachers_attendacerecord" class="<?php echo ($currentPage == 'attendacerecord') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=attendance_record" class="<?php echo ($currentPage == 'attendance_record') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user-check"></i>Attendance Record</a>
         <a href="<?php echo $base_url; ?>/index.php?page=teachers_students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
             <i class="fa-solid fa-users"></i>Students</a>
