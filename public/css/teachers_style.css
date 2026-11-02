@@ -307,7 +307,7 @@ body {
 
 
 
-/* ===== Dashboard - Start ===== */
+/* ===== Dashboard/Attendance Record - Start ===== */
 
 header {
     width: 100%;
@@ -325,7 +325,7 @@ header {
     z-index: 100;
 }
 
-.dashboard-header h1 {
+.dashboard-header h1{
     color: #ffffff;
     font-size: 22px;
     font-weight: bold;

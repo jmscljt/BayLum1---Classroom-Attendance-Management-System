@@ -90,6 +90,9 @@ require_once __DIR__ . '/TeachersController.php';
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['full_name'];
 
+                    $_SESSION['assigned_grade_level'] = $user['assigned_grade_level'] ?? $user['grade_level'] ?? '';
+                    $_SESSION['advisory_section'] = $user['advisory_section'] ?? $user['section'] ?? '';
+
                     header('Location: index.php?page=dashboard');
                     exit();
                 }
