@@ -21,6 +21,9 @@ if (!isset($currentPage)) {
             <i class="fa-solid fa-calendar-alt"></i>Schedule</a>
         <a href="<?php echo $base_url; ?>/index.php?page=teachers_settings" class="<?php echo ($currentPage == 'settings') ? 'active' : ''; ?>">
             <i class="fa-solid fa-cog"></i>Settings</a>
+        <a href="<?php echo $base_url; ?>/index.php?page=logout" class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
     </div>
 </div>
 
