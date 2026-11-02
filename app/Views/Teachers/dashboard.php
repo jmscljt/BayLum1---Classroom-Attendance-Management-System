@@ -14,7 +14,7 @@ $currentPage = 'dashboard';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/teachers_style.css">
-    <title>Dashboard - Bayan Luma 1 Elementary School</title>
+    <title>BL1ES - Dashboard</title>
 </head>
 <body>
 
@@ -40,24 +40,39 @@ $currentPage = 'dashboard';
             <div class="metrics-grid">
                 <div class="metric-card metric-card-blue">
                     <span class="metric-title">Total Advisory Students</span>
-                    <span class="metric-value"><?php echo isset($totalStudents) ? $totalStudents : ''; ?></span>
-                </div>
-                <div class="metric-card metric-card-green">
-                    <span class="metric-title">Present Students</span>
-                    <span class="metric-value text-green"><?php echo isset($presentStudents) ? $presentStudents : ''; ?></span>
-                </div>
-                <div class="metric-card metric-card-red">
-                    <span class="metric-title">Absent Students</span>
-                    <span class="metric-value text-red"><?php echo isset($absentStudents) ? $absentStudents : ''; ?></span>
+                    <span class="metric-value"><?php echo isset($totalAdvisoryStudents) ? $totalAdvisoryStudents : '0'; ?></span>
                 </div>
                 <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Assigned Subjects</span>
-                    <span class="metric-value"><?php echo isset($assignedSubjects) ? $assignedSubjects : ''; ?></span>
+                    <span class="metric-title">Other Handled Students</span>
+                    <span class="metric-value"><?php echo isset($totalOtherHandledStudents) ? $totalOtherHandledStudents : '0'; ?></span>
+                </div>
+                <div class="metric-card metric-card-blue">
+                    <span class="metric-title">Total Assigned Students</span>
+                    <span class="metric-value text-blue"><?php echo isset($totalAssignedStudents) ? $totalAssignedStudents : '0'; ?></span>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card metric-card-blue">
+                    <span class="metric-title">Present Students (Advisory)</span>
+                    <span class="metric-value"><?php echo isset($presentStudentsAdvisory) ? $presentStudentsAdvisory : '0'; ?></span>
+                </div>
+                <div class="metric-card metric-card-blue">
+                    <span class="metric-title">Absent Students (Advisory)</span>
+                    <span class="metric-value"><?php echo isset($absentStudentsAdvisory) ? $absentStudentsAdvisory : '0'; ?></span>
+                </div>
+                <div class="metric-card metric-card-blue">
+                    <span class="metric-title">Present Students (Other Handled)</span>
+                    <span class="metric-value"><?php echo isset($presentStudentsOtherHandled) ? $presentStudentsOtherHandled : '0'; ?></span>
+                </div>
+                <div class="metric-card metric-card-blue">
+                    <span class="metric-title">Absent Subjects (Other Handled)</span>
+                    <span class="metric-value"><?php echo isset($absentSubjectsOtherHandled) ? $absentSubjectsOtherHandled : '0'; ?></span>
                 </div>
             </div>
 
             <div class="table-section-card">
-                <h3>Recent Fingerprint Scans</h3>
+                <h3>Recent Attendance Activity</h3>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -65,9 +80,8 @@ $currentPage = 'dashboard';
                                 <th>Time</th>
                                 <th>Status</th>
                                 <th>Student Name</th>
-                                <th>LRN</th>
                                 <th>Grade & Section</th>
-                                <th>Verification Status</th>
+                                <th>Subject</th>
                             </tr>
                         </thead>
                         <tbody>
