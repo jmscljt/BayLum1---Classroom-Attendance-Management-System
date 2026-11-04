@@ -107,7 +107,93 @@
 
 
 
-/* ===== Sign Up - Start ===== */
+/* ===== Toggle/Form Manual Attendance - Start ===== */
+
+.manual-attendance-card {
+    position: absolute; /* Takes it out of the flex flow */
+    top: 15px;         
+    left: 780px;
+    width: 280px;
+    height: 140px;
+    z-index: 10;        
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none;      /* Hidden by default */
+}
+
+.manual-attendance-card.show {
+    display: block;
+}
+
+.manual-attendance-btn-wrapper {
+    position: absolute;
+    top: 15px;          /* Distance from the top of .side-cover */
+    left: 1300px;         
+    right: 20px;      
+    z-index: 10;       
+}
+
+.manual-attendance-btn {
+    width: 100%;
+    max-width: 200px;
+    height: 32px;
+    margin: 10px auto 6px auto;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.manual-attendance-btn:hover {
+    background-color: #004085;
+}
+
+.demo-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 10;
+    font-size: 0.60rem;
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.add-attendance-btn {
+    width: 100%;
+    max-width: 120px;
+    height: 28px;
+    margin: 5px auto 6px auto;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-attendance-btn:hover {
+    background-color: #004085;
+}
+
+/* ===== Toggle/Form Manual Attendance - End ===== */
+
+
+
+
+
+/* ===== Sign Up / Side Cover - Start ===== */
 
 * {
     box-sizing: border-box;
@@ -250,7 +336,7 @@ body {
 }
 
 /* Create Account Button and Login Button */
-.signup-btn, .login-btn, .add-attendance-btn,  .sync-btn, .view-btn {
+.signup-btn, .sync-btn, .view-btn {
     width: 100%;
     max-width: 180px;
     height: 36px;
@@ -289,7 +375,7 @@ body {
     color: #003366;
 }
 
-/* ===== Sign Up - End ===== */
+/* ===== Sign Up / Side Cover - End ===== */
 
 
 
@@ -312,6 +398,25 @@ body {
 .login-card form {
     display: flex;
     flex-direction: column;
+}
+
+.login-btn {
+    width: 100%;
+    max-width: 180px;
+    height: 36px;
+    margin: 10px auto 6px auto;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-btn:hover {
+    background-color: #004085;
 }
 
 /* ===== Login - End ===== */
@@ -485,7 +590,7 @@ header {
     color: #da2222; 
 }
 
-.table-section-card, .manual-attendance-card {
+.table-section-card {
     background: #ffffff;
     border-radius: 8px;
     border: 1.5px solid #e2e8f0;
