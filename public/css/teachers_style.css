@@ -170,7 +170,7 @@ body {
 }
 
 /* Create Account Button and Login Button */
-.signup-btn, .login-btn, .sync-btn, .add-attendance-btn, .view-btn {
+.signup-btn, .login-btn, .add-attendance-btn,  .sync-btn, .view-btn {
     width: 100%;
     max-width: 180px;
     height: 36px;
@@ -184,6 +184,13 @@ body {
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
+
+.view-btn, .sync-btn {
+    max-width: 120px;
+    height: 30px;
+    font-size: 12px;
+    margin: 6px auto 6px auto;
+}   
 
 .signup-btn:hover {
     background-color: #004085;
@@ -307,7 +314,7 @@ body {
 
 
 
-/* ===== Dashboard/Attendance Record - Start ===== */
+/* ===== Dashboard- Start ===== */
 
 header {
     width: 100%;
@@ -346,24 +353,6 @@ header {
 .dashboard-container {
     max-width: 1200px;
     margin: 0 auto;
-}
-
-.overview-header-row {
-    margin-bottom: 20px;
-}
-
-.overview-titles h2 {
-    font-size: 22px;
-    color: #000;
-    font-weight: bold;
-    margin-bottom: 4px;
-    margin-top: 0;
-}
-
-.overview-date {
-    font-size: 14px;
-    color: #555;
-    margin: 0;
 }
 
 .metrics-grid {
@@ -479,3 +468,52 @@ header {
     color: #744210;
 }
 /* ===== Dashboard - End ===== */
+
+
+
+
+/* ===== Attendance Record - Start ===== */
+
+.overview-header-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.overview-titles {
+    margin: 0;
+    overflow: hidden;
+}
+
+.overview-titles h2 {
+    font-size: 20px;
+    color: #000;
+    font-weight: bold;
+    margin: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.filter-action-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.date-filter-input {
+    height: 30px;
+    padding: 0 8px;
+    border: 1.5px solid #a4b0be;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background-color: #ffffff;
+    color: #333;
+}
+
+
+/* ===== Attendance Record - End ===== */

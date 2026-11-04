@@ -33,8 +33,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
     </header>
 
     <main class="main-content">
-        <div class="attendance-container">
-            
+        <div class="attendance-container">           
             <div class="overview-header-row">
                 <div class="overview-titles">
                     <h2>CLASS ATTENDANCE - <?php echo htmlspecialchars('('. $assignedGrade . ' - ' . $advisorySection . ')'); ?></h2>
@@ -42,33 +41,39 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
 
                 <form method="GET" action="" class="filter-action-group">
                     <input type="hidden" name="page" value="attendanceRecord">
-                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate); ?>">                    <button type="submit" class="sync-btn">
+                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate); ?>">                    
+                    <button type="submit" class="sync-btn">
                         <i class="fa-solid fa-magnifying-glass"></i> Search Date
                     </button>
                 </form>
+            </div>
 
-               <div class="table-section-card">
-                    <h3>Attendance Record Summary</h3>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($searchDate); ?></td>
-                                    <td>
-                                        <button type="button" class="view-btn" onclick="window.location.href='<?php echo $base_url . '/teachers/attendanceRecordDetails?date=' . urlencode($searchDate); ?>'">
-                                            View Details
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="table-section-card">
+                <h3>Attendance Record Summary</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Present Students</th>
+                                <th>Absent Students</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><?php echo htmlspecialchars($searchDate); ?></td>
+                                <td>0</td>
+                                <div></div>
+                                <td>0</td>
+                                <td>
+                                    <button type="button" class="view-btn" onclick="window.location.href='<?php echo $base_url . '/teachers/attendanceRecordDetails?date=' . urlencode($searchDate); ?>'">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
