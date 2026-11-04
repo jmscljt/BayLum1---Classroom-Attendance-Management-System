@@ -170,7 +170,7 @@ body {
 }
 
 /* Create Account Button and Login Button */
-.signup-btn, .login-btn {
+.signup-btn, .login-btn, .sync-btn, .add-attendance-btn, .view-btn {
     width: 100%;
     max-width: 180px;
     height: 36px;
@@ -416,7 +416,7 @@ header {
     color: #da2222; 
 }
 
-.table-section-card {
+.table-section-card, .manual-attendance-card {
     background: #ffffff;
     border-radius: 8px;
     border: 1.5px solid #e2e8f0;

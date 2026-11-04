@@ -1,4 +1,6 @@
 <?php
+// Set local time zone
+date_default_timezone_set('Asia/Manila');
 if (!isset($base_url)) {
     $base_url = '';
 }
@@ -7,6 +9,11 @@ $currentPage = 'attendanceRecord';
 
 $assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
+
+$searchDate = $_GET['attendance_date'] ?? date('Y-m-d');
+if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
+    $searchDate = date('Y-m-d');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -26,11 +33,42 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
     </header>
 
     <main class="main-content">
-        <div class="dashboard-container">
+        <div class="attendance-container">
             
             <div class="overview-header-row">
                 <div class="overview-titles">
-                    <h2>CLASS ATTENDANCE - <?php echo htmlspecialchars($assignedGrade . ' - ' . $advisorySection); ?></h2>
+                    <h2>CLASS ATTENDANCE - <?php echo htmlspecialchars('('. $assignedGrade . ' - ' . $advisorySection . ')'); ?></h2>
+                </div>
+
+                <form method="GET" action="" class="filter-action-group">
+                    <input type="hidden" name="page" value="attendanceRecord">
+                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate); ?>">                    <button type="submit" class="sync-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search Date
+                    </button>
+                </form>
+
+               <div class="table-section-card">
+                    <h3>Attendance Record Summary</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($searchDate); ?></td>
+                                    <td>
+                                        <button type="button" class="view-btn" onclick="window.location.href='<?php echo $base_url . '/teachers/attendanceRecordDetails?date=' . urlencode($searchDate); ?>'">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
