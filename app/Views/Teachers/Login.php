@@ -14,6 +14,21 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
     <title>BL1ES - Login</title>
 </head>
 <body>
+    <div class="manual-attendance-btn-wrapper">
+        <button class="manual-attendance-btn" onclick="toggleSideCover()">Toggle Manual Attendance</button>
+    </div>
+
+    <div class="manual-attendance-card">
+        <h3>Manual Attendance</h3>
+        <form method="POST" action="process_manual_attendance.php" class="manual-attendance-form">
+            <div class="input-group">
+                <input type="text" name="manual_attendance" placeholder="Enter LRN or Attendance Code" class="lrn-input" required>
+            </div>
+            <button type="submit" class="add-attendance-btn">Enter</button>
+        </form>
+        <span class="demo-badge">For Demo Only</span>
+    </div>
+
     <div class="side-cover">
         <img src="/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
         <img src="/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
@@ -21,16 +36,6 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
         <img src="/images/BL1-Cover4.png" alt="Cover 4" class="cover-image cover4">
         <img src="/images/BL1-Cover5.png" alt="Cover 5" class="cover-image cover5">
         <div class="gradient-overlay"></div>
-
-        <div class="manual-attendance-card">
-            <h3>Manual Attendance</h3>
-            <form method="POST" action="process_manual_attendance.php" class="manual-attendance-form">
-                <div class="input-group">
-                    <input type="text" name="lrn" placeholder="Enter Student LRN" class="lrn-input" required>
-                </div>
-                <button type="submit" class="add-attendance-btn">Add attendance</button>
-            </form>
-        </div>
     </div>
 
     <div class="form-wrapper">
@@ -62,5 +67,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
             </div>
         </div>
     </div>
+
+    <script src="/public/js/manualAttendance.js"></script>
 </body>
 </html>

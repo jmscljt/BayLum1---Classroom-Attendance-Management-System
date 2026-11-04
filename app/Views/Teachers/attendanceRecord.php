@@ -64,7 +64,6 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                             <tr>
                                 <td><?php echo htmlspecialchars($searchDate); ?></td>
                                 <td>0</td>
-                                <div></div>
                                 <td>0</td>
                                 <td>
                                     <button type="button" class="view-btn" onclick="window.location.href='<?php echo $base_url . '/teachers/attendanceRecordDetails?date=' . urlencode($searchDate); ?>'">
