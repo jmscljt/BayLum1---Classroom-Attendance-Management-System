@@ -22,7 +22,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/teachers_style.css">
-    <title>BL1ES - Attendance Record</title>
+    <title>BL1ES - Attendance Logs</title>
 </head>
 <body>
     <?php require_once __DIR__ . '/sidebar.php'; ?>
@@ -42,8 +42,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                 <form method="GET" action="" class="filter-action-group">
                     <input type="hidden" name="page" value="attendanceRecord">
                     <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate); ?>">                    
-                    <button type="submit" class="sync-btn">
-                        <i class="fa-solid fa-magnifying-glass"></i> Search Date
+                    <button type="button" class="sync-btn"> Search Date
                     </button>
                 </form>
             </div>
@@ -67,7 +66,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                                 <td>0</td>
                                 <td>
                                     <button type="button" class="view-btn" onclick="openAttendanceModal()">
-                                        View Details
+                                        View Logs
                                     </button>
                                 </td>
                             </tr>
@@ -114,8 +113,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
         </div>
     </main>
 
-    <!-- Pag-link sa hiwalay na JavaScript file -->
-    <script src="/public/js/attendanceRecord.js"></script>
+    <script src="/public/js/attendanceLogs.js"></script>
     
 </body>
 </html>

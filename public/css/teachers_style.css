@@ -272,11 +272,12 @@ body {
 }
 
 .view-btn, .sync-btn {
-    max-width: 120px;
-    height: 30px;
+    max-width: 130px;
+    height: 34px;
     font-size: 12px;
-    margin: 6px auto 6px auto;
-}   
+    margin: 0;
+    padding: 0 12px;
+}
 
 .signup-btn:hover {
     background-color: #004085;
@@ -622,13 +623,13 @@ header {
 
 /* ===== Attendance Details Popup Modal - Start ===== */
 .attendance-modal-overlay {
-    display: none; /* Naka-hide by default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5); /* Itim na background na medyo transparent */
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
     justify-content: center;
     align-items: center;
@@ -672,8 +673,6 @@ header {
 .close-modal-btn:hover {
     color: #000;
 }
-
-/* ===== Attendance Details Popup Modal - End ===== */
 
 /* ===== Attendance Record - End ===== */
 

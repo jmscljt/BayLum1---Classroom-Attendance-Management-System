@@ -52,6 +52,7 @@ $currentPage = 'students';
                                 <th>Status</th>
                                 <th>LRN</th>
                                 <th>Student Name</th>
+                                <th>Gender</th>
                                 <th>Present</th>
                                 <th>Absent</th>
                                 <th>Excused</th>
@@ -63,6 +64,7 @@ $currentPage = 'students';
                                 <td>Registered</td>
                                 <td>107989120052</td>
                                 <td>James Gabriel Calajate</td>
+                                <td>Male</td>
                                 <td>20</td>
                                 <td>5</td>
                                 <td>2</td>
