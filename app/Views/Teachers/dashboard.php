@@ -5,6 +5,7 @@ date_default_timezone_set('Asia/Manila');
 if (!isset($base_url)) {
     $base_url = '';
 }
+
 $currentPage = 'dashboard';
 ?>
 <!DOCTYPE html>

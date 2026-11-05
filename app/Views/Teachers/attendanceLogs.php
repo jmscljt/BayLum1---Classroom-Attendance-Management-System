@@ -1,11 +1,12 @@
 <?php
 // Set local time zone
 date_default_timezone_set('Asia/Manila');
+
 if (!isset($base_url)) {
     $base_url = '';
 }
 
-$currentPage = 'attendanceRecord';
+$currentPage = 'attendanceLogs';
 
 $assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
