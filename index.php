@@ -4,6 +4,7 @@ require_once 'config/database.php';
 
 // Teachers Side
 require_once 'app/Controllers/Teachers/AuthController.php';
+require_once 'app/Controllers/Teachers/LogoutController.php';
 require_once 'app/Controllers/Teachers/TeachersController.php';
 
 $base_url = '';
@@ -25,12 +26,17 @@ switch ($page) {
         $view = 'app/Views/Teachers/login.php';
         break;
 
+    case 'logout':
+        $controller = new LogoutController();
+        $controller->logoutAndRedirect();
+        exit();
+
     case 'dashboard':
         $view = 'app/Views/Teachers/dashboard.php';
         break;
 
-    case 'attendanceRecord':
-        $view = 'app/Views/Teachers/attendanceRecord.php';
+    case 'attendanceLogs':
+        $view = 'app/Views/Teachers/attendanceLogs.php';
         break;
 
     case 'students':
