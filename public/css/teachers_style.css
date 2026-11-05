@@ -693,11 +693,11 @@ header {
     gap: 15px;
 }
 
-.student-actions-right {
+.student-buttons-section {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
 }
 
 .import_excel_btn, .export_excel_btn, .add-student-btn {
@@ -758,6 +758,66 @@ header {
 
 
 /* ===== Other Section Handled - Start ===== */
+.absences-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.absences-modal-content {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 500px;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.absences-modal-content .modal-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.absences-modal-content .modal-header-row h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #2d3748;
+    font-weight: bold;
+}
+
+.absences-modal-content .close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.absences-modal-content .close-modal-btn:hover {
+    color: #000;
+}
+
+.absences-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
 
 .student-buttons-section {
     display: flex;

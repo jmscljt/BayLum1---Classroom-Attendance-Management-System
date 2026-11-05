@@ -6,6 +6,11 @@ if (!isset($base_url)) {
     $base_url = '';
 }
 $currentPage = 'students';
+
+$searchDate = $_GET['attendance_date'] ?? date('Y-m-d');
+if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
+    $searchDate = date('Y-m-d');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,7 +40,7 @@ $currentPage = 'students';
             </div>
 
             <div class="student-buttons-section">
-                <h4>Count</h4>
+                <h4>Count - 100</h4>
                 <div class="student-actions-right">
                     <button class="import_excel_btn">Import Excel</button>
                     <button class="export_excel_btn">Export Excel</button>
@@ -70,7 +75,7 @@ $currentPage = 'students';
                                 <td>2</td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="btn-view">View Absences</button>
+                                        <button type="button" class="btn-view" onclick="openAbsencesModal()">View Absences</button>
                                         <button class="btn-edit">Edit</button>
                                         <button class="btn-remove">Remove</button>
                                     </div>
@@ -80,7 +85,52 @@ $currentPage = 'students';
                     </table>
                 </div>
             </div>
+
+            <div id="absencesModal" class="absences-modal-overlay">
+                <div class="absences-modal-content">
+                    <div class="modal-header-row">
+                        <h3>Mark Attendance Status - <?php echo htmlspecialchars($searchDate); ?></h3>
+                        <button type="button" class="close-modal-btn" onclick="closeAbsencesModal()">&times;</button>
+                    </div>
+                    
+                    <form method="POST" action="<?php echo $base_url; ?>/teachers/saveAbsenceStatus">
+                        <input type="hidden" name="attendance_date" value="<?php echo htmlspecialchars($searchDate); ?>">
+                        
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <label>Date</label>
+                            <input type="text" value="<?php echo htmlspecialchars($searchDate); ?>" readonly class="input-group input[readonly]">
+                        </div>
+
+                        <div class="input-group" style="margin-bottom: 15px;">
+                            <label>Marked As</label>
+                            <select name="attendance_status" id="attendanceStatusSelect" class="input-group select" onchange="toggleExcuseReason(this)">
+                                <option value="ABSENT" selected>ABSENT</option>
+                                <option value="EXCUSE">EXCUSE</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group" id="excuseReasonGroup" style="margin-bottom: 15px; display: none;">
+                            <label>Reason for Excuse</label>
+                            <select name="excuse_reason_category" class="input-group select" style="margin-bottom: 8px;">
+                                <option value="" disabled selected>Select reason...</option>
+                                <option value="Medical / Sick">Medical / Sick</option>
+                                <option value="Family Emergency">Family Emergency</option>
+                                <option value="School Activity / Representing School">School Activity / Representing School</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <textarea name="excuse_remarks" placeholder="Enter specific details or remarks for being excuse..." class="input-group input" style="height: 70px; resize: vertical; padding: 8px;"></textarea>
+                        </div>
+
+                        <div class="absences-modal-actions">
+                            <button type="button" class="sync-btn" style="background-color: #6c757d;" onclick="closeAbsencesModal()">Cancel</button>
+                            <button type="submit" class="sync-btn" style="background-color: #0056b3;">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
+
+    <script src="/public/js/studentsAbbsences.js"></script>
 </body>
 </html>
