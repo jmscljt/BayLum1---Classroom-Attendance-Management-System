@@ -700,6 +700,60 @@ header {
     color: #333;
 }
 
+/* ===== Attendance Details Popup Modal - Start ===== */
+.attendance-modal-overlay {
+    display: none; /* Naka-hide by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Itim na background na medyo transparent */
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.attendance-modal-content {
+    background-color: #ffffff;
+    width: 90%;
+    max-width: 900px;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.modal-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-header-row h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #2d3748;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-modal-btn:hover {
+    color: #000;
+}
+
+/* ===== Attendance Details Popup Modal - End ===== */
 
 /* ===== Attendance Record - End ===== */
 

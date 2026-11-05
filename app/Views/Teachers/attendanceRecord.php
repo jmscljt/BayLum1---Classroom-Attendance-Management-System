@@ -66,7 +66,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                                 <td>0</td>
                                 <td>0</td>
                                 <td>
-                                    <button type="button" class="view-btn" onclick="window.location.href='<?php echo $base_url . '/teachers/attendanceRecordDetails?date=' . urlencode($searchDate); ?>'">
+                                    <button type="button" class="view-btn" onclick="openAttendanceModal()">
                                         View Details
                                     </button>
                                 </td>
@@ -76,7 +76,46 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                 </div>
             </div>
         </div>
+
+        <!-- Attendance Details Modal Overlay (Naka-sync na sa $searchDate) -->
+        <div id="attendanceModal" class="attendance-modal-overlay">
+            <div class="attendance-modal-content">
+                <div class="modal-header-row">
+                    <h3>Attendance for <?php echo htmlspecialchars($searchDate); ?></h3>
+                    <button type="button" class="close-modal-btn" onclick="closeAttendanceModal()">&times;</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>LRN</th>
+                                <th>Name</th>
+                                <th>Gender</th>
+                                <th>Time In</th>
+                                <th>Time Out</th>
+                                <th>Method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><?php echo htmlspecialchars($searchDate); ?></td>
+                                <td>107989120052</td>
+                                <td>James Gabriel Calajate</td>
+                                <td>Male</td>
+                                <td>08:00 AM</td>
+                                <td>03:00 PM</td>
+                                <td>Manual</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <!-- Pag-link sa hiwalay na JavaScript file -->
+    <script src="/public/js/attendanceRecord.js"></script>
     
 </body>
 </html>

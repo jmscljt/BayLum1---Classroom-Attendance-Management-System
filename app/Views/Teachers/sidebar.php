@@ -18,7 +18,7 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
             <i class="fa-solid fa-user-check"></i>Attendance Record</a>
         <a href="<?php echo $base_url; ?>/index.php?page=students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
             <i class="fa-solid fa-users"></i><?php echo htmlspecialchars($assignedGrade . ' - ' . $advisorySection . ' Students'); ?></a>
-        <a href="<?php echo $base_url; ?>/index.php?page=teachers_section" class="<?php echo ($currentPage == 'section') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=otherSectionHandled" class="<?php echo ($currentPage == 'otherSectionHandled') ? 'active' : ''; ?>">
             <i class="fa-solid fa-building"></i>Other Sections Handled</a>
         <a href="<?php echo $base_url; ?>/index.php?page=teachers_schedule" class="<?php echo ($currentPage == 'schedule') ? 'active' : ''; ?>">
             <i class="fa-solid fa-calendar-alt"></i>Schedule</a>
