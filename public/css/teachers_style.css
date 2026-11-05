@@ -751,13 +751,7 @@ header {
     font-size: 12px;
     margin: 6px auto 6px auto;
 }
-/* ===== Students - End ===== */
 
-
-
-
-
-/* ===== Other Section Handled - Start ===== */
 .absences-modal-overlay {
     display: none;
     position: fixed;
@@ -818,6 +812,14 @@ header {
     gap: 10px;
     margin-top: 20px;
 }
+
+/* ===== Students - End ===== */
+
+
+
+
+
+/* ===== Other Section Handled - Start ===== */
 
 .student-buttons-section {
     display: flex;
