@@ -758,6 +758,14 @@ header {
 
 
 /* ===== Other Section Handled - Start ===== */
+
+.student-buttons-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
 .grade-btn, .section-btn, .subject-btn, .add-section-btn {
     width: auto;
     padding: 0 16px;
