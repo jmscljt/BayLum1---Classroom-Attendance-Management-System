@@ -5,6 +5,9 @@ if (!isset($base_url)) {
 if (!isset($currentPage)) {
     $currentPage = '';
 }
+
+$assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
+$advisorySection = $_SESSION['advisory_section'] ?? 'Section';
 ?>
 <div class="sidebar">
     <img src="/images/BL1-Logo.png" alt="Logo" class="sidebar-logo">
@@ -13,8 +16,8 @@ if (!isset($currentPage)) {
             <i class="fa-solid fa-house"></i>Dashboard</a>
         <a href="index.php?page=attendanceRecord" class="<?php echo ($currentPage == 'attendanceRecord') ? 'active' : ''; ?>">
             <i class="fa-solid fa-user-check"></i>Attendance Record</a>
-        <a href="<?php echo $base_url; ?>/index.php?page=teachers_students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-users"></i>Students</a>
+        <a href="<?php echo $base_url; ?>/index.php?page=students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
+            <i class="fa-solid fa-users"></i>Masterlist</a>
         <a href="<?php echo $base_url; ?>/index.php?page=teachers_section" class="<?php echo ($currentPage == 'section') ? 'active' : ''; ?>">
             <i class="fa-solid fa-building"></i>Other Sections Handled</a>
         <a href="<?php echo $base_url; ?>/index.php?page=teachers_schedule" class="<?php echo ($currentPage == 'schedule') ? 'active' : ''; ?>">
