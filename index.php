@@ -36,6 +36,10 @@ switch ($page) {
     case 'students':
         $view = 'app/Views/Teachers/students.php';
         break;
+
+    case 'otherSectionHandled':
+        $view = 'app/Views/Teachers/otherSectionHandled.php';
+        break;
         
     default:
         $view = 'app/Views/Teachers/login.php';

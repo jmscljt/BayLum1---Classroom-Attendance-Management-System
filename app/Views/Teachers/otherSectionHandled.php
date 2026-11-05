@@ -25,8 +25,48 @@ $currentPage = 'otherSectionHandled';
         </div>
     </header>
 
-    <main>  
+    <main class="main-content">
+        <div class="assigned-section-container">
 
+            <div class="overview-header-row">
+                <div class="overview-titles">
+                    <h2>Assigned Students</h2>
+                </div>
+            </div>
+
+            <div class="student-buttons-section">
+                <h4>Add Assigned Section</h4>
+                <div class="add-section-form-group">
+                    
+                    <select class="grade-btn" name="grade_level">
+                        <option value="" disabled selected>Grade</option>
+                        <option value="Grade 4">Grade 4</option>
+                        <option value="Grade 5">Grade 5</option>
+                        <option value="Grade 6">Grade 6</option>
+                    </select>
+
+                    <select class="section-btn" name="section">
+                        <option value="" disabled selected>Section</option>
+                        <option value="Mabait">Mabait</option>
+                        <option value="Magalang">Magalang</option>
+                        <option value="Masipag">Masipag</option>
+                        <option value="Masayahin">Masayahin</option>
+                        <option value="Matapat">Matapat</option>
+                    </select>
+
+                    <select class="subject-btn" name="subject">
+                        <option value="" disabled selected>Subject</option>
+                        <option value="Math">Math</option>
+                        <option value="English">English</option>
+                        <option value="Science">Science</option>
+                        <option value="Filipino">Filipino</option>
+                        <option value="Araling Panlipunan">Araling Panlipunan</option>
+                    </select>
+
+                    <button type="submit" class="add-section-btn">Add</button>
+                </div>
+            </div>
+        </div>
     </main>
 
 </body>

@@ -48,7 +48,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
             </div>
 
             <div class="table-section-card">
-                <h3>Attendance Record Summary</h3>
+                <h4>Attendance Record Summary</h4>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -76,7 +76,6 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
             </div>
         </div>
 
-        <!-- Attendance Details Modal Overlay (Naka-sync na sa $searchDate) -->
         <div id="attendanceModal" class="attendance-modal-overlay">
             <div class="attendance-modal-content">
                 <div class="modal-header-row">
@@ -113,7 +112,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
         </div>
     </main>
 
-    <script src="/public/js/attendanceLogs.js"></script>
+    <script src="/public/js/attendanceRecord.js"></script>
     
 </body>
 </html>

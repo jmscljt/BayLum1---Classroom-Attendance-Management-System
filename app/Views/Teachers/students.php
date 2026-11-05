@@ -35,7 +35,7 @@ $currentPage = 'students';
             </div>
 
             <div class="student-buttons-section">
-                <h3>Count</h3>
+                <h4>Count</h4>
                 <div class="student-actions-right">
                     <button class="import_excel_btn">Import Excel</button>
                     <button class="export_excel_btn">Export Excel</button>
