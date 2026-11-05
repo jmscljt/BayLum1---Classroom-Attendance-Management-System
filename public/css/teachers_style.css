@@ -702,3 +702,43 @@ header {
 
 
 /* ===== Attendance Record - End ===== */
+
+
+
+
+/* ===== Students - Start ===== */
+
+.student-buttons-section {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.student-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.import_excel_btn, .export_excel_btn, .add-student-btn {
+    width: auto;
+    padding: 0 14px;
+    height: 35px;
+    margin: 0;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+/* ===== Students - End ===== */

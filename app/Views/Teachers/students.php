@@ -30,17 +30,52 @@ $currentPage = 'students';
 
             <div class="overview-header-row">
                 <div class="overview-titles">
-                    <h2>STUDENTS</h2>
+                    <h2>STUDENTS MASTERLIST</h2>
                 </div>
             </div>
 
             <div class="student-buttons-section">
                 <h3>Count</h3>
-                <div>
+                <div class="student-actions-right">
                     <button class="import_excel_btn">Import Excel</button>
+                    <button class="export_excel_btn">Export Excel</button>
+                    <button class="add-student-btn">Add Student</button>
                 </div>
-                <div class="add-student-wrapper">
-                    <button class="add-student-btn">Add Student</button>    
+            </div>
+
+            <div class="table-section-card">
+                <h3>Attendance Record Summary</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>LRN</th>
+                                <th>Student Name</th>
+                                <th>Present</th>
+                                <th>Absent</th>
+                                <th>Excused</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button type="button" class="btn-view">View Absences</button>
+                                        <button type="button" class="btn-edit">Edit</button>
+                                        <button type="button" class="btn-remove">Remove</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
