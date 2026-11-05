@@ -60,17 +60,17 @@ $currentPage = 'students';
                         </thead>
                         <tbody>
                             <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>Registered</td>
+                                <td>107989120052</td>
+                                <td>James Gabriel Calajate</td>
+                                <td>20</td>
+                                <td>5</td>
+                                <td>2</td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button type="button" class="btn-view">View Absences</button>
-                                        <button type="button" class="btn-edit">Edit</button>
-                                        <button type="button" class="btn-remove">Remove</button>
+                                        <button class="btn-view">View Absences</button>
+                                        <button class="btn-edit">Edit</button>
+                                        <button class="btn-remove">Remove</button>
                                     </div>
                                 </td>
                             </tr>
