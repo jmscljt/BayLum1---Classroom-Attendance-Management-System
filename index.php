@@ -7,6 +7,9 @@ require_once 'app/Controllers/Teachers/AuthController.php';
 require_once 'app/Controllers/Teachers/LogoutController.php';
 require_once 'app/Controllers/Teachers/TeachersController.php';
 
+// Students Info
+require_once 'app/Controllers/Teachers/StudentsController.php';
+
 $base_url = '';
 
 $page = $_GET['page'] ?? 'login';
@@ -40,6 +43,15 @@ switch ($page) {
         break;
 
     case 'students':
+        $controller = new StudentsController($pdo);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Automatically attach the section_id stored in the teacher's login session
+            $_POST['section_id'] = $_SESSION['section_id'] ?? null;
+            
+            $result = $controller->addStudent($_POST);
+        }
+        
+        $masterlist = $controller->getStudentsMasterlist();
         $view = 'app/Views/Teachers/students.php';
         break;
 

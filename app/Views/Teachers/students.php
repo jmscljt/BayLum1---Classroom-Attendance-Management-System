@@ -40,16 +40,22 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
             </div>
 
             <div class="student-buttons-section">
-                <h4>Count - 100</h4>
                 <div class="student-actions-right">
-                    <button class="import_excel_btn">Import Excel</button>
-                    <button class="export_excel_btn">Export Excel</button>
+                    <h4 class="student_count">Count - 100</h4>
+                    <!-- <button class="import_excel_btn">Import Excel</button>
+                    <button class="export_excel_btn">Export Excel</button> -->
                     <button class="add-student-btn">Add Student</button>
                 </div>
             </div>
 
+            <?php if (isset($result)): ?>
+                <div class="alert <?= $result['success'] ? 'alert-success' : 'alert-error' ?>" style="padding: 12px; margin-bottom: 20px; border-radius: 6px; background-color: <?= $result['success'] ? '#d4edda' : '#f8d7da' ?>; color: <?= $result['success'] ? '#155724' : '#721c24' ?>; border: 1px solid <?= $result['success'] ? '#c3e6cb' : '#f5c6cb' ?>;">
+                    <?= htmlspecialchars($result['message']) ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- students.php View -->
             <div class="table-section-card">
-                <h3>Attendance Record Summary</h3>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -65,26 +71,108 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Registered</td>
-                                <td>107989120052</td>
-                                <td>James Gabriel Calajate</td>
-                                <td>Male</td>
-                                <td>20</td>
-                                <td>5</td>
-                                <td>2</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button type="button" class="btn-view" onclick="openAbsencesModal()">View Absences</button>
-                                        <button class="btn-edit">Edit</button>
-                                        <button class="btn-remove">Remove</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <?php if (!empty($masterlist)): ?>
+                                <?php foreach ($masterlist as $student): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($student['status'] ?? 'Unregistered'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['lrn'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name'] . ' ' . $student['middle_initial'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($student['gender'] ?? 'N'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['present_count'] ?? '0' ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($student['absent_count'] ?? '0' ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($student['excused_count'] ?? '0' ?? ''); ?></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button type="button" class="btn-view" onclick="openAbsencesModal()">View Absences</button>
+                                                <button class="btn-edit">Edit</button>
+                                                <button class="btn-remove">Remove</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="8" class="no-data-cell">No students record found.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+
+
+            <!-- Add Student Modal -->
+            <div id="addStudentModal" class="modal-overlay">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add New Student</h3>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <form id="addStudentForm" action="index.php?page=students" method="POST">
+                        <div class="form-group">
+                            <label for="lrn">LRN</label>
+                            <input type="text" id="lrn" name="lrn" placeholder="Enter LRN" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <input type="text" id="first_name" name="first_name" placeholder="Enter First Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="middle_name">Middle Name</label>
+                            <input type="text" id="middle_name" name="middle_name" placeholder="Enter Middle Name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" placeholder="Enter Last Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="cancel-btn">Cancel</button>
+                            <button type="submit" class="submit-btn">Save Student</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div id="absencesModal" class="absences-modal-overlay">
                 <div class="absences-modal-content">
@@ -132,5 +220,6 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
     </main>
 
     <script src="/public/js/studentsAbbsences.js"></script>
+    <script src="/public/js/addStudentModal.js"></script>
 </body>
 </html>

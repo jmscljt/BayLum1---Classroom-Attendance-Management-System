@@ -83,22 +83,87 @@ class TeachersModel{
 
 
     public function handleLogin(string $loginInput, string $password): array
-        {
-            $stmt = $this->pdo->prepare("SELECT * FROM teachers WHERE user_id = ? OR full_name = ?");
-            $stmt->execute([$loginInput, $loginInput]);
-            $teachers = $stmt->fetch(PDO::FETCH_ASSOC);
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM teachers WHERE user_id = ? OR full_name = ?");
+        $stmt->execute([$loginInput, $loginInput]);
+        $teachers = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($teachers && password_verify($password, $teachers['password'])) {
-                return [
-                    'success' => true,
-                    'user' => $teachers,
-                ];
-            }
-
+        if ($teachers && password_verify($password, $teachers['password'])) {
             return [
-                'success' => false,
-                'message' => 'Invalid Unique ID/Username or Password.',
+                'success' => true,
+                'user' => $teachers,
             ];
         }
+
+        return [
+            'success' => false,
+            'message' => 'Invalid Unique ID/Username or Password.',
+        ];
+    }
+
+
+
+   public function addStudent(array $studentData): array
+    {
+        try {
+            $studentId = trim($studentData['lrn'] ?? '');
+            $firstName = trim($studentData['first_name'] ?? '');
+            $middleName = trim($studentData['middle_name'] ?? null);
+            $lastName = trim($studentData['last_name'] ?? '');
+            $gender = trim($studentData['gender'] ?? '');
+            $sectionId = trim($studentData['section_id'] ?? '');
+
+            if (empty($studentId) || empty($firstName) || empty($lastName)) {
+                return ['success' => false, 'message' => 'Required fields cannot be empty.'];
+            }
+
+            if (empty($sectionId)) {
+                return ['success' => false, 'message' => 'Error: No active section assigned to this session.'];
+            }
+
+            $query = "INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, gender) VALUES (:student_id, :section_id, :first_name, :middle_name, :last_name, :gender)";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+                ':first_name' => $firstName,
+                ':middle_name' => $middleName !== '' ? $middleName : null,
+                ':last_name' => $lastName,
+                ':gender' => $gender,
+            ]);
+
+            return ['success' => true, 'message' => 'Student added successfully.'];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+
+
+    public function getStudentsMasterlist(): array
+    {
+        try {
+            $query = "SELECT 
+                        s.status,
+                        s.student_id AS lrn,
+                        s.first_name,
+                        CONCAT(UPPER(LEFT(s.middle_name, 1)), '.') AS middle_initial,
+                        s.last_name,
+                        s.gender,
+                        s.present_count,
+                        s.absent_count,
+                        s.excused_count
+                    FROM students s
+                    INNER JOIN sections sec ON s.section_id = sec.section_id
+                    ORDER BY s.last_name, s.first_name";
+
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Masterlist error: " . $e->getMessage());
+            return [];
+        }
+    }
 }
 ?>
