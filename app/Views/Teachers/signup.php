@@ -4,6 +4,13 @@
 $message = $data['message'] ?? $_SESSION['auth_message'] ?? '';
 $message_type = $data['message_type'] ?? $_SESSION['auth_message_type'] ?? '';
 unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
+
+
+$gradesStmt = $pdo->query("SELECT DISTINCT grade_level FROM sections ORDER BY grade_level ASC");
+$grades = $gradesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$sectionsStmt = $pdo->query("SELECT section_id, grade_level, section_name FROM sections ORDER BY section_name ASC");
+$sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -94,21 +101,20 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                     <div class="input-row" id="advisory-container">
                         <div class="input-group">
                             <label for="assigned_grade_level">Assigned Grade Level</label>
-                            <select id="assigned_grade_level" name="assigned_grade_level" class="custom-select">
-                                <option selected>Grade 4</option>
-                                <option >Grade 5</option>
-                                <option >Grade 6</option>
+                            <select id="assigned_grade_level" name="assigned_grade_level" class="custom-select" required>
+                                <option value="" disabled selected>Select Grade Level</option>
+                                <?php foreach ($grades as $grade): ?>
+                                    <option value="<?= htmlspecialchars($grade['grade_level']) ?>">
+                                        <?= htmlspecialchars($grade['grade_level']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
 
                         <div class="input-group">
                             <label for="advisory_section">Advisory Section</label>
-                            <select id="advisory_section" name="advisory_section" class="custom-select">
-                                <option selected>Mabait</option>
-                                <option >Magalang</option>
-                                <option >Masipag</option>
-                                <option >Masayahin</option>
-                                <option >Matapat</option>
+                            <select id="advisory_section" name="advisory_section" class="custom-select" required>
+                                <option value="" disabled selected>Select Grade Level First</option>
                             </select>
                         </div>
                     </div>
@@ -123,5 +129,9 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
     
     <script src="/public/js/signup.js"></script>
     <script src="/public/js/manualAttendance.js"></script>
+    <script>
+        window.allSections = <?= json_encode($sections) ?>;
+    </script>
+    <script src="/public/js/gradeLevelSectionSignup.js"></script>
 </body>
 </html>

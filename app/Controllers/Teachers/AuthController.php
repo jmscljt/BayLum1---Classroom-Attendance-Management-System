@@ -8,13 +8,12 @@ require_once __DIR__ . '/TeachersController.php';
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $role               = $_POST['role'] ?? '';
                 $uniqueId           = $_POST['unique_id'] ?? '';
-                $firstName          = $_POST['first_name'] ?? '';
-                $lastName           = $_POST['last_name'] ?? '';
                 $email              = $_POST['email'] ?? '';
                 $password           = $_POST['password'] ?? '';
                 $confirmPassword    = $_POST['confirm_password'] ?? '';
-                $assignedGradeLevel = $_POST['assigned_grade_level'] ?? $_POST['grade_level'] ?? 'Not Applicable';
-                $advisorySection    = $_POST['advisory_section'] ?? $_POST['section'] ?? 'Not Applicable';
+                
+                // Capture the section_id sent from the dropdown value (which holds the section_id)
+                $sectionId = isset($_POST['advisory_section']) ? (int)$_POST['advisory_section'] : 0;
 
                 // Support both first_name/last_name (new) and combined name (old) fields
                 $firstName = $_POST['first_name'] ?? '';
@@ -35,13 +34,12 @@ require_once __DIR__ . '/TeachersController.php';
                     $email,
                     $password,
                     $confirmPassword,
-                    $assignedGradeLevel,
-                    $advisorySection
+                    $sectionId // Pass the integer section ID instead of text
                 );
 
                 // Checking if success for auto login after signup
                 if ($result['success']) {
-                    $teacherStmt = $this->pdo->prepare("SELECT * FROM teachers WHERE id = ?");
+                    $teacherStmt = $this->pdo->prepare("SELECT * FROM teachers WHERE user_id = ?");
                     $teacherStmt->execute([$result['insert_id']]);
                     $teacher = $teacherStmt->fetch(PDO::FETCH_ASSOC);
 

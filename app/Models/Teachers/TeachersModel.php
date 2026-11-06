@@ -14,9 +14,8 @@ class TeachersModel{
         string $lastName, 
         string $email, 
         string $password, 
-        string $confirmPassword, 
-        string $assignedGradeLevel, 
-        string $advisorySection
+        string $confirmPassword,
+        int $sectionId
     ): array
     {
         if ($password !== $confirmPassword) {
@@ -29,6 +28,12 @@ class TeachersModel{
 
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             return ['success' => false, 'message' => 'Invalid email format!'];
+        }
+
+        $sectionCheck = $this->pdo->prepare("SELECT COUNT(*) FROM sections WHERE section_id = ?");
+        $sectionCheck->execute([$sectionId]);
+        if ($sectionCheck->fetchColumn() === 0) {
+            return ['success' => false, 'message' => 'Invalid section selected. Please choose a valid grade and section.'];
         }
 
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
@@ -49,10 +54,10 @@ class TeachersModel{
         }
 
         try {
-            $query = "INSERT INTO teachers (user_id, role, full_name, first_name, last_name, email, password, assigned_grade_level, advisory_section) VALUES (:user_id, :role, :full_name, :first_name, :last_name, :email, :password, :assigned_grade_level, :advisory_section)";
-           
+            $query = "INSERT INTO teachers (user_id, role, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :role, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+       
             $stmt = $this->pdo->prepare($query);
-           
+        
             $stmt->bindParam(':user_id', $uniqueId, PDO::PARAM_STR);
             $stmt->bindParam(':role', $role, PDO::PARAM_STR);
             $stmt->bindParam(':full_name', $fullName, PDO::PARAM_STR);
@@ -60,8 +65,7 @@ class TeachersModel{
             $stmt->bindParam(':last_name', $lastName, PDO::PARAM_STR);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->bindParam(':password', $hashedPassword, PDO::PARAM_STR);
-            $stmt->bindParam(':assigned_grade_level', $assignedGradeLevel, PDO::PARAM_STR);
-            $stmt->bindParam(':advisory_section', $advisorySection, PDO::PARAM_STR);
+            $stmt->bindParam(':section_id', $sectionId, PDO::PARAM_INT);
 
             if ($stmt->execute()) {
                 return [
@@ -74,7 +78,7 @@ class TeachersModel{
         } catch (PDOException $e) {
             // Log the error for debugging
             error_log('Signup error: ' . $e->getMessage());
-            return ['success' => false, 'message' => 'Unable to create the account. The email may already be registered. Please contact support.'];
+            return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
         }
 
         return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
