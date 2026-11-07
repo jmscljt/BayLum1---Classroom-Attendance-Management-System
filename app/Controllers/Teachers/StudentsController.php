@@ -23,5 +23,10 @@ class StudentsController
         return $this->teachersModel->getStudentsMasterlist($sectionId);
     }
 
+    public function getStudentAbsences(string $studentId, int $sectionId): ?array
+    {
+        return $this->teachersModel->getStudentAbsences($studentId, $sectionId);
+    }
+
 }
 ?>

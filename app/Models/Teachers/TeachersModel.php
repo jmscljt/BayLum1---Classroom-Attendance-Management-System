@@ -516,9 +516,35 @@ class TeachersModel{
                         CONCAT(UPPER(LEFT(s.middle_name, 1)), '.') AS middle_initial,
                         s.last_name,
                         s.gender,
-                        s.present_count,
-                        s.absent_count,
-                        s.excused_count
+                        (
+                            SELECT COUNT(DISTINCT a.log_date)
+                            FROM attendance_logs a
+                            WHERE a.student_id = s.student_id
+                                AND a.attendance_status = 'Present'
+                        ) + (
+                            SELECT COUNT(DISTINCT r.attendance_date)
+                            FROM manual_attendance_records r
+                            WHERE r.student_id = CAST(s.student_id AS CHAR)
+                                AND r.attendance_type = 'time_in'
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM attendance_logs a
+                                    WHERE a.student_id = s.student_id
+                                        AND a.log_date = r.attendance_date
+                                )
+                        ) AS present_count,
+                        (
+                            SELECT COUNT(DISTINCT a.log_date)
+                            FROM attendance_logs a
+                            WHERE a.student_id = s.student_id
+                                AND a.attendance_status = 'Absent'
+                        ) AS absent_count,
+                        (
+                            SELECT COUNT(DISTINCT a.log_date)
+                            FROM attendance_logs a
+                            WHERE a.student_id = s.student_id
+                                AND a.attendance_status = 'Excused'
+                        ) AS excused_count
                     FROM students s
                     INNER JOIN sections sec ON s.section_id = sec.section_id
                     WHERE s.section_id = :section_id
@@ -531,6 +557,33 @@ class TeachersModel{
             error_log("Masterlist error: " . $e->getMessage());
             return [];
         }
+    }
+
+    public function getStudentAbsences(string $studentId, int $sectionId): ?array
+    {
+        $studentStmt = $this->pdo->prepare(
+            'SELECT 1
+             FROM students
+             WHERE student_id = :student_id AND section_id = :section_id
+             LIMIT 1'
+        );
+        $studentStmt->execute([
+            ':student_id' => $studentId,
+            ':section_id' => $sectionId,
+        ]);
+        if (!$studentStmt->fetchColumn()) {
+            return null;
+        }
+
+        $absenceStmt = $this->pdo->prepare(
+            "SELECT log_date, attendance_status, remarks
+             FROM attendance_logs
+             WHERE student_id = :student_id
+                AND attendance_status IN ('Absent', 'Excused')
+             ORDER BY log_date DESC, log_id DESC"
+        );
+        $absenceStmt->execute([':student_id' => $studentId]);
+        return $absenceStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ?>

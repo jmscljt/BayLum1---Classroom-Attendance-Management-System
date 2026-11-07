@@ -127,6 +127,41 @@ switch ($page) {
         $view = 'app/Views/Teachers/students.php';
         break;
 
+    case 'studentAbsences':
+        header('Content-Type: application/json; charset=utf-8');
+        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Please sign in to view student absences.']);
+            exit();
+        }
+
+        $studentId = $_GET['student_id'] ?? '';
+        if (!is_string($studentId) || preg_match('/^\d{1,19}$/D', $studentId) !== 1) {
+            http_response_code(400);
+            echo json_encode(['error' => 'A valid student ID is required.']);
+            exit();
+        }
+
+        try {
+            $controller = new StudentsController($pdo);
+            $absences = $controller->getStudentAbsences(
+                $studentId,
+                (int) ($_SESSION['section_id'] ?? 0)
+            );
+            if ($absences === null) {
+                http_response_code(404);
+                echo json_encode(['error' => 'Student not found in your assigned section.']);
+                exit();
+            }
+
+            echo json_encode(['absences' => $absences], JSON_INVALID_UTF8_SUBSTITUTE);
+        } catch (PDOException $e) {
+            error_log('Student absence lookup error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['error' => 'Unable to load absence records right now.']);
+        }
+        exit();
+
     case 'otherSectionHandled':
         $view = 'app/Views/Teachers/otherSectionHandled.php';
         break;
