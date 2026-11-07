@@ -131,6 +131,17 @@ class TeachersModel{
                 return ['success' => false, 'message' => 'Error: No active section assigned to this session.'];
             }
 
+            $duplicateCheck = $this->pdo->prepare(
+                "SELECT 1 FROM students WHERE student_id = :student_id LIMIT 1"
+            );
+            $duplicateCheck->execute([':student_id' => $studentId]);
+            if ($duplicateCheck->fetchColumn()) {
+                return [
+                    'success' => false,
+                    'message' => 'A student with this LRN already exists. Check the LRN or contact the school administrator if the existing record needs correction.',
+                ];
+            }
+
             $query = "INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, gender) VALUES (:student_id, :section_id, :first_name, :middle_name, :last_name, :gender)";
             $stmt = $this->pdo->prepare($query);
             $stmt->execute([
@@ -144,7 +155,19 @@ class TeachersModel{
 
             return ['success' => true, 'message' => 'Student added successfully.'];
         } catch (PDOException $e) {
-            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+            $errorInfo = $e->errorInfo;
+            if ((int)($errorInfo[1] ?? 0) === 1062) {
+                return [
+                    'success' => false,
+                    'message' => 'A student with this LRN already exists. Check the LRN or contact the school administrator if the existing record needs correction.',
+                ];
+            }
+
+            error_log('Add student error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Unable to add the student right now. Please try again or contact the school administrator.',
+            ];
         }
     }
 

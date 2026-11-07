@@ -60,7 +60,7 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Status</th>
+                                <th>Fingerprint Status</th>
                                 <th>LRN</th>
                                 <th>Student Name</th>
                                 <th>Gender</th>

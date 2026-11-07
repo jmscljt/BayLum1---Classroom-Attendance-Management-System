@@ -48,8 +48,13 @@ switch ($page) {
             // Automatically attach the section_id stored in the teacher's login session
             $_POST['section_id'] = $_SESSION['section_id'] ?? null;
             
-            $result = $controller->addStudent($_POST);
+            $_SESSION['student_form_result'] = $controller->addStudent($_POST);
+            header('Location: index.php?page=students');
+            exit();
         }
+
+        $result = $_SESSION['student_form_result'] ?? null;
+        unset($_SESSION['student_form_result']);
         
         $sectionId = (int)($_SESSION['section_id'] ?? 0);
         $masterlist = $controller->getStudentsMasterlist($sectionId);
