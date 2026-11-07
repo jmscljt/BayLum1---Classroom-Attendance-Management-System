@@ -88,7 +88,13 @@ class TeachersModel{
 
     public function handleLogin(string $loginInput, string $password): array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM teachers WHERE user_id = ? OR full_name = ?");
+        $stmt = $this->pdo->prepare(
+            "SELECT t.*, s.grade_level AS assigned_grade_level,
+                s.section_name AS advisory_section
+            FROM teachers t
+            LEFT JOIN sections s ON s.section_id = t.section_id
+            WHERE t.user_id = ? OR t.full_name = ?"
+        );
         $stmt->execute([$loginInput, $loginInput]);
         $teachers = $stmt->fetch(PDO::FETCH_ASSOC);
 

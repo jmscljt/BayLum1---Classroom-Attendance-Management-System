@@ -1,10 +1,12 @@
 <?php
-if (!isset($base_url)) {
-    $base_url = '';
+if (!isset($base_url)) { 
+    $base_url = ''; 
 }
 
-$assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
-$advisorySection = $_SESSION['advisory_section'] ?? 'Section';
+
+$assignedGrade = $_SESSION['assigned_grade_level'] ?? '';
+$advisorySection = $_SESSION['advisory_section'] ?? '';
+$displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
 ?>
 <div class="sidebar">
     <img src="/images/BL1-Logo.png" alt="Logo" class="sidebar-logo">
@@ -17,7 +19,7 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
             <i class="fa-solid fa-user-check"></i>Attendance Logs</a>
 
         <a href="<?php echo $base_url; ?>/index.php?page=students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-users"></i><?php echo htmlspecialchars($assignedGrade . ' - ' . $advisorySection . ' Students'); ?></a>
+            <i class="fa-solid fa-users"></i><?php echo htmlspecialchars($displayGrade . ' - ' . trim($advisorySection) . ' Students'); ?></a>
 
         <a href="<?php echo $base_url; ?>/index.php?page=otherSectionHandled" class="<?php echo ($currentPage == 'otherSectionHandled') ? 'active' : ''; ?>">
             <i class="fa-solid fa-building"></i>Other Sections Handled</a>
@@ -30,4 +32,3 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
 
     </div>
 </div>
-

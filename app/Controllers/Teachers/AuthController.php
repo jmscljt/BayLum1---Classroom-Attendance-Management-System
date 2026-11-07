@@ -47,7 +47,10 @@ require_once __DIR__ . '/TeachersController.php';
                         $_SESSION['user_logged_in'] = true;
                         $_SESSION['user_id'] = $teacher['id'];
                         $_SESSION['user_name'] = $teacher['full_name'];
-                        $_SESSION['temp_user_id_for_display'] = $result['user_id'];
+                        
+                        $_SESSION['assigned_grade_level'] = $user['assigned_grade_level'] ?? '';
+                        $_SESSION['advisory_section'] = $user['advisory_section'] ?? '';
+                        $_SESSION['section_id'] = $user['section_id'] ?? null;
 
                         $_SESSION['auth_message'] = "Account successfully created! Please log in.";
                         $_SESSION['auth_message_type'] = "success";
