@@ -11,10 +11,7 @@ $currentPage = 'attendanceLogs';
 $assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
 
-$searchDate = $_GET['attendance_date'] ?? date('Y-m-d');
-if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
-    $searchDate = date('Y-m-d');
-}
+$searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,9 +38,9 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                 </div>
 
                 <form method="GET" action="" class="filter-action-group">
-                    <input type="hidden" name="page" value="attendanceRecord">
-                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate); ?>">                    
-                    <button type="button" class="sync-btn"> Search Date
+                    <input type="hidden" name="page" value="attendanceLogs">
+                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?>">
+                    <button type="submit" class="sync-btn">Search Date
                     </button>
                 </form>
             </div>
@@ -62,9 +59,9 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                         </thead>
                         <tbody>
                             <tr>
-                                <td><?php echo htmlspecialchars($searchDate); ?></td>
-                                <td>0</td>
-                                <td>0</td>
+                                <td><?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo (int) $presentCount; ?></td>
+                                <td><?php echo (int) $absentCount; ?></td>
                                 <td>
                                     <button type="button" class="view-btn" onclick="openAttendanceModal()">
                                         View Logs
@@ -97,15 +94,23 @@ if (!DateTime::createFromFormat('Y-m-d', $searchDate)) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><?php echo htmlspecialchars($searchDate); ?></td>
-                                <td>107989120052</td>
-                                <td>James Gabriel Calajate</td>
-                                <td>Male</td>
-                                <td>08:00 AM</td>
-                                <td>03:00 PM</td>
-                                <td>Manual</td>
-                            </tr>
+                            <?php if (empty($attendanceLogs)): ?>
+                                <tr>
+                                    <td colspan="7">No manual attendance records for this date.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($attendanceLogs as $log): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($log['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars(trim($log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . $log['last_name']), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo $log['time_in'] ? htmlspecialchars(date('h:i A', strtotime($log['time_in'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
+                                        <td><?php echo $log['time_out'] ? htmlspecialchars(date('h:i A', strtotime($log['time_out'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
+                                        <td>Manual</td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

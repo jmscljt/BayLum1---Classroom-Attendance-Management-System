@@ -37,6 +37,21 @@ $currentPage = 'dashboard';
                 </div>
             </div>
 
+            <div class="table-section-card">
+                <h3>Your Manual Attendance Codes</h3>
+                <p>Enter the code once to open a session and again to close it. Students can enter their LRN while the session is open.</p>
+                <div class="metrics-grid">
+                    <div class="metric-card metric-card-blue">
+                        <span class="metric-title">Time In Code</span>
+                        <span class="metric-value"><?php echo htmlspecialchars($attendanceCodes['time_in'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    </div>
+                    <div class="metric-card metric-card-blue">
+                        <span class="metric-title">Time Out Code</span>
+                        <span class="metric-value"><?php echo htmlspecialchars($attendanceCodes['time_out'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Metric Summary Cards with Colored Borders & Shadows -->
             <div class="metrics-grid">
                 <div class="metric-card metric-card-blue">

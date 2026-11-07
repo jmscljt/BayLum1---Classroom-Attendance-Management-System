@@ -20,13 +20,12 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 
     <div class="manual-attendance-card">
         <h3>Manual Attendance</h3>
-        <form method="POST" action="process_manual_attendance.php" class="manual-attendance-form">
+        <form method="POST" action="index.php?page=manualAttendance" class="manual-attendance-form">
             <div class="input-group">
-                <input type="text" name="manual_attendance" placeholder="Enter LRN or Attendance Code" class="lrn-input" required>
+                <input type="text" name="manual_attendance" placeholder="Enter adviser code or student LRN" class="lrn-input" inputmode="numeric" autocomplete="off" maxlength="19" required>
             </div>
             <button type="submit" class="add-attendance-btn">Enter</button>
         </form>
-        <span class="demo-badge">For Demo Only</span>
     </div>
 
     <div class="side-cover">

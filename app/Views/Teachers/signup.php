@@ -27,9 +27,9 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="manual-attendance-card">
         <h3>Manual Attendance</h3>
-        <form method="POST" action="process_manual_attendance.php" class="manual-attendance-form">
+        <form method="POST" action="index.php?page=manualAttendance" class="manual-attendance-form">
             <div class="input-group">
-                <input type="text" name="manual_attendance" placeholder="Enter LRN or Attendance Code" class="lrn-input" required>
+                <input type="text" name="manual_attendance" placeholder="Enter adviser code or student LRN" class="lrn-input" inputmode="numeric" autocomplete="off" maxlength="19" required>
             </div>
             <button type="submit" class="add-attendance-btn">Enter</button>
         </form>

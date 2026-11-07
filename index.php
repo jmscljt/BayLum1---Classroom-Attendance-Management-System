@@ -1,11 +1,13 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Manila');
 require_once 'config/database.php';
 
 // Teachers Side
 require_once 'app/Controllers/Teachers/AuthController.php';
 require_once 'app/Controllers/Teachers/LogoutController.php';
 require_once 'app/Controllers/Teachers/TeachersController.php';
+require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
 
 // Students Info
 require_once 'app/Controllers/Teachers/StudentsController.php';
@@ -16,6 +18,28 @@ $page = $_GET['page'] ?? 'login';
 $currentPage = $page;
 
 switch ($page) {
+
+    case 'manualAttendance':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: index.php?page=login');
+            exit();
+        }
+
+        try {
+            $controller = new ManualAttendanceController($pdo);
+            $result = $controller->process($_POST['manual_attendance'] ?? '');
+        } catch (PDOException | RuntimeException $e) {
+            error_log('Manual attendance error: ' . $e->getMessage());
+            $result = [
+                'success' => false,
+                'message' => 'Attendance could not be processed. Check that the manual-attendance database setup has been applied.',
+            ];
+        }
+
+        $_SESSION['auth_message'] = $result['message'];
+        $_SESSION['auth_message_type'] = $result['success'] ? 'success' : 'error';
+        header('Location: index.php?page=login');
+        exit();
 
     case 'signup':
         $controller = new AuthController($pdo);
@@ -35,10 +59,40 @@ switch ($page) {
         exit();
 
     case 'dashboard':
+        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
+            header('Location: index.php?page=login');
+            exit();
+        }
+        $teachersModel = new TeachersModel($pdo);
+        $attendanceCodes = $teachersModel->getOrCreateAttendanceCodes((int) $_SESSION['user_id']);
         $view = 'app/Views/Teachers/dashboard.php';
         break;
 
     case 'attendanceLogs':
+        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
+            header('Location: index.php?page=login');
+            exit();
+        }
+        $searchDate = $_GET['attendance_date'] ?? date('Y-m-d');
+        $parsedDate = is_string($searchDate)
+            ? DateTime::createFromFormat('!Y-m-d', $searchDate)
+            : false;
+        if (!$parsedDate || $parsedDate->format('Y-m-d') !== $searchDate) {
+            $searchDate = date('Y-m-d');
+        }
+        $teachersModel = new TeachersModel($pdo);
+        $sectionId = (int) ($_SESSION['section_id'] ?? 0);
+        $attendanceLogs = $teachersModel->getManualAttendanceLogs(
+            (int) $_SESSION['user_id'],
+            $sectionId,
+            $searchDate
+        );
+        $presentCount = count(array_filter(
+            $attendanceLogs,
+            static fn(array $log): bool => !empty($log['time_in'])
+        ));
+        $studentCount = $teachersModel->getSectionStudentCount($sectionId);
+        $absentCount = max(0, $studentCount - $presentCount);
         $view = 'app/Views/Teachers/attendanceLogs.php';
         break;
 
