@@ -51,7 +51,9 @@ switch ($page) {
             $result = $controller->addStudent($_POST);
         }
         
-        $masterlist = $controller->getStudentsMasterlist();
+        $sectionId = (int)($_SESSION['section_id'] ?? 0);
+        $masterlist = $controller->getStudentsMasterlist($sectionId);
+        $studentCount = count($masterlist);
         $view = 'app/Views/Teachers/students.php';
         break;
 

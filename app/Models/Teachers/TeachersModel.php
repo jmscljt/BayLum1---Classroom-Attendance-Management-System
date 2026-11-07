@@ -150,7 +150,7 @@ class TeachersModel{
 
 
 
-    public function getStudentsMasterlist(): array
+    public function getStudentsMasterlist(int $sectionId): array
     {
         try {
             $query = "SELECT 
@@ -165,10 +165,11 @@ class TeachersModel{
                         s.excused_count
                     FROM students s
                     INNER JOIN sections sec ON s.section_id = sec.section_id
+                    WHERE s.section_id = :section_id
                     ORDER BY s.last_name, s.first_name";
 
             $stmt = $this->pdo->prepare($query);
-            $stmt->execute();
+            $stmt->execute([':section_id' => $sectionId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Masterlist error: " . $e->getMessage());

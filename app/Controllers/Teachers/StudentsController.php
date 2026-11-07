@@ -18,9 +18,9 @@ class StudentsController
         return $this->teachersModel->addStudent($studentData);
     }
 
-    public function getStudentsMasterlist(): array
+    public function getStudentsMasterlist(int $sectionId): array
     {
-        return $this->teachersModel->getStudentsMasterlist();
+        return $this->teachersModel->getStudentsMasterlist($sectionId);
     }
 
 }
