@@ -31,8 +31,8 @@
 
 .manual-attendance-card {
     position: absolute; /* Takes it out of the flex flow */
-    top: 15px;         
-    left: 780px;
+    top: 60px;
+    left: 20px;
     width: 280px;
     height: 140px;
     z-index: 10;        
@@ -50,9 +50,9 @@
 
 .manual-attendance-btn-wrapper {
     position: absolute;
-    top: 15px;          /* Distance from the top of .side-cover */
-    left: 1300px;         
-    right: 20px;      
+    top: 15px;
+    left: 20px;
+    width: 200px;
     z-index: 10;       
 }
 
