@@ -471,6 +471,39 @@ class TeachersModel{
         return (int) $stmt->fetchColumn();
     }
 
+    public function getDashboardAttendanceMetrics(int $teacherId, int $sectionId, string $date): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                (SELECT COUNT(*)
+                 FROM students
+                 WHERE section_id = :section_id) AS total_advisory_students,
+                (SELECT COUNT(DISTINCT student_id)
+                 FROM manual_attendance_records
+                 WHERE teacher_id = :teacher_id
+                    AND section_id = :attendance_section_id
+                    AND attendance_date = :attendance_date
+                    AND attendance_type = 'time_in') AS present_students_advisory"
+        );
+        $stmt->execute([
+            ':section_id' => $sectionId,
+            ':teacher_id' => $teacherId,
+            ':attendance_section_id' => $sectionId,
+            ':attendance_date' => $date,
+        ]);
+        $metrics = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $totalAdvisoryStudents = (int) $metrics['total_advisory_students'];
+        $presentStudentsAdvisory = (int) $metrics['present_students_advisory'];
+
+        return [
+            'totalAdvisoryStudents' => $totalAdvisoryStudents,
+            'presentStudentsAdvisory' => $presentStudentsAdvisory,
+            'absentStudentsAdvisory' => max(0, $totalAdvisoryStudents - $presentStudentsAdvisory),
+            'totalAssignedStudents' => $totalAdvisoryStudents,
+        ];
+    }
+
 
 
     public function getStudentsMasterlist(int $sectionId): array

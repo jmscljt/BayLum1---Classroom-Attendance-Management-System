@@ -64,7 +64,7 @@ $currentPage = 'dashboard';
                 </div>
                 <div class="metric-card metric-card-blue">
                     <span class="metric-title">Total Assigned Students</span>
-                    <span class="metric-value"><?php echo isset($totalAssignedStudents) ? $totalAssignedStudents : '0'; ?></span>
+                    <span class="metric-values"><?php echo isset($totalAssignedStudents) ? $totalAssignedStudents : '0'; ?></span>
                 </div>
             </div>
 

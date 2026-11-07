@@ -64,7 +64,18 @@ switch ($page) {
             exit();
         }
         $teachersModel = new TeachersModel($pdo);
-        $attendanceCodes = $teachersModel->getOrCreateAttendanceCodes((int) $_SESSION['user_id']);
+        $teacherId = (int) $_SESSION['user_id'];
+        $sectionId = (int) ($_SESSION['section_id'] ?? 0);
+        $attendanceCodes = $teachersModel->getOrCreateAttendanceCodes($teacherId);
+        $dashboardMetrics = $teachersModel->getDashboardAttendanceMetrics(
+            $teacherId,
+            $sectionId,
+            date('Y-m-d')
+        );
+        $totalAdvisoryStudents = $dashboardMetrics['totalAdvisoryStudents'];
+        $presentStudentsAdvisory = $dashboardMetrics['presentStudentsAdvisory'];
+        $absentStudentsAdvisory = $dashboardMetrics['absentStudentsAdvisory'];
+        $totalAssignedStudents = $dashboardMetrics['totalAssignedStudents'];
         $view = 'app/Views/Teachers/dashboard.php';
         break;
 
