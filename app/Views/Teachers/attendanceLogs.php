@@ -34,7 +34,7 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
         <div class="attendance-container">           
             <div class="overview-header-row">
                 <div class="overview-titles">
-                    <h2>CLASS ATTENDANCE - <?php echo htmlspecialchars('('. $assignedGrade . ' - ' . $advisorySection . ')'); ?></h2>
+                    <h2>CLASS ATTENDANCE</h2>
                 </div>
 
                 <form method="GET" action="" class="filter-action-group">
@@ -46,7 +46,7 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
             </div>
 
             <div class="table-section-card">
-                <h4>Attendance Record Summary</h4>
+                <h4>Attendance Record Summary of <?php echo htmlspecialchars($assignedGrade . ' ' . $advisorySection); ?></h4>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>

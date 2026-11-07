@@ -468,14 +468,46 @@ header {
     margin-bottom: 25px;
 }
 
+.attendance-codes-section {
+    position: relative;
+    width: 80%;
+    height: 205px;
+    box-sizing: border-box;
+    left: 120px;
+    margin-bottom: 25px;
+}
+
+.attendance-codes-title,
+.attendance-codes-description {
+    max-width: 100%;
+    margin-bottom: 10px;
+}
+
+.attendance-code-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.time-in-code-card {
+    flex: 1 1 220px;
+    min-height: 80px;
+}
+
+.time-out-code-card {
+    flex: 1 1 220px;
+    min-height: 80px;
+}
+
 .metric-card {
     background: #ffffff;
-    padding: 20px;
+    padding: 18px;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    min-height: 85px;
+    min-height: 80px;
     box-sizing: border-box;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -501,14 +533,6 @@ header {
     font-weight: bold;
     color: #1a202c;
     min-height: 34px;
-}
-
-.text-blue { 
-    color: #0056b3; 
-}
-
-.text-red { 
-    color: #da2222; 
 }
 
 .table-section-card {
