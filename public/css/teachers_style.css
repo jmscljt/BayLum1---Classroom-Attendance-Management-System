@@ -996,36 +996,82 @@ header {
 
 /* ===== Other Section Handled - Start ===== */
 
-.student-buttons-section {
+.assigned-section-container .student-buttons-section {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
 }
 
-.grade-btn, .section-btn, .subject-btn, .add-section-btn {
+.assigned-section-container .student-buttons-section h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.add-section-form-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.grade-btn, .section-btn, .subject-btn {
+    width: auto;
+    min-width: 150px;
+    padding: 8px 12px;
+    margin: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: normal;
+    background-color: #ffffff;
+    color: #333;
+    box-sizing: border-box;
+}
+
+.grade-btn:focus, .section-btn:focus, .subject-btn:focus {
+    outline: none;
+    border-color: #0056b3;
+}
+
+.add-section-btn {
     width: auto;
     padding: 0 16px;
     height: 38px;
     margin: 0;
-    border: 1.5px solid #0056b3;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
     border-radius: 6px;
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
-.grade-btn, .section-btn, .subject-btn {
-    background-color: #ffffff;
-    color: #0056b3;
-    border-color: #cbd5e1;
+.add-section-btn:hover {
+    background-color: #004085;
 }
 
-.add-section-btn {
-    background-color: #0056b3;
-    color: #ffffff;
+/* Assigned sections table */
+.assigned-sections-table {
+    margin-top: 20px;
 }
 
+.assigned-sections-table .action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.assigned-sections-table .action-buttons button {
+    margin: 0;
+}
+
+.assigned-sections-table .no-data-cell {
+    text-align: center;
+    color: #64748b;
+}
 
 /* ===== Other Section Handled - End ===== */
