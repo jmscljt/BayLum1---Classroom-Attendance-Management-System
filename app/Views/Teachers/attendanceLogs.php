@@ -12,9 +12,10 @@ $assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
 
 $searchDate = $searchDate ?? null;
+$logDate = $logDate ?? $searchDate;
 $attendanceSummaries = $attendanceSummaries ?? [];
 $showLogs = $showLogs ?? false;
-$displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate)) : '';
+$displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -79,7 +80,8 @@ $displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate
                                             <?php
                                             $logsUrl = 'index.php?' . http_build_query([
                                                     'page' => 'attendanceLogs',
-                                                    'attendance_date' => $summaryDate,
+                                                    'attendance_date' => $searchDate,
+                                                    'log_date' => $summaryDate,
                                                     'show_logs' => '1',
                                             ]);
                                             ?>
@@ -96,7 +98,7 @@ $displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate
             </div>
         </div>
 
-        <?php if ($searchDate !== null): ?>
+        <?php if ($logDate !== null): ?>
         <div id="attendanceModal" class="attendance-modal-overlay">
             <div class="attendance-modal-content">
                 <div class="modal-header-row">
@@ -124,7 +126,7 @@ $displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate
                             <?php else: ?>
                                 <?php foreach ($attendanceLogs as $log): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars(date('M j, Y', strtotime($searchDate)), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars(date('M j, Y', strtotime($logDate)), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars(trim($log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . $log['last_name']), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
@@ -143,7 +145,7 @@ $displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate
     </main>
 
     <script src="/public/js/attendanceRecord.js"></script>
-    <?php if ($searchDate !== null && $showLogs): ?>
+    <?php if ($logDate !== null && $showLogs): ?>
         <script>openAttendanceModal();</script>
     <?php endif; ?>
     

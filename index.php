@@ -124,6 +124,7 @@ switch ($page) {
         $controller = new AttendanceLogsController($pdo);
         $pageData = $controller->getPageData($_SESSION, $_GET);
         $searchDate = $pageData['searchDate'];
+        $logDate = $pageData['logDate'];
         $attendanceSummaries = $pageData['attendanceSummaries'];
         $attendanceLogs = $pageData['attendanceLogs'];
         $showLogs = $pageData['showLogs'];

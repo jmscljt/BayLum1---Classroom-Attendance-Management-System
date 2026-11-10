@@ -23,10 +23,17 @@ class AttendanceLogsController extends TeachersController
         $sectionId = (int) ($session['section_id'] ?? 0);
         $teacherId = (int) $session['user_id'];
         $showLogs = ($query['show_logs'] ?? '') === '1';
+        $requestedLogDate = $query['log_date'] ?? $requestedDate;
+        $parsedLogDate = is_string($requestedLogDate) && $requestedLogDate !== ''
+            ? DateTime::createFromFormat('!Y-m-d', $requestedLogDate)
+            : false;
+        if (!$parsedLogDate || $parsedLogDate->format('Y-m-d') !== $requestedLogDate) {
+            $requestedLogDate = null;
+        }
         $attendanceSummaries = $this->getManualAttendanceSummaries(
             $teacherId,
             $sectionId,
-            $showLogs ? null : $requestedDate
+            $requestedDate
         );
         $totalStudents = $this->getSectionStudentCount($sectionId);
         foreach ($attendanceSummaries as &$summary) {
@@ -35,12 +42,15 @@ class AttendanceLogsController extends TeachersController
         }
         unset($summary);
 
-        $attendanceLogs = $requestedDate === null
+        $attendanceLogs = !$showLogs && $requestedDate === null
             ? []
-            : $this->getManualAttendanceLogs($teacherId, $sectionId, $requestedDate);
+            : ($requestedLogDate === null
+                ? []
+                : $this->getManualAttendanceLogs($teacherId, $sectionId, $requestedLogDate));
 
         return [
             'searchDate' => $requestedDate,
+            'logDate' => $requestedLogDate,
             'attendanceSummaries' => $attendanceSummaries,
             'attendanceLogs' => $attendanceLogs,
             'showLogs' => $showLogs,
