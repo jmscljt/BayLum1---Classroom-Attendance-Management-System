@@ -20,7 +20,7 @@ require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 $base_url = '';
 
 $page = $_GET['page'] ?? 'login';
-
+$currentPage = $page; // Set the current page for navigation highlighting
 
 
 // Admin routing through index.php (page=admin_{resource})
@@ -124,9 +124,9 @@ switch ($page) {
         $controller = new AttendanceLogsController($pdo);
         $pageData = $controller->getPageData($_SESSION, $_GET);
         $searchDate = $pageData['searchDate'];
+        $attendanceSummaries = $pageData['attendanceSummaries'];
         $attendanceLogs = $pageData['attendanceLogs'];
-        $presentCount = $pageData['presentCount'];
-        $absentCount = $pageData['absentCount'];
+        $showLogs = $pageData['showLogs'];
         $view = 'app/Views/Teachers/attendanceLogs.php';
         break;
 

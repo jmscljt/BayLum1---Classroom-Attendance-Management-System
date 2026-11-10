@@ -12,30 +12,38 @@ class AttendanceLogsController extends TeachersController
             exit();
         }
 
-        $requestedDate = $query['attendance_date'] ?? date('Y-m-d');
-        $parsedDate = is_string($requestedDate)
+        $requestedDate = $query['attendance_date'] ?? null;
+        $parsedDate = is_string($requestedDate) && $requestedDate !== ''
             ? DateTime::createFromFormat('!Y-m-d', $requestedDate)
             : false;
         if (!$parsedDate || $parsedDate->format('Y-m-d') !== $requestedDate) {
-            $requestedDate = date('Y-m-d');
+            $requestedDate = null;
         }
 
         $sectionId = (int) ($session['section_id'] ?? 0);
-        $attendanceLogs = $this->getManualAttendanceLogs(
-            (int) $session['user_id'],
+        $teacherId = (int) $session['user_id'];
+        $showLogs = ($query['show_logs'] ?? '') === '1';
+        $attendanceSummaries = $this->getManualAttendanceSummaries(
+            $teacherId,
             $sectionId,
-            $requestedDate
+            $showLogs ? null : $requestedDate
         );
-        $presentCount = count(array_filter(
-            $attendanceLogs,
-            static fn(array $log): bool => !empty($log['time_in'])
-        ));
+        $totalStudents = $this->getSectionStudentCount($sectionId);
+        foreach ($attendanceSummaries as &$summary) {
+            $summary['present_count'] = (int) $summary['present_count'];
+            $summary['absent_count'] = max(0, $totalStudents - $summary['present_count']);
+        }
+        unset($summary);
+
+        $attendanceLogs = $requestedDate === null
+            ? []
+            : $this->getManualAttendanceLogs($teacherId, $sectionId, $requestedDate);
 
         return [
             'searchDate' => $requestedDate,
+            'attendanceSummaries' => $attendanceSummaries,
             'attendanceLogs' => $attendanceLogs,
-            'presentCount' => $presentCount,
-            'absentCount' => max(0, $this->getSectionStudentCount($sectionId) - $presentCount),
+            'showLogs' => $showLogs,
         ];
     }
 }

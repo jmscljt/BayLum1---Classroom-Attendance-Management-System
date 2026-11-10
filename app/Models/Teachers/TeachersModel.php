@@ -462,6 +462,30 @@ class TeachersModel{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getManualAttendanceSummaries(int $teacherId, int $sectionId, ?string $date = null): array
+    {
+        $dateCondition = $date === null ? '' : ' AND attendance_date = :attendance_date';
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                attendance_date,
+                COUNT(DISTINCT CASE WHEN attendance_type = 'time_in' THEN student_id END) AS present_count
+             FROM manual_attendance_records
+             WHERE teacher_id = :teacher_id
+                AND section_id = :section_id{$dateCondition}
+             GROUP BY attendance_date
+             ORDER BY attendance_date DESC"
+        );
+        $parameters = [
+            ':teacher_id' => $teacherId,
+            ':section_id' => $sectionId,
+        ];
+        if ($date !== null) {
+            $parameters[':attendance_date'] = $date;
+        }
+        $stmt->execute($parameters);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getRecentAttendanceActivity(int $teacherId, int $sectionId): array
     {
         $stmt = $this->pdo->prepare(

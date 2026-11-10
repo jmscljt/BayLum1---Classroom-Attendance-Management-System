@@ -11,7 +11,10 @@ $currentPage = 'attendanceLogs';
 $assignedGrade   = $_SESSION['assigned_grade_level'] ?? 'Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Section';
 
-$searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
+$searchDate = $searchDate ?? null;
+$attendanceSummaries = $attendanceSummaries ?? [];
+$showLogs = $showLogs ?? false;
+$displaySearchDate = $searchDate !== null ? date('M j, Y', strtotime($searchDate)) : '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,7 +42,7 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
 
                 <form method="GET" action="" class="filter-action-group">
                     <input type="hidden" name="page" value="attendanceLogs">
-                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="date" name="attendance_date" class="date-filter-input" value="<?php echo htmlspecialchars($searchDate ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                     <button type="submit" class="sync-btn">Search Date
                     </button>
                 </form>
@@ -58,26 +61,46 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td><?php echo (int) $presentCount; ?></td>
-                                <td><?php echo (int) $absentCount; ?></td>
-                                <td>
-                                    <button type="button" class="view-btn" onclick="openAttendanceModal()">
-                                        View Logs
-                                    </button>
-                                </td>
-                            </tr>
+                            <?php if (empty($attendanceSummaries)): ?>
+                                <tr>
+                                    <td colspan="4"><?php echo $searchDate === null ? 'No attendance records have been recorded yet.' : 'No attendance record for this day.'; ?></td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($attendanceSummaries as $summary): ?>
+                                    <?php
+                                    $summaryDate = $summary['attendance_date'];
+                                    $summaryDisplayDate = date('M j, Y', strtotime($summaryDate));
+                                    ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($summaryDisplayDate, ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo (int) $summary['present_count']; ?></td>
+                                        <td><?php echo (int) $summary['absent_count']; ?></td>
+                                        <td>
+                                            <?php
+                                            $logsUrl = 'index.php?' . http_build_query([
+                                                    'page' => 'attendanceLogs',
+                                                    'attendance_date' => $summaryDate,
+                                                    'show_logs' => '1',
+                                            ]);
+                                            ?>
+                                            <button type="button" class="view-btn" onclick="<?php echo $searchDate !== null && !$showLogs ? 'openAttendanceModal()' : 'window.location.href=\'' . htmlspecialchars($logsUrl, ENT_QUOTES, 'UTF-8') . '\''; ?>">
+                                                View Logs
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
+        <?php if ($searchDate !== null): ?>
         <div id="attendanceModal" class="attendance-modal-overlay">
             <div class="attendance-modal-content">
                 <div class="modal-header-row">
-                    <h3>Attendance for <?php echo htmlspecialchars($searchDate); ?></h3>
+                    <h3>Attendance for <?php echo htmlspecialchars($displaySearchDate, ENT_QUOTES, 'UTF-8'); ?></h3>
                     <button type="button" class="close-modal-btn" onclick="closeAttendanceModal()">&times;</button>
                 </div>
                 <div class="table-responsive">
@@ -96,12 +119,12 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
                         <tbody>
                             <?php if (empty($attendanceLogs)): ?>
                                 <tr>
-                                    <td colspan="7">No manual attendance records for this date.</td>
+                                    <td colspan="7">No attendance record for this day.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($attendanceLogs as $log): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($searchDate, ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars(date('M j, Y', strtotime($searchDate)), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars(trim($log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . $log['last_name']), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
@@ -116,9 +139,13 @@ $searchDate = $searchDate ?? ($_GET['attendance_date'] ?? date('Y-m-d'));
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </main>
 
     <script src="/public/js/attendanceRecord.js"></script>
+    <?php if ($searchDate !== null && $showLogs): ?>
+        <script>openAttendanceModal();</script>
+    <?php endif; ?>
     
 </body>
 </html>
