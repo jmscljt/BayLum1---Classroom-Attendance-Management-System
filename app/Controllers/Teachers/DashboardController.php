@@ -19,6 +19,7 @@ class DashboardController extends TeachersController
             $sectionId,
             date('Y-m-d')
         );
+        $recentAttendanceActivity = $this->getRecentAttendanceActivity($teacherId, $sectionId);
 
         return [
             'attendanceCodes' => $this->getOrCreateAttendanceCodes($teacherId),
@@ -26,6 +27,7 @@ class DashboardController extends TeachersController
             'presentStudentsAdvisory' => $dashboardMetrics['presentStudentsAdvisory'],
             'absentStudentsAdvisory' => $dashboardMetrics['absentStudentsAdvisory'],
             'totalAssignedStudents' => $dashboardMetrics['totalAssignedStudents'],
+            'recentAttendanceActivity' => $recentAttendanceActivity,
         ];
     }
 }

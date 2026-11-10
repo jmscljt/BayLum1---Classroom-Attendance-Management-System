@@ -462,6 +462,34 @@ class TeachersModel{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getRecentAttendanceActivity(int $teacherId, int $sectionId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                r.recorded_at,
+                r.attendance_type,
+                s.student_id AS lrn,
+                s.first_name,
+                s.middle_name,
+                s.last_name,
+                sec.grade_level,
+                sec.section_name
+             FROM manual_attendance_records r
+             INNER JOIN students s
+                ON s.student_id = r.student_id AND s.section_id = r.section_id
+             INNER JOIN sections sec ON sec.section_id = r.section_id
+             WHERE r.teacher_id = :teacher_id
+                AND r.section_id = :section_id
+             ORDER BY r.recorded_at DESC, r.id DESC
+             LIMIT 10"
+        );
+        $stmt->execute([
+            ':teacher_id' => $teacherId,
+            ':section_id' => $sectionId,
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getSectionStudentCount(int $sectionId): int
     {
         $stmt = $this->pdo->prepare(

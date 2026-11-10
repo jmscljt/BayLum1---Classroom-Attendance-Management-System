@@ -94,27 +94,39 @@ $currentPage = 'dashboard';
                         <thead>
                             <tr>
                                 <th>Time</th>
-                                <th>Status</th>
+                                <th>LRN</th>
                                 <th>Student Name</th>
                                 <th>Grade & Section</th>
-                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
-                            /* 
-                              while($row = mysqli_fetch_assoc($scanResult)) {
-                                echo "<tr>
-                                        <td>{$row['time']}</td>
-                                        <td><span class='badge " . ($row['status'] == 'Time - In' ? 'time-in' : 'time-out') . "'>{$row['status']}</span></td>
-                                        <td>{$row['student_name']}</td>
-                                        <td>{$row['lrn']}</td>
-                                        <td>{$row['grade_section']}</td>
-                                        <td>{$row['verification_status']}</td>
-                                      </tr>";
-                              }
-                            */ 
-                            ?>
+                            <?php if (empty($recentAttendanceActivity)): ?>
+                                <tr>
+                                    <td colspan="5">No attendance activity recorded yet.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($recentAttendanceActivity as $activity): ?>
+                                    <?php
+                                    $attendanceType = $activity['attendance_type'];
+                                    $statusLabel = $attendanceType === 'time_in' ? 'Time - In' : 'Time - Out';
+                                    $studentName = trim(
+                                        $activity['first_name'] . ' ' .
+                                        ($activity['middle_name'] ?? '') . ' ' .
+                                        $activity['last_name']
+                                    );
+                                    ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars(date('h:i A', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($activity['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($activity['grade_level'] . ' ' . $activity['section_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars(date('M d, Y', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><span class="badge <?php echo $attendanceType === 'time_in' ? 'time-in' : 'time-out'; ?>"><?php echo htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

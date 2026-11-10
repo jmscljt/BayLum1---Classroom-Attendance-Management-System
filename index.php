@@ -3,21 +3,91 @@ session_start();
 date_default_timezone_set('Asia/Manila');
 require_once 'config/database.php';
 
-// Teachers Side
+// Teachers/Users Controllers
 require_once 'app/Controllers/Teachers/AuthController.php';
 require_once 'app/Controllers/Teachers/LogoutController.php';
 require_once 'app/Controllers/Teachers/TeachersController.php';
 require_once 'app/Controllers/Teachers/DashboardController.php';
 require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
+require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 
-// Students Info
-require_once 'app/Controllers/Teachers/StudentsController.php';
+//Admin Controllers
+
+
+
 
 $base_url = '';
 
 $page = $_GET['page'] ?? 'login';
-$currentPage = $page;
+
+
+
+// Admin routing through index.php (page=admin_{resource})
+if (strpos($page, 'admin_') === 0) {
+    $adminPage = substr($page, 6);
+
+    // Public admin pages
+    if ($adminPage === 'login') {
+        $view = 'app/Views/admin/login.php';
+        include $view;
+        exit();
+    }
+    if ($adminPage === 'signup') {
+        header('Location: index.php?page=admin_login');
+        exit();
+    }
+    if ($adminPage === 'authenticate') {
+        $controller = new AdminAuthController($pdo);
+        $controller->handleLogin($_POST);
+        exit();
+    }
+    if ($adminPage === 'register') {
+        $controller = new AdminAuthController($pdo);
+        $controller->handleSignup($_POST);
+        exit();
+    }
+
+    // Protected admin pages - require authentication
+    if (!isset($_SESSION['admin_logged_in'])) {
+        header('Location: index.php?page=admin_login');
+        exit();
+    }
+
+    switch ($adminPage) {
+        case 'logout':
+            $controller = new AdminAuthController($pdo);
+            $controller->handleLogout();
+            exit();
+
+        case 'dashboard':
+            $view = 'app/Views/admin/dashboard.php';
+            break;
+
+        case 'users':
+            $view = 'app/Views/admin/users.php';
+            break;
+
+        case 'activity_log':
+            $view = 'app/Views/admin/activity_log.php';
+            break;
+
+        case 'settings':
+            $view = 'app/Views/admin/settings.php';
+            break;
+
+        default:
+            header('Location: index.php?page=admin_dashboard');
+            exit();
+    }
+
+    if (isset($view)) {
+        include $view;
+    }
+    exit();
+}
+
+
 
 switch ($page) {
 
@@ -46,6 +116,7 @@ switch ($page) {
         $presentStudentsAdvisory = $pageData['presentStudentsAdvisory'];
         $absentStudentsAdvisory = $pageData['absentStudentsAdvisory'];
         $totalAssignedStudents = $pageData['totalAssignedStudents'];
+        $recentAttendanceActivity = $pageData['recentAttendanceActivity'];
         $view = 'app/Views/Teachers/dashboard.php';
         break;
 
@@ -87,7 +158,7 @@ switch ($page) {
         break;
         
     default:
-        $view = 'app/Views/Teachers/login.php';
+        $view = 'app/Views/Teachers/dashboard.php';
         break;
 }
 
