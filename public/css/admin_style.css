@@ -1,0 +1,221 @@
+/* ===== Notification ===== */
+
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert span {
+    display: inline-block;
+}
+
+
+/* ===== Base ===== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f4f7f6;
+    color: #1a202c;
+}
+
+a {
+    text-decoration: none;
+}
+
+html:has(.side-cover),
+body:has(.side-cover) {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+body:has(.side-cover) {
+    display: flex;
+    background-color: #ffffff;
+}
+
+
+/* ===== Left Side Cover ===== */
+
+.side-cover {
+    width: 50%;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #111;
+}
+
+.cover-image {
+    width: 100%;
+    height: 20%;
+    object-fit: cover;
+}
+
+.gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0, 74, 173, 0.50) 25%, rgba(217, 217, 217, 0.50) 85%);
+    pointer-events: none;
+}
+
+
+/* ===== Right Side Form ===== */
+
+.form-wrapper {
+    width: 50%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 15px 20px;
+    overflow-y: auto;
+}
+
+.form-box {
+    width: 100%;
+    max-width: 400px;
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.login-card,
+.signup-card {
+    width: 100%;
+    text-align: center;
+}
+
+.login-card h1,
+.signup-card h1 {
+    font-size: 40px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 10px;
+}
+
+.login-card form,
+.signup-card form {
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ===== Inputs ===== */
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-bottom: 8px;
+}
+
+.input-group label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333333;
+    margin-bottom: 3px;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 13px;
+    border: 1.5px solid #a4b0be;
+    border-radius: 6px;
+    outline: none;
+    background-color: #ffffff;
+    color: #333;
+    transition: border-color 0.2s ease;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    border-color: #0056b3;
+}
+
+.input-group input::placeholder {
+    color: #b2bec3;
+}
+
+.input-group small {
+    font-size: 11px;
+    color: #4a5568;
+    margin-top: 3px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+.input-row .input-group {
+    flex: 1;
+}
+
+
+/* ===== Buttons & Links ===== */
+
+.signup-btn,
+.login-btn {
+    width: 100%;
+    max-width: 180px;
+    height: 36px;
+    margin: 10px auto 6px auto;
+    background-color: #0056b3;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.signup-btn:hover,
+.login-btn:hover {
+    background-color: #004085;
+}
+
+.signup-link {
+    font-size: 11px;
+    color: #0056b3;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.signup-link:hover {
+    color: #003366;
+}

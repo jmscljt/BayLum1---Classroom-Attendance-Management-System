@@ -29,12 +29,12 @@ if (strpos($page, 'admin_') === 0) {
 
     // Public admin pages
     if ($adminPage === 'login') {
-        $view = 'app/Views/admin/login.php';
+        $view = 'app/Views/Admin/admin_login.php';
         include $view;
         exit();
     }
     if ($adminPage === 'signup') {
-        header('Location: index.php?page=admin_login');
+        header('Location: index.php?page=admin_signup');
         exit();
     }
     if ($adminPage === 'authenticate') {
@@ -61,19 +61,19 @@ if (strpos($page, 'admin_') === 0) {
             exit();
 
         case 'dashboard':
-            $view = 'app/Views/admin/dashboard.php';
+            $view = 'app/Views/Admin/admin_dashboard.php';
             break;
 
         case 'users':
-            $view = 'app/Views/admin/users.php';
+            $view = 'app/Views/Admin/admin_users.php';
             break;
 
         case 'activity_log':
-            $view = 'app/Views/admin/activity_log.php';
+            $view = 'app/Views/Admin/admin_activity_log.php';
             break;
 
         case 'settings':
-            $view = 'app/Views/admin/settings.php';
+            $view = 'app/Views/Admin/admin_settings.php';
             break;
 
         default:
