@@ -7,7 +7,9 @@ require_once 'config/database.php';
 require_once 'app/Controllers/Teachers/AuthController.php';
 require_once 'app/Controllers/Teachers/LogoutController.php';
 require_once 'app/Controllers/Teachers/TeachersController.php';
+require_once 'app/Controllers/Teachers/DashboardController.php';
 require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
+require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 
 // Students Info
 require_once 'app/Controllers/Teachers/StudentsController.php';
@@ -18,28 +20,6 @@ $page = $_GET['page'] ?? 'login';
 $currentPage = $page;
 
 switch ($page) {
-
-    case 'manualAttendance':
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: index.php?page=login');
-            exit();
-        }
-
-        try {
-            $controller = new ManualAttendanceController($pdo);
-            $result = $controller->process($_POST['manual_attendance'] ?? '');
-        } catch (PDOException | RuntimeException $e) {
-            error_log('Manual attendance error: ' . $e->getMessage());
-            $result = [
-                'success' => false,
-                'message' => 'Attendance could not be processed. Check that the manual-attendance database setup has been applied.',
-            ];
-        }
-
-        $_SESSION['auth_message'] = $result['message'];
-        $_SESSION['auth_message_type'] = $result['success'] ? 'success' : 'error';
-        header('Location: index.php?page=login');
-        exit();
 
     case 'signup':
         $controller = new AuthController($pdo);
@@ -59,108 +39,48 @@ switch ($page) {
         exit();
 
     case 'dashboard':
-        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
-            header('Location: index.php?page=login');
-            exit();
-        }
-        $teachersModel = new TeachersModel($pdo);
-        $teacherId = (int) $_SESSION['user_id'];
-        $sectionId = (int) ($_SESSION['section_id'] ?? 0);
-        $attendanceCodes = $teachersModel->getOrCreateAttendanceCodes($teacherId);
-        $dashboardMetrics = $teachersModel->getDashboardAttendanceMetrics(
-            $teacherId,
-            $sectionId,
-            date('Y-m-d')
-        );
-        $totalAdvisoryStudents = $dashboardMetrics['totalAdvisoryStudents'];
-        $presentStudentsAdvisory = $dashboardMetrics['presentStudentsAdvisory'];
-        $absentStudentsAdvisory = $dashboardMetrics['absentStudentsAdvisory'];
-        $totalAssignedStudents = $dashboardMetrics['totalAssignedStudents'];
+        $controller = new DashboardController($pdo);
+        $pageData = $controller->getPageData($_SESSION);
+        $attendanceCodes = $pageData['attendanceCodes'];
+        $totalAdvisoryStudents = $pageData['totalAdvisoryStudents'];
+        $presentStudentsAdvisory = $pageData['presentStudentsAdvisory'];
+        $absentStudentsAdvisory = $pageData['absentStudentsAdvisory'];
+        $totalAssignedStudents = $pageData['totalAssignedStudents'];
         $view = 'app/Views/Teachers/dashboard.php';
         break;
 
     case 'attendanceLogs':
-        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
-            header('Location: index.php?page=login');
-            exit();
-        }
-        $searchDate = $_GET['attendance_date'] ?? date('Y-m-d');
-        $parsedDate = is_string($searchDate)
-            ? DateTime::createFromFormat('!Y-m-d', $searchDate)
-            : false;
-        if (!$parsedDate || $parsedDate->format('Y-m-d') !== $searchDate) {
-            $searchDate = date('Y-m-d');
-        }
-        $teachersModel = new TeachersModel($pdo);
-        $sectionId = (int) ($_SESSION['section_id'] ?? 0);
-        $attendanceLogs = $teachersModel->getManualAttendanceLogs(
-            (int) $_SESSION['user_id'],
-            $sectionId,
-            $searchDate
-        );
-        $presentCount = count(array_filter(
-            $attendanceLogs,
-            static fn(array $log): bool => !empty($log['time_in'])
-        ));
-        $studentCount = $teachersModel->getSectionStudentCount($sectionId);
-        $absentCount = max(0, $studentCount - $presentCount);
+        $controller = new AttendanceLogsController($pdo);
+        $pageData = $controller->getPageData($_SESSION, $_GET);
+        $searchDate = $pageData['searchDate'];
+        $attendanceLogs = $pageData['attendanceLogs'];
+        $presentCount = $pageData['presentCount'];
+        $absentCount = $pageData['absentCount'];
         $view = 'app/Views/Teachers/attendanceLogs.php';
         break;
 
     case 'students':
         $controller = new StudentsController($pdo);
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Automatically attach the section_id stored in the teacher's login session
-            $_POST['section_id'] = $_SESSION['section_id'] ?? null;
-            
-            $_SESSION['student_form_result'] = $controller->addStudent($_POST);
-            header('Location: index.php?page=students');
-            exit();
-        }
-
-        $result = $_SESSION['student_form_result'] ?? null;
-        unset($_SESSION['student_form_result']);
-        
-        $sectionId = (int)($_SESSION['section_id'] ?? 0);
-        $masterlist = $controller->getStudentsMasterlist($sectionId);
-        $studentCount = count($masterlist);
+        $pageData = $controller->getPageData($_SESSION, $_POST, $_SERVER['REQUEST_METHOD']);
+        $result = $pageData['result'];
+        $masterlist = $pageData['masterlist'];
+        $studentCount = $pageData['studentCount'];
         $view = 'app/Views/Teachers/students.php';
         break;
 
     case 'studentAbsences':
-        header('Content-Type: application/json; charset=utf-8');
-        if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
-            http_response_code(401);
-            echo json_encode(['error' => 'Please sign in to view student absences.']);
-            exit();
-        }
-
-        $studentId = $_GET['student_id'] ?? '';
-        if (!is_string($studentId) || preg_match('/^\d{1,19}$/D', $studentId) !== 1) {
-            http_response_code(400);
-            echo json_encode(['error' => 'A valid student ID is required.']);
-            exit();
-        }
-
-        try {
-            $controller = new StudentsController($pdo);
-            $absences = $controller->getStudentAbsences(
-                $studentId,
-                (int) ($_SESSION['section_id'] ?? 0)
-            );
-            if ($absences === null) {
-                http_response_code(404);
-                echo json_encode(['error' => 'Student not found in your assigned section.']);
-                exit();
-            }
-
-            echo json_encode(['absences' => $absences], JSON_INVALID_UTF8_SUBSTITUTE);
-        } catch (PDOException $e) {
-            error_log('Student absence lookup error: ' . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['error' => 'Unable to load absence records right now.']);
-        }
+        $controller = new StudentsController($pdo);
+        $controller->handleStudentAbsencesRequest($_SESSION, $_GET);
         exit();
+
+    case 'manualAttendance':
+        $controller = new ManualAttendanceController($pdo);
+        $result = $controller->handleRequest($_SESSION, $_POST, $_SERVER['REQUEST_METHOD']);
+        if (!empty($result['redirect'])) {
+            header('Location: ' . $result['redirect']);
+            exit();
+        }
+        break;
 
     case 'otherSectionHandled':
         $view = 'app/Views/Teachers/otherSectionHandled.php';
