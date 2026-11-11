@@ -1130,3 +1130,122 @@ header {
 }
 
 /* ===== Other Section Handled - End ===== */
+
+
+
+
+
+/* ===== Settings - Start ===== */
+
+.teacher-settings-container {
+    display: grid;
+    gap: 18px;
+}
+
+.teacher-settings-card {
+    max-width: 900px;
+}
+
+.teacher-settings-card h3 {
+    margin-top: 0;
+}
+
+.teacher-settings-details {
+    display: grid;
+    gap: 16px;
+}
+
+.settings-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.settings-section-detail {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.settings-label,
+.settings-field label {
+    color: #4a5568;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.settings-value {
+    color: #1a202c;
+}
+
+.teacher-settings-form {
+    margin-top: 18px;
+}
+
+.settings-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.settings-field {
+    display: flex;
+    flex: 1 1 180px;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.settings-field input,
+.settings-field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1.5px solid #a4b0be;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #333333;
+    font-size: 14px;
+}
+
+.settings-button {
+    min-height: 36px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #0056b3;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.settings-button:hover {
+    background: #004085;
+}
+
+.settings-secondary-button {
+    border: 1px solid #a4b0be;
+    background: #ffffff;
+    color: #334155;
+}
+
+.settings-secondary-button:hover {
+    background: #f1f5f9;
+}
+
+.settings-attendance-codes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.teacher-settings-note {
+    max-width: 900px;
+    color: #64748b;
+    font-size: 13px;
+    margin: 0;
+}
+
+/* ===== Settings - End ===== */

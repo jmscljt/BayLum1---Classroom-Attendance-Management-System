@@ -24,7 +24,7 @@ $displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
         <a href="<?php echo $base_url; ?>/index.php?page=otherSectionHandled" class="<?php echo ($currentPage == 'otherSectionHandled') ? 'active' : ''; ?>">
             <i class="fa-solid fa-building"></i>Other Sections Handled</a>
 
-        <a href="<?php echo $base_url; ?>/index.php?page=teachers_settings" class="<?php echo ($currentPage == 'settings') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=teachers_settings" class="<?php echo ($currentPage == 'teachers_settings') ? 'active' : ''; ?>">
             <i class="fa-solid fa-cog"></i>Settings</a>
 
         <a href="<?php echo $base_url; ?>/index.php?page=logout" class="logout-btn">
