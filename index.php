@@ -34,7 +34,8 @@ if (strpos($page, 'admin_') === 0) {
         exit();
     }
     if ($adminPage === 'signup') {
-        header('Location: index.php?page=admin_signup');
+        $view = 'app/Views/Admin/admin_signup.php';
+        include $view;
         exit();
     }
     if ($adminPage === 'authenticate') {
