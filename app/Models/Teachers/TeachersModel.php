@@ -590,6 +590,33 @@ class TeachersModel{
                             FROM attendance_logs a
                             WHERE a.student_id = s.student_id
                                 AND a.attendance_status = 'Absent'
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM attendance_logs excused
+                                    WHERE excused.student_id = s.student_id
+                                        AND excused.log_date = a.log_date
+                                        AND excused.attendance_status = 'Excused'
+                                )
+                        ) + (
+                            SELECT COUNT(DISTINCT mas.attendance_date)
+                            FROM manual_attendance_sessions mas
+                            WHERE mas.section_id = s.section_id
+                                AND mas.attendance_type = 'time_in'
+                                AND mas.closed_at IS NOT NULL
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM manual_attendance_records r
+                                    WHERE r.section_id = s.section_id
+                                        AND r.student_id = CAST(s.student_id AS CHAR)
+                                        AND r.attendance_date = mas.attendance_date
+                                        AND r.attendance_type = 'time_in'
+                                )
+                                AND NOT EXISTS (
+                                    SELECT 1
+                                    FROM attendance_logs a
+                                    WHERE a.student_id = s.student_id
+                                        AND a.log_date = mas.attendance_date
+                                )
                         ) AS absent_count,
                         (
                             SELECT COUNT(DISTINCT a.log_date)
@@ -629,13 +656,195 @@ class TeachersModel{
 
         $absenceStmt = $this->pdo->prepare(
             "SELECT log_date, attendance_status, remarks
-             FROM attendance_logs
-             WHERE student_id = :student_id
-                AND attendance_status IN ('Absent', 'Excused')
-             ORDER BY log_date DESC, log_id DESC"
+             FROM (
+                SELECT a.log_date,
+                       CASE
+                           WHEN COUNT(CASE WHEN a.attendance_status = 'Excused' THEN 1 END) > 0
+                           THEN 'Excused'
+                           ELSE 'Absent'
+                       END AS attendance_status,
+                       MAX(a.remarks) AS remarks
+                FROM attendance_logs a
+                WHERE a.student_id = :student_id
+                    AND a.attendance_status IN ('Absent', 'Excused')
+                GROUP BY a.log_date
+             ) recorded_absences
+             UNION ALL
+             SELECT DISTINCT mas.attendance_date AS log_date,
+                    'Absent' AS attendance_status,
+                    'No time-in was recorded before attendance closed.' AS remarks
+             FROM manual_attendance_sessions mas
+             WHERE mas.section_id = :section_id
+                AND mas.attendance_type = 'time_in'
+                AND mas.closed_at IS NOT NULL
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM manual_attendance_records r
+                    WHERE r.section_id = mas.section_id
+                        AND r.student_id = :record_student_id
+                        AND r.attendance_date = mas.attendance_date
+                        AND r.attendance_type = 'time_in'
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM attendance_logs a
+                    WHERE a.student_id = :log_student_id
+                        AND a.log_date = mas.attendance_date
+                )
+             ORDER BY log_date DESC"
         );
-        $absenceStmt->execute([':student_id' => $studentId]);
+        $absenceStmt->execute([
+            ':student_id' => $studentId,
+            ':section_id' => $sectionId,
+            ':record_student_id' => $studentId,
+            ':log_student_id' => $studentId,
+        ]);
         return $absenceStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateStudentAbsenceStatus(
+        string $studentId,
+        int $sectionId,
+        string $date,
+        string $status,
+        ?string $remarks
+    ): bool {
+        $hasLogIdLock = false;
+        $this->pdo->beginTransaction();
+
+        try {
+            $studentStmt = $this->pdo->prepare(
+                'SELECT student_id
+                 FROM students
+                 WHERE student_id = :student_id AND section_id = :section_id
+                 FOR UPDATE'
+            );
+            $studentStmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+            ]);
+            if (!$studentStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $logsStmt = $this->pdo->prepare(
+                'SELECT log_id, attendance_status
+                 FROM attendance_logs
+                 WHERE student_id = :student_id AND log_date = :log_date
+                 FOR UPDATE'
+            );
+            $logsStmt->execute([
+                ':student_id' => $studentId,
+                ':log_date' => $date,
+            ]);
+            $logs = $logsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $absenceLogs = array_filter(
+                $logs,
+                static fn (array $log): bool => in_array(
+                    $log['attendance_status'],
+                    ['Absent', 'Excused'],
+                    true
+                )
+            );
+
+            if ($absenceLogs !== []) {
+                $updateStmt = $this->pdo->prepare(
+                    "UPDATE attendance_logs
+                     SET attendance_status = :attendance_status, remarks = :remarks
+                     WHERE student_id = :student_id
+                        AND log_date = :log_date
+                        AND attendance_status IN ('Absent', 'Excused')"
+                );
+                $updateStmt->execute([
+                    ':attendance_status' => $status,
+                    ':remarks' => $remarks,
+                    ':student_id' => $studentId,
+                    ':log_date' => $date,
+                ]);
+                $this->pdo->commit();
+                return true;
+            }
+
+            if ($logs !== []) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $sessionStmt = $this->pdo->prepare(
+                "SELECT id
+                 FROM manual_attendance_sessions
+                 WHERE section_id = :section_id
+                    AND attendance_date = :attendance_date
+                    AND attendance_type = 'time_in'
+                    AND closed_at IS NOT NULL
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $sessionStmt->execute([
+                ':section_id' => $sectionId,
+                ':attendance_date' => $date,
+            ]);
+            if (!$sessionStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $recordStmt = $this->pdo->prepare(
+                "SELECT 1
+                 FROM manual_attendance_records
+                 WHERE section_id = :section_id
+                    AND student_id = :student_id
+                    AND attendance_date = :attendance_date
+                    AND attendance_type = 'time_in'
+                 LIMIT 1"
+            );
+            $recordStmt->execute([
+                ':section_id' => $sectionId,
+                ':student_id' => $studentId,
+                ':attendance_date' => $date,
+            ]);
+            if ($recordStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $lockStmt = $this->pdo->query("SELECT GET_LOCK('attendance_logs_log_id', 5)");
+            if ((int) $lockStmt->fetchColumn() !== 1) {
+                throw new RuntimeException('Unable to reserve an attendance log ID.');
+            }
+            $hasLogIdLock = true;
+
+            $nextLogId = (int) $this->pdo->query(
+                'SELECT COALESCE(MAX(log_id), 0) + 1 FROM attendance_logs'
+            )->fetchColumn();
+            $insertStmt = $this->pdo->prepare(
+                'INSERT INTO attendance_logs
+                    (log_id, student_id, log_date, attendance_status, remarks)
+                 VALUES
+                    (:log_id, :student_id, :log_date, :attendance_status, :remarks)'
+            );
+            $insertStmt->execute([
+                ':log_id' => $nextLogId,
+                ':student_id' => $studentId,
+                ':log_date' => $date,
+                ':attendance_status' => $status,
+                ':remarks' => $remarks,
+            ]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        } finally {
+            if ($hasLogIdLock) {
+                $this->pdo->query("SELECT RELEASE_LOCK('attendance_logs_log_id')");
+            }
+        }
     }
 }
 ?>

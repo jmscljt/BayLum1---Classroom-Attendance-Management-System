@@ -953,6 +953,10 @@ header {
     box-sizing: border-box;
 }
 
+.absences-modal-overlay > .absences-modal-content {
+    max-width: 900px;
+}
+
 .absences-modal-content .modal-header-row {
     display: flex;
     justify-content: space-between;
@@ -986,6 +990,57 @@ header {
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
+}
+
+.remarks-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    background-color: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+}
+
+.absence-action-buttons {
+    display: flex;
+    gap: 6px;
+    min-width: max-content;
+}
+
+.absence-action-buttons button {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 5px 8px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+}
+
+.absence-action-buttons button.is-current {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: #fff;
+}
+
+.absence-action-buttons button[data-status="Excused"].is-current {
+    border-color: #15803d;
+    background: #15803d;
+}
+
+.absence-save-error {
+    margin-top: 12px;
+    color: #b91c1c;
+}
+
+.absences-modal-content .form-group textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical;
 }
 
 /* ===== Students - End ===== */

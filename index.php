@@ -138,12 +138,18 @@ switch ($page) {
         $result = $pageData['result'];
         $masterlist = $pageData['masterlist'];
         $studentCount = $pageData['studentCount'];
+        $csrfToken = $pageData['csrfToken'];
         $view = 'app/Views/Teachers/students.php';
         break;
 
     case 'studentAbsences':
         $controller = new StudentsController($pdo);
         $controller->handleStudentAbsencesRequest($_SESSION, $_GET);
+        exit();
+
+    case 'studentAbsenceStatus':
+        $controller = new StudentsController($pdo);
+        $controller->handleStudentAbsenceStatusRequest($_SESSION, $_POST);
         exit();
 
     case 'manualAttendance':

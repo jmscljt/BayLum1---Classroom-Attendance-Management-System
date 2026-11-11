@@ -74,9 +74,9 @@ $currentPage = 'students';
                                         <td><?php echo htmlspecialchars($student['lrn'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name'] . ' ' . $student['middle_initial'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($student['gender'] ?? 'N'); ?></td>
-                                        <td><?php echo htmlspecialchars($student['present_count'] ?? '0' ?? ''); ?></td>
-                                        <td><?php echo htmlspecialchars($student['absent_count'] ?? '0' ?? ''); ?></td>
-                                        <td><?php echo htmlspecialchars($student['excused_count'] ?? '0' ?? ''); ?></td>
+                                        <td><?php echo (int) ($student['present_count'] ?? 0); ?></td>
+                                        <td><?php echo (int) ($student['absent_count'] ?? 0); ?></td>
+                                        <td><?php echo (int) ($student['excused_count'] ?? 0); ?></td>
                                         <td>
                                             <div class="action-buttons">
                                                 <button
@@ -149,39 +149,15 @@ $currentPage = 'students';
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div id="absencesModal" class="absences-modal-overlay" aria-hidden="true">
                 <div class="absences-modal-content" role="dialog" aria-modal="true" aria-labelledby="absencesModalTitle">
+                    <input type="hidden" id="absenceCsrfToken" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
                     <div class="modal-header-row">
                         <h3 id="absencesModalTitle">Absence History</h3>
                         <button type="button" class="close-modal-btn" onclick="closeAbsencesModal()">&times;</button>
                     </div>
 
+                    <div class="absence-save-error" id="absenceStatusMessage" role="alert" hidden></div>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -189,15 +165,54 @@ $currentPage = 'students';
                                     <th>Date</th>
                                     <th>Status</th>
                                     <th>Remarks</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody id="absenceHistoryRows">
-                                <tr><td colspan="3">Select a student to load absence records.</td></tr>
+                                    <tr><td colspan="4">Select a student to load absence records.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+
+
+                <div id="remarksOptionModal" class="remarks-modal-overlay" aria-hidden="true">
+                    <div class="absences-modal-content" role="dialog" aria-modal="true" aria-labelledby="remarksOptionTitle">
+                        <div class="modal-header-row">
+                            <h3 id="remarksOptionTitle">Remarks Option</h3>
+                            <button type="button" class="close-modal-btn" id="closeRemarksModal" aria-label="Close">&times;</button>
+                        </div>
+                        <form id="excusedReasonForm">
+                            <div class="form-group">
+                                <label for="excusedReason">Reason for being excused</label>
+                                <select id="excusedReason" name="reason" required>
+                                    <option value="">Select a reason</option>
+                                    <option value="Illness">Illness</option>
+                                    <option value="Medical appointment">Medical appointment</option>
+                                    <option value="Family emergency">Family emergency</option>
+                                    <option value="Bereavement">Bereavement</option>
+                                    <option value="School activity">School activity</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="otherRemarksGroup" hidden>
+                                <label for="otherRemarks">Specific remark</label>
+                                <textarea id="otherRemarks" name="other_remarks" maxlength="255"></textarea>
+                            </div>
+                            <div class="absence-save-error" id="absenceSaveError" role="alert" hidden></div>
+                            <div class="absences-modal-actions">
+                                <button type="button" class="cancel-btn" id="cancelRemarksModal">Cancel</button>
+                                <button type="submit" class="submit-btn" id="saveExcusedStatus">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
+
+
+
+            
         </div>
     </main>
 
