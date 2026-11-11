@@ -23,6 +23,21 @@ class StudentsController
         return $this->teachersModel->updateStudent($currentStudentId, $sectionId, $studentData);
     }
 
+    public function deactivateStudent(string $studentId, int $sectionId): array
+    {
+        return $this->teachersModel->deactivateStudent($studentId, $sectionId);
+    }
+
+    public function reactivateStudent(string $studentId, int $sectionId): array
+    {
+        return $this->teachersModel->reactivateStudent($studentId, $sectionId);
+    }
+
+    public function getInactiveStudents(int $sectionId): array
+    {
+        return $this->teachersModel->getInactiveStudents($sectionId);
+    }
+
     public function getStudentsMasterlist(int $sectionId): array
     {
         return $this->teachersModel->getStudentsMasterlist($sectionId);
@@ -36,7 +51,8 @@ class StudentsController
     public function getPageData(array &$session, array $post, string $requestMethod): array
     {
         if ($requestMethod === 'POST') {
-            if (($post['action'] ?? '') === 'edit_student') {
+            $action = $post['action'] ?? '';
+            if (in_array($action, ['edit_student', 'remove_student', 'reactivate_student'], true)) {
                 $csrfToken = $post['csrf_token'] ?? '';
                 $sessionToken = $session['csrf_token'] ?? '';
                 if (
@@ -50,17 +66,29 @@ class StudentsController
                         'message' => 'Your session expired. Refresh the page and try again.',
                     ];
                 } else {
-                    $currentStudentId = $post['current_student_id'] ?? '';
-                    if (!is_string($currentStudentId) || preg_match('/^\d{1,19}$/D', $currentStudentId) !== 1) {
+                    $studentId = $action === 'edit_student'
+                        ? ($post['current_student_id'] ?? '')
+                        : ($post['student_id'] ?? '');
+                    if (!is_string($studentId) || preg_match('/^\d{1,19}$/D', $studentId) !== 1) {
                         $session['student_form_result'] = [
                             'success' => false,
                             'message' => 'A valid student LRN is required.',
                         ];
-                    } else {
+                    } elseif ($action === 'edit_student') {
                         $session['student_form_result'] = $this->updateStudent(
-                            $currentStudentId,
+                            $studentId,
                             (int) ($session['section_id'] ?? 0),
                             $post
+                        );
+                    } elseif ($action === 'reactivate_student') {
+                        $session['student_form_result'] = $this->reactivateStudent(
+                            $studentId,
+                            (int) ($session['section_id'] ?? 0)
+                        );
+                    } else {
+                        $session['student_form_result'] = $this->deactivateStudent(
+                            $studentId,
+                            (int) ($session['section_id'] ?? 0)
                         );
                     }
                 }
@@ -80,10 +108,12 @@ class StudentsController
         }
 
         $masterlist = $this->getStudentsMasterlist((int) ($session['section_id'] ?? 0));
+        $inactiveStudents = $this->getInactiveStudents((int) ($session['section_id'] ?? 0));
 
         return [
             'result' => $result,
             'masterlist' => $masterlist,
+            'inactiveStudents' => $inactiveStudents,
             'studentCount' => count($masterlist),
             'csrfToken' => $session['csrf_token'],
         ];

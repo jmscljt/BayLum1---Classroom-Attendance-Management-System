@@ -1,12 +1,22 @@
 document.addEventListener("DOMContentLoaded", function() {
     const addModal = document.getElementById("addStudentModal");
     const editModal = document.getElementById("editStudentModal");
+    const removeModal = document.getElementById("removeStudentModal");
+    const inactiveStudentsModal = document.getElementById("inactiveStudentsModal");
     const addBtn = document.querySelector(".add-student-btn");
+    const viewInactiveBtn = document.getElementById("viewInactiveStudentsBtn");
 
     if (addBtn && addModal) {
         addBtn.addEventListener("click", function(event) {
             event.preventDefault();
             addModal.style.display = "flex";
+        });
+    }
+
+    if (viewInactiveBtn && inactiveStudentsModal) {
+        viewInactiveBtn.addEventListener("click", function() {
+            inactiveStudentsModal.style.display = "flex";
+            inactiveStudentsModal.setAttribute("aria-hidden", "false");
         });
     }
 
@@ -29,6 +39,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
     bindModal(addModal);
     bindModal(editModal);
+    bindModal(removeModal);
+    bindModal(inactiveStudentsModal);
+
+    if (removeModal) {
+        const removeStudentId = document.getElementById("remove_student_id");
+        document.querySelectorAll(".btn-remove").forEach(function(button) {
+            button.addEventListener("click", function() {
+                removeStudentId.value = button.dataset.studentId || "";
+                removeModal.style.display = "flex";
+                removeModal.setAttribute("aria-hidden", "false");
+            });
+        });
+    }
 
     if (!editModal) return;
 

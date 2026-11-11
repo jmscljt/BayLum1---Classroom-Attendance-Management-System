@@ -200,7 +200,9 @@ class TeachersModel{
             $studentStmt = $this->pdo->prepare(
                 'SELECT student_id
                  FROM students
-                 WHERE student_id = :student_id AND section_id = :section_id
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 1
                  FOR UPDATE'
             );
             $studentStmt->execute([
@@ -234,7 +236,9 @@ class TeachersModel{
                      middle_name = :middle_name,
                      last_name = :last_name,
                      gender = :gender
-                 WHERE student_id = :current_student_id AND section_id = :section_id'
+                 WHERE student_id = :current_student_id
+                    AND section_id = :section_id
+                    AND is_active = 1'
             );
             $updateStmt->execute([
                 ':new_student_id' => $studentId,
@@ -274,6 +278,76 @@ class TeachersModel{
             return [
                 'success' => false,
                 'message' => 'Unable to update the student right now. Please try again or contact the school administrator.',
+            ];
+        }
+    }
+
+    public function deactivateStudent(string $studentId, int $sectionId): array
+    {
+        try {
+            $stmt = $this->pdo->prepare(
+                'UPDATE students
+                 SET is_active = 0
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 1'
+            );
+            $stmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+            ]);
+
+            if ($stmt->rowCount() !== 1) {
+                return ['success' => false, 'message' => 'Student not found in your assigned section.'];
+            }
+
+            return ['success' => true, 'message' => 'Student removed from the list. Attendance history was preserved.'];
+        } catch (PDOException $e) {
+            error_log('Remove student error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Unable to remove the student right now. Please try again or contact the school administrator.',
+            ];
+        }
+    }
+
+    public function getInactiveStudents(int $sectionId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT student_id AS lrn, first_name, middle_name, last_name, gender
+             FROM students
+             WHERE section_id = :section_id AND is_active = 0
+             ORDER BY last_name, first_name'
+        );
+        $stmt->execute([':section_id' => $sectionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function reactivateStudent(string $studentId, int $sectionId): array
+    {
+        try {
+            $stmt = $this->pdo->prepare(
+                'UPDATE students
+                 SET is_active = 1
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 0'
+            );
+            $stmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+            ]);
+
+            if ($stmt->rowCount() !== 1) {
+                return ['success' => false, 'message' => 'Inactive student not found in your assigned section.'];
+            }
+
+            return ['success' => true, 'message' => 'Student reactivated successfully.'];
+        } catch (PDOException $e) {
+            error_log('Reactivate student error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Unable to reactivate the student right now. Please try again or contact the school administrator.',
             ];
         }
     }
@@ -486,7 +560,9 @@ class TeachersModel{
             $studentStmt = $this->pdo->prepare(
                 'SELECT student_id
                  FROM students
-                 WHERE student_id = :student_id AND section_id = :section_id
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 1
                  LIMIT 1'
             );
             $studentStmt->execute([
@@ -624,7 +700,7 @@ class TeachersModel{
     public function getSectionStudentCount(int $sectionId): int
     {
         $stmt = $this->pdo->prepare(
-            'SELECT COUNT(*) FROM students WHERE section_id = :section_id'
+            'SELECT COUNT(*) FROM students WHERE section_id = :section_id AND is_active = 1'
         );
         $stmt->execute([':section_id' => $sectionId]);
         return (int) $stmt->fetchColumn();
@@ -636,13 +712,17 @@ class TeachersModel{
             "SELECT
                 (SELECT COUNT(*)
                  FROM students
-                 WHERE section_id = :section_id) AS total_advisory_students,
-                (SELECT COUNT(DISTINCT student_id)
-                 FROM manual_attendance_records
-                 WHERE teacher_id = :teacher_id
-                    AND section_id = :attendance_section_id
-                    AND attendance_date = :attendance_date
-                    AND attendance_type = 'time_in') AS present_students_advisory"
+                 WHERE section_id = :section_id AND is_active = 1) AS total_advisory_students,
+                (SELECT COUNT(DISTINCT r.student_id)
+                 FROM manual_attendance_records r
+                 INNER JOIN students s
+                    ON s.student_id = r.student_id
+                    AND s.section_id = r.section_id
+                    AND s.is_active = 1
+                 WHERE r.teacher_id = :teacher_id
+                    AND r.section_id = :attendance_section_id
+                    AND r.attendance_date = :attendance_date
+                    AND r.attendance_type = 'time_in') AS present_students_advisory"
         );
         $stmt->execute([
             ':section_id' => $sectionId,
@@ -734,7 +814,7 @@ class TeachersModel{
                         ) AS excused_count
                     FROM students s
                     INNER JOIN sections sec ON s.section_id = sec.section_id
-                    WHERE s.section_id = :section_id
+                    WHERE s.section_id = :section_id AND s.is_active = 1
                     ORDER BY s.last_name, s.first_name";
 
             $stmt = $this->pdo->prepare($query);

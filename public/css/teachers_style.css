@@ -733,7 +733,7 @@ header {
     color: #1e293b;
 }
 
-.import_excel_btn, .export_excel_btn, .add-student-btn {
+.import_excel_btn, .export_excel_btn, .add-student-btn, .view-inactive-btn {
     width: auto;
     padding: 0 14px;
     height: 30px;
@@ -748,8 +748,39 @@ header {
     transition: background-color 0.2s ease;
 }
 
-.import_excel_btn:hover, .export_excel_btn:hover, .add-student-btn:hover {
+.import_excel_btn:hover, .export_excel_btn:hover, .add-student-btn:hover, .view-inactive-btn:hover {
     background-color: #004085;
+}
+
+.view-inactive-btn {
+    background-color: #475569;
+}
+
+.view-inactive-btn:hover {
+    background-color: #334155;
+}
+
+.inactive-students-modal-content {
+    max-width: 760px;
+}
+
+.inactive-students-modal-content form {
+    margin: 0;
+}
+
+.reactivate-btn {
+    padding: 7px 12px;
+    border: 0;
+    border-radius: 6px;
+    background-color: #16803c;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.reactivate-btn:hover {
+    background-color: #11632f;
 }
 
 /* Add Student Modal */
@@ -772,7 +803,7 @@ header {
     padding: 25px;
     border-radius: 8px;
     width: 100%;
-    max-width: 450px;
+    max-width: 550px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.2s ease-in-out;
 }
@@ -855,12 +886,12 @@ header {
 }
 
 .cancel-btn {
-    background-color: #e2e8f0;
-    color: #475569;
+    background-color: #2d77c6;
+    color: #ffffff;
 }
 
 .cancel-btn:hover {
-    background-color: #cbd5e1;
+    background-color: #004085;
 }
 
 .submit-btn {
@@ -870,6 +901,22 @@ header {
 
 .submit-btn:hover {
     background-color: #004085;
+}
+
+.delete-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: #b30000;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover {
+    background-color: #8f0000;
 }
 
 @keyframes fadeIn {

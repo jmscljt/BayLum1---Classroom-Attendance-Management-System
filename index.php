@@ -137,6 +137,7 @@ switch ($page) {
         $pageData = $controller->getPageData($_SESSION, $_POST, $_SERVER['REQUEST_METHOD']);
         $result = $pageData['result'];
         $masterlist = $pageData['masterlist'];
+        $inactiveStudents = $pageData['inactiveStudents'];
         $studentCount = $pageData['studentCount'];
         $csrfToken = $pageData['csrfToken'];
         $view = 'app/Views/Teachers/students.php';

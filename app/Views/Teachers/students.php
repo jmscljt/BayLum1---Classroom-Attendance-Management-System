@@ -40,12 +40,60 @@ $currentPage = 'students';
                     <h4 class="student_count">Student Count: <?php echo (int)($studentCount ?? 0); ?></h4>
                     <!-- <button class="import_excel_btn">Import Excel</button>
                     <button class="export_excel_btn">Export Excel</button> -->
-                    <button class="add-student-btn">Add Student</button>
+                    <button type="button" class="add-student-btn">Add Student</button>
+                    <button type="button" class="view-inactive-btn" id="viewInactiveStudentsBtn">View Inactive Students</button>
+                </div>
+            </div>
+
+
+
+            <!-- Inactivate Students Modal -->
+            <div id="inactiveStudentsModal" class="modal-overlay" aria-hidden="true">
+                <div class="modal-content inactive-students-modal-content" role="dialog" aria-modal="true" aria-labelledby="inactiveStudentsModalTitle">
+                    <div class="modal-header">
+                        <h3 id="inactiveStudentsModalTitle">Inactive Students</h3>
+                        <button type="button" class="close-modal" aria-label="Close">&times;</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>LRN</th>
+                                    <th>Student Name</th>
+                                    <th>Gender</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (!empty($inactiveStudents)): ?>
+                                    <?php foreach ($inactiveStudents as $student): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars(trim($student['last_name'] . ', ' . $student['first_name'] . ' ' . ($student['middle_name'] ?? '')), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td>
+                                                <form action="index.php?page=students" method="POST">
+                                                    <input type="hidden" name="action" value="reactivate_student">
+                                                    <input type="hidden" name="student_id" value="<?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+                                                    <button type="submit" class="reactivate-btn">Reactivate</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4" class="no-data-cell">No inactive students found.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
             <?php if (isset($result)): ?>
-                <div class="alert <?= $result['success'] ? 'alert-success' : 'alert-error' ?>" style="padding: 12px; margin-bottom: 20px; border-radius: 6px; background-color: <?= $result['success'] ? '#d4edda' : '#f8d7da' ?>; color: <?= $result['success'] ? '#155724' : '#721c24' ?>; border: 1px solid <?= $result['success'] ? '#c3e6cb' : '#f5c6cb' ?>;">
+                <div class="alert <?= $result['success'] ? 'alert-success' : 'alert-error' ?>" style="padding: 12px; margin-bottom: 6px; border-radius: 6px; background-color: <?= $result['success'] ? '#d4edda' : '#f8d7da' ?>; color: <?= $result['success'] ? '#155724' : '#721c24' ?>; border: 1px solid <?= $result['success'] ? '#c3e6cb' : '#f5c6cb' ?>;">
                     <?= htmlspecialchars($result['message']) ?>
                 </div>
             <?php endif; ?>
@@ -94,7 +142,11 @@ $currentPage = 'students';
                                                     data-last-name="<?php echo htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                                     data-gender="<?php echo htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                                 >Edit</button>
-                                                <button class="btn-remove">Remove</button>
+                                                <button
+                                                    type="button"
+                                                    class="btn-remove"
+                                                    data-student-id="<?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                >Deactivate</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -154,6 +206,28 @@ $currentPage = 'students';
                         <div class="modal-actions">
                             <button type="button" class="cancel-btn">Cancel</button>
                             <button type="submit" class="submit-btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+
+            <!-- Remove Student Modal -->
+            <div id="removeStudentModal" class="modal-overlay" aria-hidden="true">
+                <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="removeStudentModalTitle">
+                    <div class="modal-header">
+                        <h3 id="removeStudentModalTitle">Confirm Deactivation</h3>
+                        <!-- <button type="button" class="close-modal" aria-label="Close">&times;</button> -->
+                    </div>
+                    <p>Are you sure you want to deactivate this student from the list?</p>
+                    <form id="removeStudentForm" action="index.php?page=students" method="POST">
+                        <input type="hidden" name="action" value="remove_student">
+                        <input type="hidden" name="student_id" id="remove_student_id">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+                        <div class="modal-actions">
+                            <button type="button" class="cancel-btn">Cancel</button>
+                            <button type="submit" class="delete-btn">Yes, deactivate</button>
                         </div>
                     </form>
                 </div>
