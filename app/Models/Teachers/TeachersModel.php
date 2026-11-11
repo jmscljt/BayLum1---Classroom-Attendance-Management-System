@@ -171,6 +171,113 @@ class TeachersModel{
         }
     }
 
+    public function updateStudent(string $currentStudentId, int $sectionId, array $studentData): array
+    {
+        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'gender'] as $field) {
+            if (isset($studentData[$field]) && !is_string($studentData[$field])) {
+                return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
+            }
+        }
+
+        $studentId = trim($studentData['lrn'] ?? '');
+        $firstName = trim($studentData['first_name'] ?? '');
+        $middleName = trim($studentData['middle_name'] ?? '');
+        $lastName = trim($studentData['last_name'] ?? '');
+        $gender = trim($studentData['gender'] ?? '');
+
+        if (
+            preg_match('/^\d{1,19}$/D', $studentId) !== 1
+            || $firstName === ''
+            || $lastName === ''
+            || !in_array($gender, ['Male', 'Female'], true)
+        ) {
+            return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $studentStmt = $this->pdo->prepare(
+                'SELECT student_id
+                 FROM students
+                 WHERE student_id = :student_id AND section_id = :section_id
+                 FOR UPDATE'
+            );
+            $studentStmt->execute([
+                ':student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+            if (!$studentStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Student not found in your assigned section.'];
+            }
+
+            $duplicateStmt = $this->pdo->prepare(
+                'SELECT 1
+                 FROM students
+                 WHERE student_id = :student_id AND student_id <> :current_student_id
+                 LIMIT 1'
+            );
+            $duplicateStmt->execute([
+                ':student_id' => $studentId,
+                ':current_student_id' => $currentStudentId,
+            ]);
+            if ($duplicateStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'A student with this LRN already exists.'];
+            }
+
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE students
+                 SET student_id = :new_student_id,
+                     first_name = :first_name,
+                     middle_name = :middle_name,
+                     last_name = :last_name,
+                     gender = :gender
+                 WHERE student_id = :current_student_id AND section_id = :section_id'
+            );
+            $updateStmt->execute([
+                ':new_student_id' => $studentId,
+                ':first_name' => $firstName,
+                ':middle_name' => $middleName !== '' ? $middleName : null,
+                ':last_name' => $lastName,
+                ':gender' => $gender,
+                ':current_student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+
+            if ($studentId !== $currentStudentId) {
+                foreach (['attendance_logs', 'manual_attendance_records'] as $table) {
+                    $referenceStmt = $this->pdo->prepare(
+                        "UPDATE {$table} SET student_id = :new_student_id WHERE student_id = :current_student_id"
+                    );
+                    $referenceStmt->execute([
+                        ':new_student_id' => $studentId,
+                        ':current_student_id' => $currentStudentId,
+                    ]);
+                }
+            }
+
+            $this->pdo->commit();
+            return ['success' => true, 'message' => 'Student updated successfully.'];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            $errorInfo = $e->errorInfo;
+            if ((int) ($errorInfo[1] ?? 0) === 1062) {
+                return ['success' => false, 'message' => 'A student with this LRN already exists.'];
+            }
+
+            error_log('Update student error: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Unable to update the student right now. Please try again or contact the school administrator.',
+            ];
+        }
+    }
+
     public function getOrCreateAttendanceCodes(int $teacherId): array
     {
         $this->pdo->beginTransaction();
@@ -565,6 +672,7 @@ class TeachersModel{
                         s.status,
                         s.student_id AS lrn,
                         s.first_name,
+                        s.middle_name,
                         CONCAT(UPPER(LEFT(s.middle_name, 1)), '.') AS middle_initial,
                         s.last_name,
                         s.gender,

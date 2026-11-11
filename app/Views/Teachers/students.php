@@ -85,7 +85,15 @@ $currentPage = 'students';
                                                     data-student-id="<?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?>"
                                                     data-student-name="<?php echo htmlspecialchars(trim($student['last_name'] . ', ' . $student['first_name'] . ' ' . ($student['middle_initial'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
                                                 >View Absences</button>
-                                                <button class="btn-edit">Edit</button>
+                                                <button
+                                                    type="button"
+                                                    class="btn-edit"
+                                                    data-student-id="<?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-first-name="<?php echo htmlspecialchars($student['first_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-middle-name="<?php echo htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-last-name="<?php echo htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-gender="<?php echo htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                >Edit</button>
                                                 <button class="btn-remove">Remove</button>
                                             </div>
                                         </td>
@@ -98,6 +106,56 @@ $currentPage = 'students';
                             <?php endif; ?>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+
+
+            <!-- Edit Student Modal -->
+            <div id="editStudentModal" class="modal-overlay" aria-hidden="true">
+                <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editStudentModalTitle">
+                    <div class="modal-header">
+                        <h3 id="editStudentModalTitle">Edit Student</h3>
+                        <button type="button" class="close-modal" aria-label="Close">&times;</button>
+                    </div>
+                    <form id="editStudentForm" action="index.php?page=students" method="POST">
+                        <input type="hidden" name="action" value="edit_student">
+                        <input type="hidden" name="current_student_id" id="current_student_id">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
+
+                        <div class="form-group">
+                            <label for="edit_first_name">First Name</label>
+                            <input type="text" id="edit_first_name" name="first_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_middle_name">Middle Name</label>
+                            <input type="text" id="edit_middle_name" name="middle_name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_last_name">Last Name</label>
+                            <input type="text" id="edit_last_name" name="last_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_lrn">LRN</label>
+                            <input type="text" id="edit_lrn" name="lrn" inputmode="numeric" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_gender">Gender</label>
+                            <select id="edit_gender" name="gender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="cancel-btn">Cancel</button>
+                            <button type="submit" class="submit-btn">Save Changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -149,6 +207,7 @@ $currentPage = 'students';
 
 
 
+            <!-- Absence History Modal -->
             <div id="absencesModal" class="absences-modal-overlay" aria-hidden="true">
                 <div class="absences-modal-content" role="dialog" aria-modal="true" aria-labelledby="absencesModalTitle">
                     <input type="hidden" id="absenceCsrfToken" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
@@ -177,6 +236,7 @@ $currentPage = 'students';
 
 
 
+                <!-- Remarks Option Modal -->
                 <div id="remarksOptionModal" class="remarks-modal-overlay" aria-hidden="true">
                     <div class="absences-modal-content" role="dialog" aria-modal="true" aria-labelledby="remarksOptionTitle">
                         <div class="modal-header-row">
@@ -212,7 +272,6 @@ $currentPage = 'students';
 
 
 
-            
         </div>
     </main>
 

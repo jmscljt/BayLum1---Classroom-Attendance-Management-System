@@ -710,10 +710,11 @@ header {
     background: #ffffff;
     border-radius: 8px;
     border: 1.5px solid #e2e8f0;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     display: flex;
     align-items: center;
+    margin-bottom: 6px;
 }
 
 .student-actions-right {
@@ -735,13 +736,13 @@ header {
 .import_excel_btn, .export_excel_btn, .add-student-btn {
     width: auto;
     padding: 0 14px;
-    height: 35px;
+    height: 30px;
     margin: 0;
     background-color: #0056b3;
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -790,10 +791,17 @@ header {
 }
 
 .close-modal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
     font-size: 24px;
     font-weight: bold;
     color: #64748b;
     cursor: pointer;
+    line-height: 1;
 }
 
 .close-modal:hover {
@@ -890,7 +898,7 @@ header {
 
 
 
-.btn-view, .btn-edit {
+.btn-view, .btn-edit, .btn-remove {
     width: auto;
     padding: 0 14px;
     height: 35px;
@@ -905,19 +913,20 @@ header {
     transition: background-color 0.2s ease;
 }
 
+.btn-view, .btn-edit {
+    background-color: #0056b3;
+}
+
 .btn-remove {
-    width: auto;
-    padding: 0 14px;
-    height: 35px;
-    margin: 0;
     background-color: #b30000;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+}
+
+.btn-view:hover, .btn-edit:hover {
+    background-color: #004085;
+}
+
+.btn-remove:hover {
+    background-color: #8f0000;
 }
 
 .btn-view, .btn-edit, .btn-remove {
@@ -925,6 +934,18 @@ header {
     height: 30px;
     font-size: 12px;
     margin: 6px auto 6px auto;
+}
+
+.table-section-card .action-buttons {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.table-section-card .action-buttons .btn-view,
+.table-section-card .action-buttons .btn-edit,
+.table-section-card .action-buttons .btn-remove {
+    margin: 6px 0;
 }
 
 .absences-modal-overlay {

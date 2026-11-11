@@ -18,6 +18,11 @@ class StudentsController
         return $this->teachersModel->addStudent($studentData);
     }
 
+    public function updateStudent(string $currentStudentId, int $sectionId, array $studentData): array
+    {
+        return $this->teachersModel->updateStudent($currentStudentId, $sectionId, $studentData);
+    }
+
     public function getStudentsMasterlist(int $sectionId): array
     {
         return $this->teachersModel->getStudentsMasterlist($sectionId);
@@ -31,8 +36,38 @@ class StudentsController
     public function getPageData(array &$session, array $post, string $requestMethod): array
     {
         if ($requestMethod === 'POST') {
-            $post['section_id'] = $session['section_id'] ?? null;
-            $session['student_form_result'] = $this->addStudent($post);
+            if (($post['action'] ?? '') === 'edit_student') {
+                $csrfToken = $post['csrf_token'] ?? '';
+                $sessionToken = $session['csrf_token'] ?? '';
+                if (
+                    !is_string($csrfToken)
+                    || !is_string($sessionToken)
+                    || $sessionToken === ''
+                    || !hash_equals($sessionToken, $csrfToken)
+                ) {
+                    $session['student_form_result'] = [
+                        'success' => false,
+                        'message' => 'Your session expired. Refresh the page and try again.',
+                    ];
+                } else {
+                    $currentStudentId = $post['current_student_id'] ?? '';
+                    if (!is_string($currentStudentId) || preg_match('/^\d{1,19}$/D', $currentStudentId) !== 1) {
+                        $session['student_form_result'] = [
+                            'success' => false,
+                            'message' => 'A valid student LRN is required.',
+                        ];
+                    } else {
+                        $session['student_form_result'] = $this->updateStudent(
+                            $currentStudentId,
+                            (int) ($session['section_id'] ?? 0),
+                            $post
+                        );
+                    }
+                }
+            } else {
+                $post['section_id'] = $session['section_id'] ?? null;
+                $session['student_form_result'] = $this->addStudent($post);
+            }
             header('Location: index.php?page=students');
             exit();
         }
