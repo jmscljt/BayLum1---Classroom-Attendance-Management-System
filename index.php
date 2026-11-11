@@ -13,7 +13,7 @@ require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 
 //Admin Controllers
-
+require_once 'app/Controllers/AdminAuthController.php';
 
 
 
@@ -50,7 +50,7 @@ if (strpos($page, 'admin_') === 0) {
     }
 
     // Protected admin pages - require authentication
-    if (!isset($_SESSION['admin_logged_in'])) {
+    if (empty($_SESSION['admin_logged_in'])) {
         header('Location: index.php?page=admin_login');
         exit();
     }

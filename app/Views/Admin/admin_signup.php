@@ -34,7 +34,7 @@ $old = $data['old'] ?? [];
                 <?php endif; ?>
 
                 <h1>Admin Sign Up</h1>
-                <form action="index.php?page=adminSignup" method="POST">
+                <form action="index.php?page=admin_register" method="POST">
                     <div class="input-group">
                         <label for="full_name">Full Name</label>
                         <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" value="<?php echo htmlspecialchars($old['full_name'] ?? ''); ?>" required>

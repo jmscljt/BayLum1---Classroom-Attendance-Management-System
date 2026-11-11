@@ -1,4 +1,4 @@
-/* ===== Notification ===== */
+/* ===== Notification - Start ===== */
 
 .alert {
     padding: 10px;
@@ -21,8 +21,13 @@
     display: inline-block;
 }
 
+/* ===== Notification - End ===== */
 
-/* ===== Base ===== */
+
+
+
+
+/* ===== Login / Signup Forms - Start ===== */
 
 * {
     box-sizing: border-box;
@@ -219,3 +224,285 @@ body:has(.side-cover) {
 .signup-link:hover {
     color: #003366;
 }
+
+/* ===== Login / Signup Forms - End ===== */
+
+
+
+
+
+
+/* ===== Admin Sidebar - Start ===== */
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #0056b3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+.sidebar-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.admin-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    margin-bottom: 15px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.nav-links {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+    height: 100%;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+}
+
+.nav-links a.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-links a:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-links a.active:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.nav-links a i {
+    width: 20px;
+    text-align: center;
+}
+
+.logout-btn {
+    margin-top: auto; 
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 0, 0, 0.2);
+}
+
+/* ===== Admin Sidebar - End ===== */
+
+
+
+
+
+/* ===== Admin Dashboard - Start ===== */
+
+header {
+    width: 100%;
+    margin-left: 250px;
+    height: 60px;
+    background-color: #0056b3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.dashboard-header h1 {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.main-content {
+    margin-left: 250px;
+    margin-top: 60px;
+    padding: 25px;
+    background-color: #f4f7f6;
+    min-height: calc(100vh - 60px);
+    overflow-y: auto;
+    width: calc(100% - 250px);
+    box-sizing: border-box;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.overview-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+}
+
+.overview-titles h2 {
+    font-size: 22px;
+    color: #000;
+    font-weight: bold;
+    margin-bottom: 4px;
+    margin-top: 0;
+}
+
+.overview-date-label {
+    font-size: 14px;
+    color: #555;
+    margin: 0;
+}
+
+.filter-action-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.date-filter-input {
+    padding: 6px 10px;
+    border: 1.5px solid #a4b0be;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    color: #333;
+}
+
+.sync-btn {
+    background-color: #0056b3;
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+
+.sync-btn:hover {
+    background-color: #004085;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.metric-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 85px;
+    box-sizing: border-box;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.metric-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #4a5568;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1a202c;
+    min-height: 34px;
+}
+
+.table-section-card {
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.table-section-card h3 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2d3748;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.data-table th {
+    background-color: #f7fafc;
+    color: #4a5568;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: bold;
+}
+
+.data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #edf2f7;
+    color: #2d3748;
+}
+
+.data-table tr:hover {
+    background-color: #f8fafc;
+}
+
+/* ===== Admin Dashboard - End ===== */
