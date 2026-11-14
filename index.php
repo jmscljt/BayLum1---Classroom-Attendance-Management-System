@@ -130,7 +130,7 @@ switch ($page) {
         $attendanceSummaries = $pageData['attendanceSummaries'];
         $attendanceLogs = $pageData['attendanceLogs'];
         $showLogs = $pageData['showLogs'];
-        $view = 'app/Views/Teachers/attendanceLogs.php';
+        $view = 'app/Views/Teachers/attendanceRecords.php';
         break;
 
     case 'students':
