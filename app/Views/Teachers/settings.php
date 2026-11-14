@@ -108,19 +108,6 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
                 </div>
             </section>
 
-            <section class="table-section-card teacher-settings-card">
-                <h3>Manual Attendance Codes</h3>
-                <div class="settings-attendance-codes">
-                    <div class="metric-card metric-card-blue">
-                        <span class="metric-title">Time In Code</span>
-                        <span class="metric-value">----</span>
-                    </div>
-                    <div class="metric-card metric-card-blue">
-                        <span class="metric-title">Time Out Code</span>
-                        <span class="metric-value">----</span>
-                    </div>
-                </div>
-            </section>
         </div>
     </main>
 </body>

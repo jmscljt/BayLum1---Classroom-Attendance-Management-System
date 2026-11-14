@@ -1303,12 +1303,6 @@ header {
     background: #f1f5f9;
 }
 
-.settings-attendance-codes {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-}
-
 .teacher-settings-note {
     max-width: 900px;
     color: #64748b;
