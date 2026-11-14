@@ -11,6 +11,7 @@ require_once 'app/Controllers/Teachers/DashboardController.php';
 require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
 require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
+require_once 'app/Controllers/Teachers/OtherSectionHandledController.php';
 
 //Admin Controllers
 require_once 'app/Controllers/AdminAuthController.php';
@@ -171,6 +172,13 @@ switch ($page) {
         break;
 
     case 'otherSectionHandled':
+        $controller = new OtherSectionHandledController($pdo);
+        $pageData = $controller->getPageData($_SESSION, $_GET, $_POST, $_SERVER['REQUEST_METHOD']);
+        $assignedSections = $pageData['assignedSections'];
+        $availableSections = $pageData['availableSections'];
+        $subjects = $pageData['subjects'];
+        $csrfToken = $pageData['csrfToken'];
+        $assignedMessage = $pageData['assignedMessage'];
         $view = 'app/Views/Teachers/otherSectionHandled.php';
         break;
         

@@ -9,7 +9,14 @@ $currentPage = 'otherSectionHandled';
 
 // Safety net so the page never warns if the variables are missing
 $assignedSections = $assignedSections ?? [];
+$availableSections = $availableSections ?? [];
+$subjects = $subjects ?? [];
+$csrfToken = $csrfToken ?? '';
 $assignedMessage  = $assignedMessage ?? null;
+$gradeLevels = array_values(array_unique(array_column($availableSections, 'grade_level')));
+$escape = static function ($value): string {
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+};
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,37 +45,40 @@ $assignedMessage  = $assignedMessage ?? null;
                 </div>
             </div>
 
-            <?php if (!empty($assignedMessage)): ?>
-                <div class="alert alert-success"><?php echo htmlspecialchars($assignedMessage); ?></div>
+            <?php if (is_array($assignedMessage) && !empty($assignedMessage['message'])): ?>
+                <div class="alert <?php echo !empty($assignedMessage['success']) ? 'alert-success' : 'alert-error'; ?>">
+                    <?php echo $escape($assignedMessage['message']); ?>
+                </div>
             <?php endif; ?>
 
             <!-- Add Assigned Section -->
             <form method="POST" action="index.php?page=otherSectionHandled" class="student-buttons-section">
                 <h4>Add Assigned Section</h4>
                 <div class="add-section-form-group">
-                    <select class="grade-btn" name="grade_level" required>
-                        <option value="" disabled selected>Grade</option>
-                        <option value="Grade 4">Grade 4</option>
-                        <option value="Grade 5">Grade 5</option>
-                        <option value="Grade 6">Grade 6</option>
+                    <input type="hidden" name="action" value="add_assignment">
+                    <input type="hidden" name="csrf_token" value="<?php echo $escape($csrfToken); ?>">
+                    <select class="grade-btn" data-grade-select required>
+                        <option value="">Grade</option>
+                        <?php foreach ($gradeLevels as $gradeLevel): ?>
+                            <option value="<?php echo $escape($gradeLevel); ?>"><?php echo $escape($gradeLevel); ?></option>
+                        <?php endforeach; ?>
                     </select>
 
-                    <select class="section-btn" name="section" required>
-                        <option value="" disabled selected>Section</option>
-                        <option value="Mabait">Mabait</option>
-                        <option value="Magalang">Magalang</option>
-                        <option value="Masipag">Masipag</option>
-                        <option value="Masayahin">Masayahin</option>
-                        <option value="Matapat">Matapat</option>
+                    <select class="section-btn" name="section_id" data-section-select required>
+                        <option value="">Section</option>
+                        <?php foreach ($availableSections as $section): ?>
+                            <option value="<?php echo (int) $section['section_id']; ?>"
+                                data-grade="<?php echo $escape($section['grade_level']); ?>">
+                                <?php echo $escape($section['section_name']); ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
 
                     <select class="subject-btn" name="subject" required>
-                        <option value="" disabled selected>Subject</option>
-                        <option value="Math">Math</option>
-                        <option value="English">English</option>
-                        <option value="Science">Science</option>
-                        <option value="Filipino">Filipino</option>
-                        <option value="Araling Panlipunan">Araling Panlipunan</option>
+                        <option value="">Subject</option>
+                        <?php foreach ($subjects as $subject): ?>
+                            <option value="<?php echo $escape($subject); ?>"><?php echo $escape($subject); ?></option>
+                        <?php endforeach; ?>
                     </select>
 
                     <button type="submit" class="add-section-btn">Add</button>
@@ -90,16 +100,25 @@ $assignedMessage  = $assignedMessage ?? null;
                         <tbody>
                             <?php foreach ($assignedSections as $s): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($s['grade_level'] . ' - ' . $s['section_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($s['subject']); ?></td>
-                                    <td><?php echo htmlspecialchars($s['class_adviser'] ?? '-'); ?></td>
+                                    <td><?php echo $escape($s['grade_level'] . ' - ' . $s['section_name']); ?></td>
+                                    <td><?php echo $escape($s['subject']); ?></td>
+                                    <td><?php echo $escape($s['class_adviser'] ?? '-'); ?></td>
                                     <td>
                                         <div class="action-buttons">
                                             <button type="button" class="btn-view btn-view-record"
+                                                data-assignment-id="<?php echo (int) $s['assignment_id']; ?>"
+                                                data-label="<?php echo $escape($s['grade_level'] . ' - ' . $s['section_name']); ?>">View Record</button>
+                                            <button type="button" class="btn-edit btn-edit-assignment"
+                                                data-assignment-id="<?php echo (int) $s['assignment_id']; ?>"
                                                 data-section-id="<?php echo (int) $s['section_id']; ?>"
-                                                data-label="<?php echo htmlspecialchars($s['grade_level'] . ' - ' . $s['section_name'] . ' (' . $s['subject'] . ')'); ?>">View Record</button>
-                                            <button type="button" class="btn-edit">Edit</button>
-                                            <button type="button" class="btn-remove">Remove</button>
+                                                data-grade="<?php echo $escape($s['grade_level']); ?>"
+                                                data-subject="<?php echo $escape($s['subject']); ?>">Edit</button>
+                                            <form method="POST" action="index.php?page=otherSectionHandled" class="remove-assignment-form">
+                                                <input type="hidden" name="action" value="remove_assignment">
+                                                <input type="hidden" name="assignment_id" value="<?php echo (int) $s['assignment_id']; ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo $escape($csrfToken); ?>">
+                                                <button type="submit" class="btn-remove">Remove</button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -116,51 +135,21 @@ $assignedMessage  = $assignedMessage ?? null;
             </div>
         </div>
 
-        <!-- Frame 1: dates (with calendar search) -->
-        <div id="sectionRecordsModal" class="attendance-modal-overlay">
+        <div id="sectionRecordsModal" class="attendance-modal-overlay" aria-hidden="true">
             <div class="attendance-modal-content">
                 <div class="modal-header-row">
-                    <h3 id="sectionRecordsTitle">Attendance Records</h3>
-                    <button type="button" class="close-modal-btn" data-close>&times;</button>
+                    <h3 id="sectionRecordsTitle">Students</h3>
+                    <button type="button" class="close-modal-btn" data-close aria-label="Close">&times;</button>
                 </div>
-
-                <form id="sectionDateSearchForm" class="filter-action-group" style="margin-bottom: 15px;">
-                    <input type="date" id="sectionDateSearch" class="date-filter-input">
-                    <button type="submit" class="sync-btn">Search Date</button>
-                </form>
-
+                <p id="sectionAdviser"></p>
+                <p id="sectionRecordMessage" role="status"></p>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sectionRecordDates"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Frame 2: attendance for the chosen date -->
-        <div id="sectionLogsModal" class="attendance-modal-overlay">
-            <div class="attendance-modal-content">
-                <div class="modal-header-row">
-                    <h3 id="sectionLogsTitle">Attendance for</h3>
-                    <button type="button" class="close-modal-btn" data-close>&times;</button>
-                </div>
-
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
                                 <th>LRN</th>
                                 <th>Name</th>
-                                <th>Time In</th>
-                                <th>Time Out</th>
-                                <th>Method</th>
+                                <th>Gender</th>
                             </tr>
                         </thead>
                         <tbody id="sectionLogRows"></tbody>
@@ -168,8 +157,45 @@ $assignedMessage  = $assignedMessage ?? null;
                 </div>
             </div>
         </div>
-    </main>
 
-    <script src="/public/js/otherSectionRecords.js"></script>
+        <div id="editAssignmentModal" class="attendance-modal-overlay" aria-hidden="true">
+            <div class="attendance-modal-content">
+                <div class="modal-header-row">
+                    <h3>Edit Assigned Section</h3>
+                    <button type="button" class="close-modal-btn" data-close aria-label="Close">&times;</button>
+                </div>
+                <form method="POST" action="index.php?page=otherSectionHandled" class="student-buttons-section">
+                    <input type="hidden" name="action" value="edit_assignment">
+                    <input type="hidden" name="assignment_id" id="editAssignmentId">
+                    <input type="hidden" name="csrf_token" value="<?php echo $escape($csrfToken); ?>">
+                    <div class="add-section-form-group">
+                        <select class="grade-btn" id="editGradeSelect" data-grade-select required>
+                            <option value="">Grade</option>
+                            <?php foreach ($gradeLevels as $gradeLevel): ?>
+                                <option value="<?php echo $escape($gradeLevel); ?>"><?php echo $escape($gradeLevel); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select class="section-btn" name="section_id" id="editSectionSelect" data-section-select required>
+                            <option value="">Section</option>
+                            <?php foreach ($availableSections as $section): ?>
+                                <option value="<?php echo (int) $section['section_id']; ?>"
+                                    data-grade="<?php echo $escape($section['grade_level']); ?>">
+                                    <?php echo $escape($section['section_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select class="subject-btn" name="subject" id="editSubjectSelect" required>
+                            <option value="">Subject</option>
+                            <?php foreach ($subjects as $subject): ?>
+                                <option value="<?php echo $escape($subject); ?>"><?php echo $escape($subject); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="add-section-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script src="/public/js/otherSectionHandled.js"></script>
 </body>
 </html>

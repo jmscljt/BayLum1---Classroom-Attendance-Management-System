@@ -1133,6 +1133,10 @@ header {
     color: #1e293b;
 }
 
+.assigned-section-container .alert {
+    margin-top: 12px;
+}
+
 .add-section-form-group {
     display: flex;
     flex-wrap: wrap;
@@ -1185,11 +1189,26 @@ header {
 
 .assigned-sections-table .action-buttons {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
 }
 
 .assigned-sections-table .action-buttons button {
     margin: 0;
+}
+
+.assigned-sections-table .remove-assignment-form {
+    margin: 0;
+}
+
+.attendance-modal-content #sectionAdviser {
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.attendance-modal-content #sectionRecordMessage {
+    margin: 0 0 12px;
 }
 
 .assigned-sections-table .no-data-cell {
