@@ -386,41 +386,6 @@ header {
     margin: 0;
 }
 
-.filter-action-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.date-filter-input {
-    padding: 6px 10px;
-    border: 1.5px solid #a4b0be;
-    border-radius: 6px;
-    font-size: 13px;
-    outline: none;
-    background: #fff;
-    color: #333;
-}
-
-.sync-btn {
-    background-color: #0056b3;
-    color: #fff;
-    border: none;
-    padding: 7px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.2s;
-}
-
-.sync-btn:hover {
-    background-color: #004085;
-}
-
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
