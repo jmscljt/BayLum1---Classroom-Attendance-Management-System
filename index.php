@@ -14,7 +14,7 @@ require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 require_once 'app/Controllers/Teachers/OtherSectionHandledController.php';
 
 //Admin Controllers
-require_once 'app/Controllers/AdminAuthController.php';
+require_once 'app/Controllers/Admin/AdminAuthController.php';
 
 
 

@@ -30,12 +30,6 @@ class TeachersModel{
             return ['success' => false, 'message' => 'Invalid email format!'];
         }
 
-        $sectionCheck = $this->pdo->prepare("SELECT COUNT(*) FROM sections WHERE section_id = ?");
-        $sectionCheck->execute([$sectionId]);
-        if ($sectionCheck->fetchColumn() === 0) {
-            return ['success' => false, 'message' => 'Invalid section selected. Please choose a valid grade and section.'];
-        }
-
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $fullName = trim($firstName . ' ' . $lastName);
 
@@ -54,6 +48,34 @@ class TeachersModel{
         }
 
         try {
+            $this->pdo->beginTransaction();
+
+            // Lock the selected section so concurrent signups cannot assign two advisers to it.
+            $sectionCheck = $this->pdo->prepare(
+                "SELECT section_id FROM sections WHERE section_id = ? FOR UPDATE"
+            );
+            $sectionCheck->execute([$sectionId]);
+            if ($sectionCheck->fetchColumn() === false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Invalid section selected. Please choose a valid grade and section.'];
+            }
+
+            if (strcasecmp(trim($role), 'Adviser') === 0) {
+                $adviserCheck = $this->pdo->prepare(
+                    "SELECT 1 FROM teachers
+                    WHERE section_id = ? AND LOWER(TRIM(role)) = 'adviser'
+                    LIMIT 1"
+                );
+                $adviserCheck->execute([$sectionId]);
+                if ($adviserCheck->fetchColumn()) {
+                    $this->pdo->rollBack();
+                    return [
+                        'success' => false,
+                        'message' => 'This grade and section already has an adviser. Please choose another section or contact the school administrator if you believe this is an error.',
+                    ];
+                }
+            }
+
             $query = "INSERT INTO teachers (user_id, role, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :role, :full_name, :first_name, :last_name, :email, :password, :section_id)";
        
             $stmt = $this->pdo->prepare($query);
@@ -68,6 +90,7 @@ class TeachersModel{
             $stmt->bindParam(':section_id', $sectionId, PDO::PARAM_INT);
 
             if ($stmt->execute()) {
+                $this->pdo->commit();
                 return [
                     'success' => true,
                     'user_id' => $uniqueId,
@@ -76,11 +99,17 @@ class TeachersModel{
                 ];
             }
         } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
             // Log the error for debugging
             error_log('Signup error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
         }
 
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
         return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
     }
 
