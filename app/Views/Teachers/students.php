@@ -105,6 +105,7 @@ $currentPage = 'students';
                         <thead>
                             <tr>
                                 <th>Fingerprint Status</th>
+                                <th>AS608 ID</th>
                                 <th>LRN</th>
                                 <th>Student Name</th>
                                 <th>Gender</th>
@@ -119,6 +120,7 @@ $currentPage = 'students';
                                 <?php foreach ($masterlist as $student): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($student['status'] ?? 'Unregistered'); ?></td>
+                                        <td><?php echo htmlspecialchars((string) ($student['fingerprint_id'] ?? '-'), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($student['lrn'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name'] . ' ' . $student['middle_initial'] ?? ''); ?></td>
                                         <td><?php echo htmlspecialchars($student['gender'] ?? 'N'); ?></td>
@@ -153,7 +155,7 @@ $currentPage = 'students';
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="8" class="no-data-cell">No students record found.</td>
+                                    <td colspan="9" class="no-data-cell">No students record found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>

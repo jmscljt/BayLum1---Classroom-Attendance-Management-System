@@ -132,7 +132,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                                         <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo $log['time_in'] ? htmlspecialchars(date('h:i A', strtotime($log['time_in'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
                                         <td><?php echo $log['time_out'] ? htmlspecialchars(date('h:i A', strtotime($log['time_out'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
-                                        <td>Manual</td>
+                                        <td><?php echo htmlspecialchars($log['methods'] ?? 'Manual', ENT_QUOTES, 'UTF-8'); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

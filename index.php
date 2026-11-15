@@ -11,10 +11,11 @@ require_once 'app/Controllers/Teachers/DashboardController.php';
 require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
 require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
+require_once 'app/Controllers/Teachers/FingerprintAttendanceController.php';
 require_once 'app/Controllers/Teachers/OtherSectionHandledController.php';
 
 //Admin Controllers
-require_once 'app/Controllers/AdminAuthController.php';
+require_once 'app/Controllers/Admin/AdminAuthController.php';
 
 
 
@@ -114,6 +115,8 @@ switch ($page) {
         $controller = new DashboardController($pdo);
         $pageData = $controller->getPageData($_SESSION);
         $attendanceCodes = $pageData['attendanceCodes'];
+        $csrfToken = $pageData['csrfToken'];
+        $fingerprintStudents = $pageData['fingerprintStudents'];
         $totalAdvisoryStudents = $pageData['totalAdvisoryStudents'];
         $presentStudentsAdvisory = $pageData['presentStudentsAdvisory'];
         $absentStudentsAdvisory = $pageData['absentStudentsAdvisory'];
@@ -170,6 +173,16 @@ switch ($page) {
             exit();
         }
         break;
+
+    case 'fingerprintAttendance':
+        $controller = new FingerprintAttendanceController($pdo);
+        $controller->handleRequest(
+            $_SESSION,
+            $_SERVER['REQUEST_METHOD'],
+            file_get_contents('php://input'),
+            $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''
+        );
+        exit();
 
     case 'otherSectionHandled':
         $controller = new OtherSectionHandledController($pdo);
