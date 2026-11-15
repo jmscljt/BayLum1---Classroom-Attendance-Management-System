@@ -70,8 +70,8 @@ if (strpos($page, 'admin_') === 0) {
             $view = 'app/Views/Admin/admin_manage_sections.php';
             break;
 
-        case 'activity_log':
-            $view = 'app/Views/Admin/admin_activity_log.php';
+        case 'manage_teachers':
+            $view = 'app/Views/Admin/admin_manage_teachers.php';
             break;
 
         case 'admin_settings':

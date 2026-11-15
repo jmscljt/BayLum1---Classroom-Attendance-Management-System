@@ -22,7 +22,7 @@ if (!isset($currentPage)) {
             <i class="fa-solid fa-layer-group"></i> Grade & Sections
         </a>
 
-        <a href="<?php echo $base_url; ?>/index.php?page=admin_teachers" class="<?php echo ($currentPage == 'admin_teachers') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=admin_manage_teachers" class="<?php echo ($currentPage == 'admin_manage_teachers') ? 'active' : ''; ?>">
             <i class="fa-solid fa-chalkboard-user"></i> Teacher Accounts
         </a>
 
