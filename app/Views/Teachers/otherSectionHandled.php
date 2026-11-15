@@ -41,7 +41,7 @@ $escape = static function ($value): string {
 
             <div class="overview-header-row">
                 <div class="overview-titles">
-                    <h2>Assigned Students</h2>
+                    <h2>ASSIGNED STUDENTS</h2>
                 </div>
             </div>
 

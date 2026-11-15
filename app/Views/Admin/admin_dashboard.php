@@ -5,7 +5,6 @@ if (!isset($base_url)) {
 $currentPage = 'admin_dashboard';
 
 $currentDateDisplay = date('F d, Y');
-$currentDateValue   = date('Y-m-d');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -33,10 +32,6 @@ $currentDateValue   = date('Y-m-d');
                 <div class="overview-titles">
                     <h2>ADMIN SYSTEM OVERVIEW</h2>
                     <p class="overview-date-label"><?php echo $currentDateDisplay; ?></p>
-                </div>
-                <div class="filter-action-group">
-                    <input type="date" class="date-filter-input" value="<?php echo $currentDateValue; ?>">
-                    <button class="sync-btn"><i class="fa-solid fa-rotate"></i> System Sync</button>
                 </div>
             </div>
 

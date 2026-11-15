@@ -39,7 +39,13 @@ require_once __DIR__ . '/TeachersController.php';
 
                 // Checking if success for auto login after signup
                 if ($result['success']) {
-                    $teacherStmt = $this->pdo->prepare("SELECT * FROM teachers WHERE user_id = ?");
+                    $teacherStmt = $this->pdo->prepare(
+                        "SELECT t.*, s.grade_level AS assigned_grade_level,
+                            s.section_name AS advisory_section
+                        FROM teachers t
+                        LEFT JOIN sections s ON s.section_id = t.section_id
+                        WHERE t.id = ?"
+                    );
                     $teacherStmt->execute([$result['insert_id']]);
                     $teacher = $teacherStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,9 +54,9 @@ require_once __DIR__ . '/TeachersController.php';
                         $_SESSION['user_id'] = $teacher['id'];
                         $_SESSION['user_name'] = $teacher['full_name'];
                         
-                        $_SESSION['assigned_grade_level'] = $user['assigned_grade_level'] ?? '';
-                        $_SESSION['advisory_section'] = $user['advisory_section'] ?? '';
-                        $_SESSION['section_id'] = $user['section_id'] ?? null;
+                        $_SESSION['assigned_grade_level'] = $teacher['assigned_grade_level'] ?? '';
+                        $_SESSION['advisory_section'] = $teacher['advisory_section'] ?? '';
+                        $_SESSION['section_id'] = $teacher['section_id'] ?? null;
 
                         $_SESSION['auth_message'] = "Account successfully created! Please log in.";
                         $_SESSION['auth_message_type'] = "success";

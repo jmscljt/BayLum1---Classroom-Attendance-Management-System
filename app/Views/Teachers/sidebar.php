@@ -16,7 +16,7 @@ $displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
             <i class="fa-solid fa-house"></i>Dashboard</a>
         
         <a href="<?php echo $base_url; ?>/index.php?page=attendanceLogs" class="<?php echo ($currentPage == 'attendanceLogs') ? 'active' : ''; ?>">
-            <i class="fa-solid fa-user-check"></i>Attendance Logs</a>
+            <i class="fa-solid fa-user-check"></i>Attendance Records</a>
 
         <a href="<?php echo $base_url; ?>/index.php?page=students" class="<?php echo ($currentPage == 'students') ? 'active' : ''; ?>">
             <i class="fa-solid fa-users"></i><?php echo htmlspecialchars($displayGrade . ' - ' . trim($advisorySection) . ' Students'); ?></a>
