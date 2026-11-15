@@ -560,11 +560,84 @@ class TeachersModel{
         }
     }
 
-    public function recordManualAttendance(int $sessionId, string $studentLrn): array
+    public function recordFingerprintAttendance(int $teacherId, int $fingerprintId): array
+    {
+        if ($fingerprintId < 1 || $fingerprintId > 127) {
+            return ['success' => false, 'message' => 'The scanner reported an invalid fingerprint ID.'];
+        }
+
+        $sessionStmt = $this->pdo->prepare(
+            'SELECT id, section_id, attendance_type
+             FROM manual_attendance_sessions
+             WHERE teacher_id = :teacher_id AND closed_at IS NULL
+             ORDER BY id DESC
+             LIMIT 1'
+        );
+        $sessionStmt->execute([':teacher_id' => $teacherId]);
+        $session = $sessionStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$session) {
+            return ['success' => false, 'message' => 'Open a time-in or time-out session before scanning.'];
+        }
+
+        $studentStmt = $this->pdo->prepare(
+            'SELECT student_id
+             FROM students
+             WHERE fingerprint_id = :fingerprint_id
+                AND section_id = :section_id
+                AND is_active = 1
+             LIMIT 1'
+        );
+        $studentStmt->execute([
+            ':fingerprint_id' => $fingerprintId,
+            ':section_id' => $session['section_id'],
+        ]);
+        $studentLrn = $studentStmt->fetchColumn();
+        if ($studentLrn === false) {
+            $mappingStmt = $this->pdo->prepare(
+                'SELECT section_id, is_active
+                 FROM students
+                 WHERE fingerprint_id = :fingerprint_id
+                 LIMIT 1'
+            );
+            $mappingStmt->execute([':fingerprint_id' => $fingerprintId]);
+            $mapping = $mappingStmt->fetch(PDO::FETCH_ASSOC);
+            if ($mapping && !(int) $mapping['is_active']) {
+                return [
+                    'success' => false,
+                    'message' => 'Scanned fingerprint ID ' . $fingerprintId . ' belongs to an inactive student. Reactivate or re-enroll the student.',
+                ];
+            }
+            if ($mapping) {
+                return [
+                    'success' => false,
+                    'message' => 'Scanned fingerprint ID ' . $fingerprintId . ' is assigned to a different section than this attendance session.',
+                ];
+            }
+            return [
+                'success' => false,
+                'message' => 'Scanned fingerprint ID ' . $fingerprintId . ' is not registered to a student. Enroll the student from the dashboard.',
+            ];
+        }
+
+        return $this->recordManualAttendance(
+            (int) $session['id'],
+            (string) $studentLrn,
+            'Fingerprint'
+        );
+    }
+
+    public function recordManualAttendance(
+        int $sessionId,
+        string $studentLrn,
+        string $attendanceMethod = 'Manual'
+    ): array
     {
         $studentLrn = trim($studentLrn);
         if (preg_match('/^\d{1,19}$/D', $studentLrn) !== 1) {
             return ['success' => false, 'message' => 'Enter a valid student LRN.'];
+        }
+        if (!in_array($attendanceMethod, ['Manual', 'Fingerprint'], true)) {
+            throw new InvalidArgumentException('Unsupported attendance method.');
         }
 
         $this->pdo->beginTransaction();
@@ -608,9 +681,9 @@ class TeachersModel{
 
             $insertStmt = $this->pdo->prepare(
                 'INSERT INTO manual_attendance_records
-                    (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at)
+                    (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
                  VALUES
-                    (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at)'
+                    (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
             );
             try {
                 $insertStmt->execute([
@@ -621,6 +694,7 @@ class TeachersModel{
                     ':attendance_date' => $session['attendance_date'],
                     ':attendance_type' => $session['attendance_type'],
                     ':recorded_at' => date('Y-m-d H:i:s'),
+                    ':attendance_method' => $attendanceMethod,
                 ]);
             } catch (PDOException $e) {
                 if ($e->getCode() === '23000') {
@@ -634,10 +708,13 @@ class TeachersModel{
             }
 
             $this->pdo->commit();
-            return [
-                'success' => true,
-                'message' => ucfirst(str_replace('_', ' ', $session['attendance_type'])) . ' recorded for LRN ' . $studentLrn . '.',
-            ];
+            $message = ucfirst(str_replace('_', ' ', $session['attendance_type']))
+                . ' recorded for LRN ' . $studentLrn . '.';
+            if ($attendanceMethod === 'Fingerprint') {
+                $message = rtrim($message, '.') . ' via fingerprint.';
+            }
+
+            return ['success' => true, 'message' => $message];
         } catch (Throwable $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -655,6 +732,7 @@ class TeachersModel{
                 s.middle_name,
                 s.last_name,
                 s.gender,
+                GROUP_CONCAT(DISTINCT r.attendance_method ORDER BY r.attendance_method SEPARATOR ', ') AS methods,
                 MAX(CASE WHEN r.attendance_type = 'time_in' THEN r.recorded_at END) AS time_in,
                 MAX(CASE WHEN r.attendance_type = 'time_out' THEN r.recorded_at END) AS time_out
              FROM manual_attendance_records r
@@ -735,6 +813,147 @@ class TeachersModel{
         return (int) $stmt->fetchColumn();
     }
 
+    public function getFingerprintStudents(int $sectionId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT student_id AS lrn, first_name, middle_name, last_name, fingerprint_id
+             FROM students
+             WHERE section_id = :section_id AND is_active = 1
+             ORDER BY last_name, first_name'
+        );
+        $stmt->execute([':section_id' => $sectionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function checkFingerprintEnrollment(
+        int $teacherId,
+        string $studentLrn,
+        int $fingerprintId
+    ): array {
+        if ($fingerprintId < 1 || $fingerprintId > 127) {
+            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+        }
+
+        $teacherStmt = $this->pdo->prepare(
+            'SELECT section_id FROM teachers WHERE id = :teacher_id'
+        );
+        $teacherStmt->execute([':teacher_id' => $teacherId]);
+        $sectionId = $teacherStmt->fetchColumn();
+        if ($sectionId === false) {
+            return ['success' => false, 'message' => 'Teacher account was not found.'];
+        }
+
+        $studentStmt = $this->pdo->prepare(
+            'SELECT fingerprint_id
+             FROM students
+             WHERE student_id = :student_id
+                AND section_id = :section_id
+                AND is_active = 1'
+        );
+        $studentStmt->execute([
+            ':student_id' => $studentLrn,
+            ':section_id' => $sectionId,
+        ]);
+        $currentFingerprintId = $studentStmt->fetchColumn();
+        if ($currentFingerprintId === false) {
+            return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
+        }
+        $mappingStmt = $this->pdo->prepare(
+            'SELECT student_id
+             FROM students
+             WHERE fingerprint_id = :fingerprint_id
+             LIMIT 1'
+        );
+        $mappingStmt->execute([':fingerprint_id' => $fingerprintId]);
+        $mappedStudentLrn = $mappingStmt->fetchColumn();
+        if ($mappedStudentLrn !== false && (string) $mappedStudentLrn !== $studentLrn) {
+            return [
+                'success' => false,
+                'message' => 'Fingerprint ID ' . $fingerprintId . ' is already assigned to another student.',
+            ];
+        }
+
+        $message = $currentFingerprintId === null
+            ? 'Ready to enroll.'
+            : 'This will keep or replace the student’s current mapping from ID ' . $currentFingerprintId . '.';
+        return ['success' => true, 'message' => $message];
+    }
+
+    public function saveFingerprintEnrollment(
+        int $teacherId,
+        string $studentLrn,
+        int $fingerprintId
+    ): array {
+        if ($fingerprintId < 1 || $fingerprintId > 127) {
+            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $teacherStmt = $this->pdo->prepare(
+                'SELECT section_id FROM teachers WHERE id = :teacher_id FOR UPDATE'
+            );
+            $teacherStmt->execute([':teacher_id' => $teacherId]);
+            $sectionId = $teacherStmt->fetchColumn();
+            if ($sectionId === false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Teacher account was not found.'];
+            }
+
+            $studentStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 1
+                 FOR UPDATE'
+            );
+            $studentStmt->execute([
+                ':student_id' => $studentLrn,
+                ':section_id' => $sectionId,
+            ]);
+            $currentFingerprintId = $studentStmt->fetchColumn();
+            if ($currentFingerprintId === false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
+            }
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE students
+                 SET fingerprint_id = :fingerprint_id
+                 WHERE student_id = :student_id
+                    AND section_id = :section_id
+                    AND is_active = 1'
+            );
+            $updateStmt->execute([
+                ':fingerprint_id' => $fingerprintId,
+                ':student_id' => $studentLrn,
+                ':section_id' => $sectionId,
+            ]);
+            $this->pdo->commit();
+
+            return [
+                'success' => true,
+                'message' => 'Fingerprint ID ' . $fingerprintId . ' registered for LRN ' . $studentLrn . '.',
+            ];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            if ((int) ($e->errorInfo[1] ?? 0) === 1062) {
+                return [
+                    'success' => false,
+                    'message' => 'Fingerprint ID ' . $fingerprintId . ' is already assigned to another student.',
+                ];
+            }
+            throw $e;
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
     public function getDashboardAttendanceMetrics(int $teacherId, int $sectionId, string $date): array
     {
         $stmt = $this->pdo->prepare(
@@ -778,7 +997,8 @@ class TeachersModel{
     {
         try {
             $query = "SELECT 
-                        s.status,
+                        CASE WHEN s.fingerprint_id IS NULL THEN 'Unregistered' ELSE 'Registered' END AS status,
+                        s.fingerprint_id,
                         s.student_id AS lrn,
                         s.first_name,
                         s.middle_name,

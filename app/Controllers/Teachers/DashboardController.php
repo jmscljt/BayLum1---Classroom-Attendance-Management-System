@@ -4,12 +4,16 @@ require_once __DIR__ . '/TeachersController.php';
 
 class DashboardController extends TeachersController
 {
-    public function getPageData(array $session): array
+    public function getPageData(array &$session): array
     {
         $authenticationRedirect = $this->requireAuthentication($session);
         if ($authenticationRedirect !== null) {
             header('Location: ' . $authenticationRedirect['redirect']);
             exit();
+        }
+
+        if (empty($session['csrf_token'])) {
+            $session['csrf_token'] = bin2hex(random_bytes(32));
         }
 
         $teacherId = (int) $session['user_id'];
@@ -23,6 +27,8 @@ class DashboardController extends TeachersController
 
         return [
             'attendanceCodes' => $this->getOrCreateAttendanceCodes($teacherId),
+            'csrfToken' => $session['csrf_token'],
+            'fingerprintStudents' => $this->getFingerprintStudents($sectionId),
             'totalAdvisoryStudents' => $dashboardMetrics['totalAdvisoryStudents'],
             'presentStudentsAdvisory' => $dashboardMetrics['presentStudentsAdvisory'],
             'absentStudentsAdvisory' => $dashboardMetrics['absentStudentsAdvisory'],
