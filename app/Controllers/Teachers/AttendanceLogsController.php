@@ -35,6 +35,19 @@ class AttendanceLogsController extends TeachersController
             $sectionId,
             $requestedDate
         );
+        $today = date('Y-m-d');
+        if (
+            ($requestedDate === null || $requestedDate === $today)
+            && !array_filter(
+                $attendanceSummaries,
+                static fn(array $summary): bool => $summary['attendance_date'] === $today
+            )
+        ) {
+            array_unshift($attendanceSummaries, [
+                'attendance_date' => $today,
+                'present_count' => 0,
+            ]);
+        }
         $totalStudents = $this->getSectionStudentCount($sectionId);
         foreach ($attendanceSummaries as &$summary) {
             $summary['present_count'] = (int) $summary['present_count'];

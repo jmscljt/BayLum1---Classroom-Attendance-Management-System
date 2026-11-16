@@ -476,7 +476,7 @@ class TeachersModel{
             }
 
             $activeStmt = $this->pdo->prepare(
-                'SELECT id, attendance_type
+                'SELECT id, attendance_type, attendance_date
                  FROM manual_attendance_sessions
                  WHERE teacher_id = :teacher_id AND closed_at IS NULL
                  ORDER BY id DESC
@@ -485,6 +485,19 @@ class TeachersModel{
             );
             $activeStmt->execute([':teacher_id' => $teacherId]);
             $activeSession = $activeStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($activeSession && $activeSession['attendance_date'] !== date('Y-m-d')) {
+                $expireStmt = $this->pdo->prepare(
+                    'UPDATE manual_attendance_sessions
+                     SET closed_at = :closed_at
+                     WHERE id = :session_id AND closed_at IS NULL'
+                );
+                $expireStmt->execute([
+                    ':closed_at' => date('Y-m-d H:i:s'),
+                    ':session_id' => $activeSession['id'],
+                ]);
+                $activeSession = false;
+            }
 
             if (!$activeSession && $browserSessionId !== null) {
                 $browserSessionStmt = $this->pdo->prepare(
@@ -567,7 +580,7 @@ class TeachersModel{
         }
 
         $sessionStmt = $this->pdo->prepare(
-            'SELECT id, section_id, attendance_type
+            'SELECT id, section_id, attendance_type, attendance_date
              FROM manual_attendance_sessions
              WHERE teacher_id = :teacher_id AND closed_at IS NULL
              ORDER BY id DESC
@@ -577,6 +590,21 @@ class TeachersModel{
         $session = $sessionStmt->fetch(PDO::FETCH_ASSOC);
         if (!$session) {
             return ['success' => false, 'message' => 'Open a time-in or time-out session before scanning.'];
+        }
+        if ($session['attendance_date'] !== date('Y-m-d')) {
+            $expireStmt = $this->pdo->prepare(
+                'UPDATE manual_attendance_sessions
+                 SET closed_at = :closed_at
+                 WHERE id = :session_id AND closed_at IS NULL'
+            );
+            $expireStmt->execute([
+                ':closed_at' => date('Y-m-d H:i:s'),
+                ':session_id' => $session['id'],
+            ]);
+            return [
+                'success' => false,
+                'message' => 'The previous day’s attendance session has expired. Enter the attendance code to open today’s session.',
+            ];
         }
 
         $studentStmt = $this->pdo->prepare(
@@ -655,6 +683,23 @@ class TeachersModel{
                 return [
                     'success' => false,
                     'message' => 'There is no open attendance session. Enter the teacher\'s code first.',
+                    'clear_session' => true,
+                ];
+            }
+            if ($session['attendance_date'] !== date('Y-m-d')) {
+                $expireStmt = $this->pdo->prepare(
+                    'UPDATE manual_attendance_sessions
+                     SET closed_at = :closed_at
+                     WHERE id = :session_id AND closed_at IS NULL'
+                );
+                $expireStmt->execute([
+                    ':closed_at' => date('Y-m-d H:i:s'),
+                    ':session_id' => $session['id'],
+                ]);
+                $this->pdo->commit();
+                return [
+                    'success' => false,
+                    'message' => 'The previous day’s attendance session has expired. Enter the attendance code to open today’s session.',
                     'clear_session' => true,
                 ];
             }
