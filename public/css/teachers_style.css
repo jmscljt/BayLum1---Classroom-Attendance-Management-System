@@ -450,7 +450,8 @@ header {
     margin-top: 60px;
     padding: 25px;
     background-color: #f4f7f6;
-    min-height: 100vh;
+    height: calc(100vh - 60px);
+    min-height: 0;
     overflow-y: auto;
     width: 100%;
     box-sizing: border-box;
