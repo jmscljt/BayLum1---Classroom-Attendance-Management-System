@@ -1,5 +1,5 @@
 <?php
-// Teacher activity log page.
+// Teacher activity logs view.
 if (!isset($base_url)) {
     $base_url = '';
 }
