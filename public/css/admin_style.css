@@ -653,3 +653,194 @@ header {
 }
 
 /* ===== Admin Teacher Accounts - End ===== */
+
+/* ===== Admin Student Management - Start ===== */
+
+.student-page-header {
+    align-items: center;
+}
+
+.student-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.student-secondary-btn {
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 9px 14px;
+    background-color: #ffffff;
+    color: #2d3748;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.student-secondary-btn:hover {
+    background-color: #f7fafc;
+    border-color: #a0aec0;
+}
+
+.student-export-btn {
+    color: #276749;
+}
+
+.student-filter-card {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+.student-search-field {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+}
+
+.student-search-field > i {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    color: #718096;
+    transform: translateY(-50%);
+}
+
+.student-search-field input {
+    width: 100%;
+    min-height: 38px;
+    padding: 9px 12px 9px 36px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    color: #2d3748;
+    font-size: 13px;
+}
+
+.student-search-field input:focus {
+    border-color: #0056b3;
+    outline: 2px solid rgba(0, 86, 179, 0.15);
+}
+
+.student-section-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 240px;
+    color: #4a5568;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.student-section-field .section-form-control {
+    padding: 9px 10px;
+    font-size: 13px;
+}
+
+.student-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.student-table-heading h3 {
+    margin-bottom: 5px;
+}
+
+.student-table-heading p {
+    color: #718096;
+    font-size: 12px;
+}
+
+.student-record-count {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background-color: #ebf4ff;
+    color: #2b6cb0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.student-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.student-status-enrolled {
+    background-color: #c6f6d5;
+    color: #276749;
+}
+
+.student-status-pending {
+    background-color: #feebc8;
+    color: #744210;
+}
+
+.student-row-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.student-row-actions .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background-color: #ffffff;
+    color: #4a5568;
+    cursor: pointer;
+}
+
+.student-row-actions .action-btn:hover {
+    background-color: #f7fafc;
+    color: #0056b3;
+}
+
+.student-row-actions .code-btn {
+    color: #3182ce;
+}
+
+.student-row-actions .delete-btn:hover {
+    color: #c53030;
+}
+
+@media (max-width: 760px) {
+    .student-page-header,
+    .student-filter-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .student-page-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    }
+
+    .student-section-field {
+        width: 100%;
+    }
+
+    .student-table-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* ===== Admin Student Management - End ===== */

@@ -26,7 +26,7 @@ if (!isset($currentPage)) {
             <i class="fa-solid fa-chalkboard-user"></i> Teacher Accounts
         </a>
 
-        <a href="<?php echo $base_url; ?>/index.php?page=admin_students" class="<?php echo ($currentPage == 'admin_students') ? 'active' : ''; ?>">
+        <a href="<?php echo $base_url; ?>/index.php?page=admin_manage_students" class="<?php echo ($currentPage == 'admin_manage_students') ? 'active' : ''; ?>">
             <i class="fa-solid fa-users"></i> Master Students
         </a>
 
