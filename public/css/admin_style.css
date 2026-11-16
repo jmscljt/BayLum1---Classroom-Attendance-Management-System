@@ -847,17 +847,17 @@ header {
 
 /* ===== Admin Activity Logs - Start ===== */
 
-.admin-logs-description,
-.admin-logs-table-heading p {
+.activity-logs-description,
+.activity-logs-table-heading p {
     color: #718096;
     font-size: 13px;
 }
 
-.admin-logs-description {
+.activity-logs-description {
     margin-top: 6px;
 }
 
-.admin-logs-table-heading {
+.activity-logs-table-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -865,11 +865,11 @@ header {
     margin-bottom: 15px;
 }
 
-.admin-logs-table-heading h3 {
+.activity-logs-table-heading h3 {
     margin-bottom: 5px;
 }
 
-.admin-logs-filters {
+.activity-logs-filters {
     display: flex;
     align-items: flex-end;
     gap: 12px;
@@ -880,7 +880,7 @@ header {
     background-color: #f7fafc;
 }
 
-.admin-logs-filter-field {
+.activity-logs-filter-field {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -890,12 +890,12 @@ header {
     font-weight: 600;
 }
 
-.admin-logs-filter-field .section-form-control {
+.activity-logs-filter-field .section-form-control {
     padding: 9px 10px;
     font-size: 13px;
 }
 
-.admin-logs-count {
+.activity-logs-count {
     flex-shrink: 0;
     padding: 6px 10px;
     border-radius: 20px;
@@ -906,17 +906,17 @@ header {
 }
 
 @media (max-width: 760px) {
-    .admin-logs-table-heading,
-    .admin-logs-filters {
+    .activity-logs-table-heading,
+    .activity-logs-filters {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .admin-logs-filter-field {
+    .activity-logs-filter-field {
         width: 100%;
     }
 
-    .admin-logs-filters .section-cancel-btn {
+    .activity-logs-filters .section-cancel-btn {
         width: 100%;
     }
 }

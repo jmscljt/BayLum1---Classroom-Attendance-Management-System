@@ -27,25 +27,25 @@ $currentPage = 'admin_activity_logs';
             <div class="overview-header-row">
                 <div class="overview-titles">
                     <h2>ADMIN ACTIVITY LOGS</h2>
-                    <p class="admin-logs-description">Review administrative actions and system activity.</p>
+                    <p class="activity-logs-description">Review administrative actions and system activity.</p>
                 </div>
             </div>
 
             <section class="table-section-card">
-                <div class="admin-logs-table-heading">
+                <div class="activity-logs-table-heading">
                     <div>
                         <h3>Admin Audit Trail</h3>
                     </div>
-                    <span id="adminLogsCount" class="admin-logs-count">0 records</span>
+                    <span id="activityLogsCount" class="activity-logs-count">0 records</span>
                 </div>
-                <div class="admin-logs-filters" aria-label="Filter admin activity logs">
-                    <label class="admin-logs-filter-field">
+                <div class="activity-logs-filters" aria-label="Filter admin activity logs">
+                    <label class="activity-logs-filter-field">
                         <span>Search by date</span>
-                        <input id="adminLogDateFilter" class="section-form-control" type="date" aria-label="Search logs by date">
+                        <input id="activityLogDateFilter" class="section-form-control" type="date" aria-label="Search logs by date">
                     </label>
-                    <label class="admin-logs-filter-field">
+                    <label class="activity-logs-filter-field">
                         <span>Action type</span>
-                        <select id="adminLogActionFilter" class="section-form-control">
+                        <select id="activityLogActionFilter" class="section-form-control">
                             <option value="">All action types</option>
                             <option value="login">Login</option>
                             <option value="student edit">Student edit</option>
@@ -54,7 +54,7 @@ $currentPage = 'admin_activity_logs';
                             <option value="password reset">Password reset</option>
                         </select>
                     </label>
-                    <button id="clearAdminLogFilters" class="section-cancel-btn" type="button">Clear filters</button>
+                    <button id="clearActivityLogFilters" class="section-cancel-btn" type="button">Clear filters</button>
                 </div>
                 <div class="table-responsive">
                     <table class="data-table">
@@ -66,9 +66,9 @@ $currentPage = 'admin_activity_logs';
                                 <th scope="col">Details</th>
                             </tr>
                         </thead>
-                        <tbody id="adminLogsTableBody">
-                            <tr id="adminLogsEmptyState">
-                                <td colspan="4" class="empty-state">No admin activity records available yet.</td>
+                        <tbody id="activityLogsTableBody">
+                            <tr id="activityLogsEmptyState">
+                                <td colspan="4" class="empty-state">No activity records available yet.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -76,6 +76,6 @@ $currentPage = 'admin_activity_logs';
             </section>
         </div>
     </main>
-    <script src="/public/js/adminActivityLogs.js"></script>
+    <script src="/public/js/activityLogs.js"></script>
 </body>
 </html>

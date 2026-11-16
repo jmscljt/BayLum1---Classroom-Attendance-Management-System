@@ -1,9 +1,9 @@
-const dateFilter = document.getElementById('adminLogDateFilter');
-const actionFilter = document.getElementById('adminLogActionFilter');
-const tableBody = document.getElementById('adminLogsTableBody');
-const count = document.getElementById('adminLogsCount');
-const emptyState = document.getElementById('adminLogsEmptyState');
-const rows = Array.from(tableBody.querySelectorAll('tr:not(#adminLogsEmptyState)'));
+const dateFilter = document.getElementById('activityLogDateFilter');
+const actionFilter = document.getElementById('activityLogActionFilter');
+const tableBody = document.getElementById('activityLogsTableBody');
+const count = document.getElementById('activityLogsCount');
+const emptyState = document.getElementById('activityLogsEmptyState');
+const rows = Array.from(tableBody.querySelectorAll('tr:not(#activityLogsEmptyState)'));
 
 function filterLogs() {
     const visibleRows = rows.filter(function(row) {
@@ -17,14 +17,14 @@ function filterLogs() {
     emptyState.hidden = visibleRows.length > 0;
     emptyState.querySelector('td').textContent = rows.length
         ? 'No records match the selected filters.'
-        : 'No admin activity records available yet.';
+        : 'No activity records available yet.';
 }
 
 [dateFilter, actionFilter].forEach(function(filter) {
     filter.addEventListener('change', filterLogs);
 });
 
-document.getElementById('clearAdminLogFilters').addEventListener('click', function() {
+document.getElementById('clearActivityLogFilters').addEventListener('click', function() {
     dateFilter.value = '';
     actionFilter.value = '';
     filterLogs();
