@@ -88,6 +88,10 @@ if (strpos($page, 'admin_') === 0) {
             $view = 'app/Views/Admin/admin_teacher_logs.php';
             break;
 
+        case 'settings':
+            $view = 'app/Views/Admin/admin_settings.php';
+            break;
+
         default:
             header('Location: index.php?page=admin_dashboard');
             exit();

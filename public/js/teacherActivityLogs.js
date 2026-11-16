@@ -5,7 +5,7 @@ const count = document.getElementById('activityLogsCount');
 const emptyState = document.getElementById('activityLogsEmptyState');
 const rows = Array.from(tableBody.querySelectorAll('tr:not(#activityLogsEmptyState)'));
 
-function filterLogs() {
+function filterTeacherLogs() {
     const visibleRows = rows.filter(function(row) {
         const matchesDate = !dateFilter.value || row.cells[0].textContent.indexOf(dateFilter.value) === 0;
         const matchesAction = !actionFilter.value || row.cells[2].textContent.trim().toLowerCase() === actionFilter.value;
@@ -17,17 +17,17 @@ function filterLogs() {
     emptyState.hidden = visibleRows.length > 0;
     emptyState.querySelector('td').textContent = rows.length
         ? 'No records match the selected filters.'
-        : 'No activity records available yet.';
+        : 'No teacher activity records available yet.';
 }
 
 [dateFilter, actionFilter].forEach(function(filter) {
-    filter.addEventListener('change', filterLogs);
+    filter.addEventListener('change', filterTeacherLogs);
 });
 
 document.getElementById('clearActivityLogFilters').addEventListener('click', function() {
     dateFilter.value = '';
     actionFilter.value = '';
-    filterLogs();
+    filterTeacherLogs();
 });
 
-filterLogs();
+filterTeacherLogs();

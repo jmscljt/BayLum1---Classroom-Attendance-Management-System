@@ -1,4 +1,5 @@
 <?php
+// Admin activity log page.
 if (!isset($base_url)) {
     $base_url = '';
 }
@@ -27,23 +28,23 @@ $currentPage = 'admin_activity_logs';
             <div class="overview-header-row">
                 <div class="overview-titles">
                     <h2>ADMIN ACTIVITY LOGS</h2>
-                    <p class="activity-logs-description">Review administrative actions and system activity.</p>
+                    <p class="admin-activity-logs-description">Review administrative actions and system activity.</p>
                 </div>
             </div>
 
             <section class="table-section-card">
-                <div class="activity-logs-table-heading">
+                <div class="admin-activity-logs-table-heading">
                     <div>
-                        <h3>Admin Audit Trail</h3>
+                        <h3>Admin Activity</h3>
                     </div>
-                    <span id="activityLogsCount" class="activity-logs-count">0 records</span>
+                    <span id="activityLogsCount" class="admin-activity-logs-count">0 records</span>
                 </div>
-                <div class="activity-logs-filters" aria-label="Filter admin activity logs">
-                    <label class="activity-logs-filter-field">
+                <div class="admin-activity-logs-filters" aria-label="Filter admin activity logs">
+                    <label class="admin-activity-logs-filter-field">
                         <span>Search by date</span>
                         <input id="activityLogDateFilter" class="section-form-control" type="date" aria-label="Search logs by date">
                     </label>
-                    <label class="activity-logs-filter-field">
+                    <label class="admin-activity-logs-filter-field">
                         <span>Action type</span>
                         <select id="activityLogActionFilter" class="section-form-control">
                             <option value="">All action types</option>
@@ -76,6 +77,6 @@ $currentPage = 'admin_activity_logs';
             </section>
         </div>
     </main>
-    <script src="/public/js/activityLogs.js"></script>
+    <script src="/public/js/adminActivityLogs.js"></script>
 </body>
 </html>

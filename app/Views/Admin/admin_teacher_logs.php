@@ -1,4 +1,5 @@
 <?php
+// Teacher activity log page.
 if (!isset($base_url)) {
     $base_url = '';
 }
@@ -27,23 +28,23 @@ $currentPage = 'admin_teacher_logs';
             <div class="overview-header-row">
                 <div class="overview-titles">
                     <h2>TEACHER ACTIVITY LOGS</h2>
-                    <p class="activity-logs-description">Review teacher account and classroom activity.</p>
+                    <p class="teacher-activity-logs-description">Review teacher account and classroom activity.</p>
                 </div>
             </div>
 
             <section class="table-section-card">
-                <div class="activity-logs-table-heading">
+                <div class="teacher-activity-logs-table-heading">
                     <div>
-                        <h3>Teacher Activity Trail</h3>
+                        <h3>Teacher Activity</h3>
                     </div>
-                    <span id="activityLogsCount" class="activity-logs-count">0 records</span>
+                    <span id="activityLogsCount" class="teacher-activity-logs-count">0 records</span>
                 </div>
-                <div class="activity-logs-filters" aria-label="Filter teacher activity logs">
-                    <label class="activity-logs-filter-field">
+                <div class="teacher-activity-logs-filters" aria-label="Filter teacher activity logs">
+                    <label class="teacher-activity-logs-filter-field">
                         <span>Search by date</span>
                         <input id="activityLogDateFilter" class="section-form-control" type="date" aria-label="Search logs by date">
                     </label>
-                    <label class="activity-logs-filter-field">
+                    <label class="teacher-activity-logs-filter-field">
                         <span>Action type</span>
                         <select id="activityLogActionFilter" class="section-form-control">
                             <option value="">All action types</option>
@@ -76,6 +77,6 @@ $currentPage = 'admin_teacher_logs';
             </section>
         </div>
     </main>
-    <script src="/public/js/activityLogs.js"></script>
+    <script src="/public/js/teacherActivityLogs.js"></script>
 </body>
 </html>
