@@ -138,22 +138,51 @@ $escape = static function ($value): string {
         <div id="sectionRecordsModal" class="attendance-modal-overlay" aria-hidden="true">
             <div class="attendance-modal-content">
                 <div class="modal-header-row">
-                    <h3 id="sectionRecordsTitle">Students</h3>
+                    <h3 id="sectionRecordsTitle">Attendance Records</h3>
                     <button type="button" class="close-modal-btn" data-close aria-label="Close">&times;</button>
                 </div>
                 <p id="sectionAdviser"></p>
                 <p id="sectionRecordMessage" role="status"></p>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>LRN</th>
-                                <th>Name</th>
-                                <th>Gender</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sectionLogRows"></tbody>
-                    </table>
+                <form id="sectionAttendanceFilter" class="filter-action-group">
+                    <input type="date" id="sectionAttendanceDate" class="date-filter-input" aria-label="Filter attendance date">
+                    <button type="submit" class="sync-btn">Search Date</button>
+                </form>
+                <div id="sectionAttendanceSummary">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Present Students</th>
+                                    <th>Absent Students</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionSummaryRows"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="sectionAttendanceDetails" hidden>
+                    <div class="modal-header-row">
+                        <h4 id="sectionAttendanceDetailsTitle"></h4>
+                        <button type="button" id="backToSectionSummary" class="view-btn">Back</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>LRN</th>
+                                    <th>Name</th>
+                                    <th>Gender</th>
+                                    <th>Time In</th>
+                                    <th>Time Out</th>
+                                    <th>Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sectionLogRows"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

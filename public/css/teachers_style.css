@@ -315,6 +315,10 @@ body {
     padding: 0 12px;
 }
 
+.view-btn{
+    margin-top: 10px;
+}
+
 .signup-btn:hover {
     background-color: #004085;
 }

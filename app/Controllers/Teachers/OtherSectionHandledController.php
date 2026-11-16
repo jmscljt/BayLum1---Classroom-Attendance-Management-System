@@ -27,7 +27,12 @@ class OtherSectionHandledController
         }
 
         if (isset($query['record'])) {
-            $this->sendStudentRecord($teacherId, $query['record']);
+            $this->sendAttendanceRecord(
+                $teacherId,
+                $query['record'],
+                $query['attendance_date'] ?? null,
+                $query['log_date'] ?? null
+            );
         }
 
         if (empty($session['csrf_token'])) {
@@ -60,12 +65,24 @@ class OtherSectionHandledController
         }
     }
 
-    private function sendStudentRecord(int $teacherId, $requestedAssignmentId): void
+    private function sendAttendanceRecord(
+        int $teacherId,
+        $requestedAssignmentId,
+        $requestedDate,
+        $requestedLogDate
+    ): void
     {
         header('Content-Type: application/json; charset=utf-8');
         try {
             $assignmentId = $this->positiveInteger($requestedAssignmentId);
-            $record = $this->model->getStudentsForAssignment($teacherId, $assignmentId);
+            $date = $this->optionalDate($requestedDate);
+            $logDate = $this->optionalDate($requestedLogDate);
+            $record = $this->model->getAttendanceRecordsForAssignment(
+                $teacherId,
+                $assignmentId,
+                $date,
+                $logDate
+            );
             if (!$record) {
                 http_response_code(404);
                 echo json_encode(['error' => 'Assigned section not found.']);
@@ -77,11 +94,28 @@ class OtherSectionHandledController
             http_response_code(400);
             echo json_encode(['error' => $e->getMessage()]);
         } catch (PDOException $e) {
-            error_log('Other section student record error: ' . $e->getMessage());
+            error_log('Other section attendance record error: ' . $e->getMessage());
             http_response_code(500);
-            echo json_encode(['error' => 'Unable to load this student record right now.']);
+            echo json_encode(['error' => 'Unable to load attendance records right now.']);
         }
         exit();
+    }
+
+    private function optionalDate($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Choose a valid attendance date.');
+        }
+
+        $date = DateTime::createFromFormat('!Y-m-d', $value);
+        if (!$date || $date->format('Y-m-d') !== $value) {
+            throw new InvalidArgumentException('Choose a valid attendance date.');
+        }
+
+        return $value;
     }
 
     private function handleFormSubmission(array $session, int $teacherId, array $post): array

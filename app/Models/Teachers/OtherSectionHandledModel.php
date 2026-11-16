@@ -114,7 +114,12 @@ class OtherSectionHandledModel
         }
     }
 
-    public function getStudentsForAssignment(int $teacherId, int $assignmentId): array
+    public function getAttendanceRecordsForAssignment(
+        int $teacherId,
+        int $assignmentId,
+        ?string $date = null,
+        ?string $logDate = null
+    ): array
     {
         $assignmentStmt = $this->pdo->prepare(
             'SELECT assignment.section_id, sec.grade_level, sec.section_name,
@@ -135,17 +140,78 @@ class OtherSectionHandledModel
             return [];
         }
 
-        $studentsStmt = $this->pdo->prepare(
-            'SELECT student_id AS lrn, first_name, middle_name, last_name, gender
-             FROM students
-             WHERE section_id = :section_id AND is_active = 1
-             ORDER BY last_name, first_name, middle_name'
+        $sectionId = (int) $section['section_id'];
+        $studentCountStmt = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM students WHERE section_id = :section_id AND is_active = 1'
         );
-        $studentsStmt->execute([':section_id' => (int) $section['section_id']]);
+        $studentCountStmt->execute([':section_id' => $sectionId]);
+        $studentCount = (int) $studentCountStmt->fetchColumn();
+
+        $dateCondition = $date === null ? '' : ' AND attendance_date = :attendance_date';
+        $summaryStmt = $this->pdo->prepare(
+            "SELECT attendance_date,
+                    COUNT(DISTINCT CASE WHEN attendance_type = 'time_in' THEN student_id END) AS present_count
+             FROM manual_attendance_records
+             WHERE section_id = :section_id{$dateCondition}
+             GROUP BY attendance_date
+             ORDER BY attendance_date DESC"
+        );
+        $summaryParameters = [':section_id' => $sectionId];
+        if ($date !== null) {
+            $summaryParameters[':attendance_date'] = $date;
+        }
+        $summaryStmt->execute($summaryParameters);
+        $summaries = $summaryStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $today = date('Y-m-d');
+        if (
+            ($date === null || $date === $today)
+            && !array_filter(
+                $summaries,
+                static fn(array $summary): bool => $summary['attendance_date'] === $today
+            )
+        ) {
+            array_unshift($summaries, [
+                'attendance_date' => $today,
+                'present_count' => 0,
+            ]);
+        }
+        foreach ($summaries as &$summary) {
+            $summary['present_count'] = (int) $summary['present_count'];
+            $summary['absent_count'] = max(0, $studentCount - $summary['present_count']);
+        }
+        unset($summary);
+
+        $attendanceLogs = [];
+        if ($logDate !== null) {
+            $logsStmt = $this->pdo->prepare(
+                "SELECT s.student_id AS lrn,
+                        s.first_name,
+                        s.middle_name,
+                        s.last_name,
+                        s.gender,
+                        GROUP_CONCAT(DISTINCT r.attendance_method ORDER BY r.attendance_method SEPARATOR ', ') AS methods,
+                        MAX(CASE WHEN r.attendance_type = 'time_in' THEN r.recorded_at END) AS time_in,
+                        MAX(CASE WHEN r.attendance_type = 'time_out' THEN r.recorded_at END) AS time_out
+                 FROM manual_attendance_records r
+                 INNER JOIN students s
+                    ON s.student_id = r.student_id AND s.section_id = r.section_id
+                 WHERE r.section_id = :section_id
+                    AND r.attendance_date = :attendance_date
+                 GROUP BY s.student_id, s.first_name, s.middle_name, s.last_name, s.gender
+                 ORDER BY s.last_name, s.first_name"
+            );
+            $logsStmt->execute([
+                ':section_id' => $sectionId,
+                ':attendance_date' => $logDate,
+            ]);
+            $attendanceLogs = $logsStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         return [
             'section' => $section,
-            'students' => $studentsStmt->fetchAll(PDO::FETCH_ASSOC),
+            'summaries' => $summaries,
+            'attendanceLogs' => $attendanceLogs,
         ];
     }
 
