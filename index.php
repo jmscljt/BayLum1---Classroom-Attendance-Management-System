@@ -167,7 +167,7 @@ switch ($page) {
             header('Location: index.php?page=login');
             exit();
         }
-        $view = 'app/Views/Teachers/settings.php';
+        $view = 'app/Views/Teachers/accountSettings.php';
         break;
 
     case 'studentAbsences':
