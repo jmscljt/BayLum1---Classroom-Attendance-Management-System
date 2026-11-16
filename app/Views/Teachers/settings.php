@@ -17,7 +17,7 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/teachers_style.css">
-    <title>BL1ES - Teacher Settings</title>
+    <title>BL1ES - Account Settings</title>
 </head>
 <body>
     <?php require_once __DIR__ . '/sidebar.php'; ?>
@@ -38,7 +38,7 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
             </div>
 
             <section class="table-section-card teacher-settings-card">
-                <h3>Teacher Account</h3>
+                <h3>Account Information</h3>
                 <div class="teacher-settings-details">
                     <div class="settings-detail">
                         <span class="settings-label">Unique ID (View Only)</span>
