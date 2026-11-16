@@ -128,9 +128,12 @@ switch ($page) {
         $controller = new DashboardController($pdo);
         $pageData = $controller->getPageData($_SESSION);
         $totalAdvisoryStudents = $pageData['totalAdvisoryStudents'];
+        $totalOtherHandledStudents = $pageData['totalOtherHandledStudents'];
         $presentStudentsAdvisory = $pageData['presentStudentsAdvisory'];
         $absentStudentsAdvisory = $pageData['absentStudentsAdvisory'];
         $totalAssignedStudents = $pageData['totalAssignedStudents'];
+        $presentStudentsOtherHandled = $pageData['presentStudentsOtherHandled'];
+        $absentSubjectsOtherHandled = $pageData['absentSubjectsOtherHandled'];
         $recentAttendanceActivity = $pageData['recentAttendanceActivity'];
         $view = 'app/Views/Teachers/dashboard.php';
         break;

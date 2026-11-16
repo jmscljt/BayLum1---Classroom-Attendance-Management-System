@@ -23,9 +23,12 @@ class DashboardController extends TeachersController
 
         return [
             'totalAdvisoryStudents' => $dashboardMetrics['totalAdvisoryStudents'],
+            'totalOtherHandledStudents' => $dashboardMetrics['totalOtherHandledStudents'],
             'presentStudentsAdvisory' => $dashboardMetrics['presentStudentsAdvisory'],
             'absentStudentsAdvisory' => $dashboardMetrics['absentStudentsAdvisory'],
             'totalAssignedStudents' => $dashboardMetrics['totalAssignedStudents'],
+            'presentStudentsOtherHandled' => $dashboardMetrics['presentStudentsOtherHandled'],
+            'absentSubjectsOtherHandled' => $dashboardMetrics['absentSubjectsOtherHandled'],
             'recentAttendanceActivity' => $recentAttendanceActivity,
         ];
     }
