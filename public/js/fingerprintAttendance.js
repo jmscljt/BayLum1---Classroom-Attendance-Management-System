@@ -4,15 +4,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const disconnectButton = document.getElementById('disconnectFingerprintReader');
     const status = document.getElementById('fingerprintReaderStatus');
     const enrollForm = document.getElementById('fingerprintEnrollForm');
+    const studentSearch = document.getElementById('fingerprintStudentSearch');
+    const studentSearchStatus = document.getElementById('fingerprintStudentSearchStatus');
     const studentSelect = document.getElementById('fingerprintStudent');
     const slotInput = document.getElementById('fingerprintSlot');
     const enrollButton = document.getElementById('enrollFingerprintButton');
     if (
         !panel || !connectButton || !disconnectButton || !status
-        || !enrollForm || !studentSelect || !slotInput || !enrollButton
+        || !enrollForm || !studentSearch || !studentSearchStatus
+        || !studentSelect || !slotInput || !enrollButton
     ) {
         return;
     }
+
+    const studentOptions = Array.from(studentSelect.options).slice(1);
+
+    function filterStudents() {
+        const query = studentSearch.value.trim().toLocaleLowerCase();
+        const matches = query
+            ? studentOptions.filter((option) => option.textContent.toLocaleLowerCase().includes(query))
+            : [];
+        const placeholder = studentSelect.options[0];
+        studentSelect.replaceChildren(placeholder, ...matches);
+        studentSelect.value = '';
+        studentSelect.disabled = matches.length === 0;
+        enrollButton.disabled = true;
+
+        if (!query) {
+            studentSearchStatus.textContent = studentOptions.length
+                ? 'Type a name or LRN to find a student.'
+                : 'No active students are available to enroll.';
+        } else if (matches.length === 0) {
+            studentSearchStatus.textContent = 'No students found. Check the spelling or LRN and try again.';
+        } else {
+            studentSearchStatus.textContent = `${matches.length} student${matches.length === 1 ? '' : 's'} found. Select the correct student below.`;
+        }
+    }
+
+    filterStudents();
 
     let port;
     let reader;
@@ -285,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     studentSelect.addEventListener('change', () => {
         enrollButton.disabled = !port || !studentSelect.value || !slotInput.value || Boolean(pendingEnrollment);
     });
+    studentSearch.addEventListener('input', filterStudents);
     slotInput.addEventListener('input', () => {
         enrollButton.disabled = !port || !studentSelect.value || !slotInput.value || Boolean(pendingEnrollment);
     });

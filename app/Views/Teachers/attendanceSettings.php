@@ -61,8 +61,21 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
 
                 <form id="fingerprintEnrollForm">
                     <div class="form-group">
-                        <label for="fingerprintStudent">Student to enroll or re-enroll</label>
-                        <select id="fingerprintStudent" name="student_lrn" required>
+                        <label for="fingerprintStudentSearch">Find a student by name or LRN</label>
+                        <input
+                            type="search"
+                            id="fingerprintStudentSearch"
+                            placeholder="Start typing a student name or LRN"
+                            autocomplete="off"
+                            aria-describedby="fingerprintStudentSearchStatus"
+                        >
+                        <p id="fingerprintStudentSearchStatus" role="status" aria-live="polite">
+                            Type a name or LRN to find a student.
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label for="fingerprintStudent">Select the student to enroll or re-enroll</label>
+                        <select id="fingerprintStudent" name="student_lrn" required disabled>
                             <option value="">Select an active student</option>
                             <?php foreach ($fingerprintStudents as $student): ?>
                                 <?php
