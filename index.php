@@ -13,6 +13,7 @@ require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 require_once 'app/Controllers/Teachers/FingerprintAttendanceController.php';
 require_once 'app/Controllers/Teachers/OtherSectionHandledController.php';
+require_once 'app/Controllers/Teachers/AttendanceSettingsController.php';
 
 //Admin Controllers
 require_once 'app/Controllers/Admin/AdminAuthController.php';
@@ -114,9 +115,6 @@ switch ($page) {
     case 'dashboard':
         $controller = new DashboardController($pdo);
         $pageData = $controller->getPageData($_SESSION);
-        $attendanceCodes = $pageData['attendanceCodes'];
-        $csrfToken = $pageData['csrfToken'];
-        $fingerprintStudents = $pageData['fingerprintStudents'];
         $totalAdvisoryStudents = $pageData['totalAdvisoryStudents'];
         $presentStudentsAdvisory = $pageData['presentStudentsAdvisory'];
         $absentStudentsAdvisory = $pageData['absentStudentsAdvisory'];
@@ -134,6 +132,15 @@ switch ($page) {
         $attendanceLogs = $pageData['attendanceLogs'];
         $showLogs = $pageData['showLogs'];
         $view = 'app/Views/Teachers/attendanceRecords.php';
+        break;
+
+    case 'attendanceSettings':
+        $controller = new AttendanceSettingsController($pdo);
+        $pageData = $controller->getPageData($_SESSION);
+        $attendanceCodes = $pageData['attendanceCodes'];
+        $csrfToken = $pageData['csrfToken'];
+        $fingerprintStudents = $pageData['fingerprintStudents'];
+        $view = 'app/Views/Teachers/attendanceSettings.php';
         break;
 
     case 'students':

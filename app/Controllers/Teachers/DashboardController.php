@@ -12,10 +12,6 @@ class DashboardController extends TeachersController
             exit();
         }
 
-        if (empty($session['csrf_token'])) {
-            $session['csrf_token'] = bin2hex(random_bytes(32));
-        }
-
         $teacherId = (int) $session['user_id'];
         $sectionId = (int) ($session['section_id'] ?? 0);
         $dashboardMetrics = $this->getDashboardAttendanceMetrics(
@@ -26,9 +22,6 @@ class DashboardController extends TeachersController
         $recentAttendanceActivity = $this->getRecentAttendanceActivity($teacherId, $sectionId);
 
         return [
-            'attendanceCodes' => $this->getOrCreateAttendanceCodes($teacherId),
-            'csrfToken' => $session['csrf_token'],
-            'fingerprintStudents' => $this->getFingerprintStudents($sectionId),
             'totalAdvisoryStudents' => $dashboardMetrics['totalAdvisoryStudents'],
             'presentStudentsAdvisory' => $dashboardMetrics['presentStudentsAdvisory'],
             'absentStudentsAdvisory' => $dashboardMetrics['absentStudentsAdvisory'],

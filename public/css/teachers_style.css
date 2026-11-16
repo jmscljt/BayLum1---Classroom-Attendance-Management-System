@@ -470,10 +470,8 @@ header {
 
 .attendance-codes-section {
     position: relative;
-    width: 80%;
-    height: 205px;
+    width: 100%;
     box-sizing: border-box;
-    left: 120px;
     margin-bottom: 25px;
 }
 
