@@ -29,6 +29,42 @@
 
 /* ===== Toggle/Form Manual Attendance - Start ===== */
 
+.dashboard-manual-attendance {
+    position: relative;
+}
+
+.overview-header-row.dashboard-overview-header-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+}
+
+.dashboard-manual-attendance .manual-attendance-card {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.dashboard-manual-attendance .manual-attendance-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-manual-attendance .input-group {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+}
+
+.dashboard-manual-attendance .manual-attendance-form input {
+    width: 100%;
+}
+
+.dashboard-manual-attendance .add-attendance-btn {
+    flex: 0 0 80px;
+    margin: 0;
+}
+
 .manual-attendance-card {
     position: absolute; /* Takes it out of the flex flow */
     top: 60px;
@@ -39,7 +75,7 @@
     background: #ffffff;
     border-radius: 8px;
     border: 1.5px solid #e2e8f0;
-    padding: 20px;
+    padding: 13px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     display: none;      /* Hidden by default */
 }
@@ -91,7 +127,7 @@
 .add-attendance-btn {
     width: 100%;
     max-width: 120px;
-    height: 28px;
+    height: 30px;
     margin: 5px auto 6px auto;
     background-color: #0056b3;
     color: #ffffff;

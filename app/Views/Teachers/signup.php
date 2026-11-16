@@ -21,21 +21,6 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
     <title>BL1ES - Sign Up</title>
 </head>
 <body>
-    <div class="manual-attendance-btn-wrapper">
-        <button class="manual-attendance-btn" onclick="toggleSideCover()">Toggle Manual Attendance</button>
-    </div>
-
-    <div class="manual-attendance-card">
-        <h3>Manual Attendance</h3>
-        <form method="POST" action="index.php?page=manualAttendance" class="manual-attendance-form">
-            <div class="input-group">
-                <input type="text" name="manual_attendance" placeholder="Enter adviser code or student LRN" class="lrn-input" inputmode="numeric" autocomplete="off" maxlength="19" required>
-            </div>
-            <button type="submit" class="add-attendance-btn">Enter</button>
-        </form>
-        <span class="demo-badge">For Demo Only</span>
-    </div>
-
     <div class="side-cover">
         <img src="/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
         <img src="/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
@@ -128,7 +113,6 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
     
     <script src="/public/js/signup.js"></script>
-    <script src="/public/js/manualAttendance.js"></script>
     <script>
         window.allSections = <?= json_encode($sections) ?>;
     </script>

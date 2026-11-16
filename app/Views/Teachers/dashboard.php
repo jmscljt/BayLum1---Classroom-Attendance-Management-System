@@ -7,6 +7,9 @@ if (!isset($base_url)) {
 }
 
 $currentPage = 'dashboard';
+$message = $_SESSION['auth_message'] ?? '';
+$message_type = $_SESSION['auth_message_type'] ?? '';
+unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,11 +32,26 @@ $currentPage = 'dashboard';
 
     <main class="main-content">
         <div class="dashboard-container">
-            
-            <div class="overview-header-row">
+            <?php if (!empty($message)): ?>
+                <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'error'; ?>">
+                    <span><?php echo htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></span>
+                </div>
+            <?php endif; ?>
+
+            <div class="overview-header-row dashboard-overview-header-row">
                 <div class="overview-titles">
                     <h2>ATTENDANCE OVERVIEW</h2>
                     <p class="overview-date"><?php echo date('F d, Y'); ?></p>
+                </div>
+                <div class="dashboard-manual-attendance">
+                    <div class="manual-attendance-card">
+                        <form method="POST" action="index.php?page=manualAttendance" class="manual-attendance-form">
+                            <div class="input-group">
+                                <input type="text" name="manual_attendance" placeholder="Enter adviser code or student LRN" inputmode="numeric" autocomplete="off" maxlength="19" required>
+                            </div>
+                            <button type="submit" class="add-attendance-btn">Enter</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

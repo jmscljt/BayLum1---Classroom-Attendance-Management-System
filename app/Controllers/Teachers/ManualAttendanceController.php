@@ -13,8 +13,12 @@ class ManualAttendanceController
 
     public function handleRequest(array &$session, array $post, string $requestMethod): array
     {
+        $redirectPage = !empty($session['user_logged_in']) && !empty($session['user_id'])
+            ? 'dashboard'
+            : 'login';
+
         if ($requestMethod !== 'POST') {
-            return ['redirect' => 'index.php?page=login'];
+            return ['redirect' => 'index.php?page=' . $redirectPage];
         }
 
         try {
@@ -30,7 +34,7 @@ class ManualAttendanceController
         $session['auth_message'] = $result['message'];
         $session['auth_message_type'] = $result['success'] ? 'success' : 'error';
 
-        return ['redirect' => 'index.php?page=login'];
+        return ['redirect' => 'index.php?page=' . $redirectPage];
     }
 
     public function process(string $input, array &$session): array
