@@ -844,3 +844,81 @@ header {
 }
 
 /* ===== Admin Student Management - End ===== */
+
+/* ===== Admin Activity Logs - Start ===== */
+
+.admin-logs-description,
+.admin-logs-table-heading p {
+    color: #718096;
+    font-size: 13px;
+}
+
+.admin-logs-description {
+    margin-top: 6px;
+}
+
+.admin-logs-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.admin-logs-table-heading h3 {
+    margin-bottom: 5px;
+}
+
+.admin-logs-filters {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #f7fafc;
+}
+
+.admin-logs-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 220px;
+    color: #4a5568;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.admin-logs-filter-field .section-form-control {
+    padding: 9px 10px;
+    font-size: 13px;
+}
+
+.admin-logs-count {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background-color: #ebf4ff;
+    color: #2b6cb0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 760px) {
+    .admin-logs-table-heading,
+    .admin-logs-filters {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .admin-logs-filter-field {
+        width: 100%;
+    }
+
+    .admin-logs-filters .section-cancel-btn {
+        width: 100%;
+    }
+}
+
+/* ===== Admin Activity Logs - End ===== */

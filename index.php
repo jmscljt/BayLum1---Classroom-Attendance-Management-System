@@ -80,6 +80,10 @@ if (strpos($page, 'admin_') === 0) {
             $view = 'app/Views/Admin/admin_manage_students.php';
             break;
 
+        case 'activity_logs':
+            $view = 'app/Views/Admin/admin_activity_logs.php';
+            break;
+
         default:
             header('Location: index.php?page=admin_dashboard');
             exit();
