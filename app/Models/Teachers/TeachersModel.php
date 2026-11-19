@@ -59,6 +59,19 @@ class TeachersModel{
                 return ['success' => false, 'message' => 'Invalid section selected. Please choose a valid grade and section.'];
             }
 
+            $teacherCheck = $this->pdo->prepare(
+                'SELECT 1 FROM teachers WHERE section_id = ? LIMIT 1'
+            );
+            $teacherCheck->execute([$sectionId]);
+
+            if ($teacherCheck->fetchColumn()) {
+                $this->pdo->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'This section is already taken by another teacher. If you believe this is an error, please contact the school administrator.',
+                ];
+            }
+
             $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
        
             $stmt = $this->pdo->prepare($query);
