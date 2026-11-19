@@ -22,13 +22,9 @@ class DashboardController extends TeachersController
         $recentAttendanceActivity = $this->getRecentAttendanceActivity($teacherId, $sectionId);
 
         return [
-            'totalAdvisoryStudents' => $dashboardMetrics['totalAdvisoryStudents'],
-            'totalOtherHandledStudents' => $dashboardMetrics['totalOtherHandledStudents'],
-            'presentStudentsAdvisory' => $dashboardMetrics['presentStudentsAdvisory'],
-            'absentStudentsAdvisory' => $dashboardMetrics['absentStudentsAdvisory'],
-            'totalAssignedStudents' => $dashboardMetrics['totalAssignedStudents'],
-            'presentStudentsOtherHandled' => $dashboardMetrics['presentStudentsOtherHandled'],
-            'absentSubjectsOtherHandled' => $dashboardMetrics['absentSubjectsOtherHandled'],
+            'totalStudents' => $dashboardMetrics['totalStudents'],
+            'presentStudents' => $dashboardMetrics['presentStudents'],
+            'absentStudents' => $dashboardMetrics['absentStudents'],
             'recentAttendanceActivity' => $recentAttendanceActivity,
         ];
     }

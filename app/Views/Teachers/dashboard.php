@@ -58,35 +58,16 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
             <!-- Metric Summary Cards with Colored Borders & Shadows -->
             <div class="metrics-grid">
                 <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Total Advisory Students</span>
-                    <span class="metric-value"><?php echo isset($totalAdvisoryStudents) ? $totalAdvisoryStudents : '0'; ?></span>
+                    <span class="metric-title">Present Students</span>
+                    <span class="metric-value"><?php echo isset($presentStudents) ? $presentStudents : '0'; ?></span>
                 </div>
                 <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Other Handled Students</span>
-                    <span class="metric-value"><?php echo isset($totalOtherHandledStudents) ? $totalOtherHandledStudents : '0'; ?></span>
+                    <span class="metric-title">Absent Students</span>
+                    <span class="metric-value"><?php echo isset($absentStudents) ? $absentStudents : '0'; ?></span>
                 </div>
                 <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Total Assigned Students</span>
-                    <span class="metric-value"><?php echo isset($totalAssignedStudents) ? $totalAssignedStudents : '0'; ?></span>
-                </div>
-            </div>
-
-            <div class="metrics-grid">
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Present Students (Advisory)</span>
-                    <span class="metric-value"><?php echo isset($presentStudentsAdvisory) ? $presentStudentsAdvisory : '0'; ?></span>
-                </div>
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Absent Students (Advisory)</span>
-                    <span class="metric-value"><?php echo isset($absentStudentsAdvisory) ? $absentStudentsAdvisory : '0'; ?></span>
-                </div>
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Present Students (Other Handled)</span>
-                    <span class="metric-value"><?php echo isset($presentStudentsOtherHandled) ? $presentStudentsOtherHandled : '0'; ?></span>
-                </div>
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Absent Subjects (Other Handled)</span>
-                    <span class="metric-value"><?php echo isset($absentSubjectsOtherHandled) ? $absentSubjectsOtherHandled : '0'; ?></span>
+                    <span class="metric-title">Total Students</span>
+                    <span class="metric-value"><?php echo isset($totalStudents) ? $totalStudents : '0'; ?></span>
                 </div>
             </div>
 
@@ -99,7 +80,6 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                                 <th>Time</th>
                                 <th>LRN</th>
                                 <th>Student Name</th>
-                                <th>Grade & Section</th>
                                 <th>Date</th>
                                 <th>Status</th>
                             </tr>
@@ -124,7 +104,6 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                                         <td><?php echo htmlspecialchars(date('h:i A', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($activity['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($activity['grade_level'] . ' ' . $activity['section_name'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars(date('M d, Y', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><span class="badge <?php echo $attendanceType === 'time_in' ? 'time-in' : 'time-out'; ?>"><?php echo htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8'); ?></span></td>
                                     </tr>

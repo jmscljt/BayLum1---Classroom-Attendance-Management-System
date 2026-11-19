@@ -825,13 +825,10 @@ class TeachersModel{
                 s.student_id AS lrn,
                 s.first_name,
                 s.middle_name,
-                s.last_name,
-                sec.grade_level,
-                sec.section_name
+                s.last_name
              FROM manual_attendance_records r
              INNER JOIN students s
                 ON s.student_id = r.student_id AND s.section_id = r.section_id
-             INNER JOIN sections sec ON sec.section_id = r.section_id
              WHERE r.teacher_id = :teacher_id
                 AND r.section_id = :section_id
              ORDER BY r.recorded_at DESC, r.id DESC
@@ -1000,7 +997,7 @@ class TeachersModel{
             "SELECT
                 (SELECT COUNT(*)
                  FROM students
-                 WHERE section_id = :section_id AND is_active = 1) AS total_advisory_students,
+                 WHERE section_id = :section_id AND is_active = 1) AS total_students,
                 (SELECT COUNT(DISTINCT r.student_id)
                  FROM manual_attendance_records r
                  INNER JOIN students s
@@ -1010,63 +1007,23 @@ class TeachersModel{
                  WHERE r.teacher_id = :teacher_id
                     AND r.section_id = :attendance_section_id
                     AND r.attendance_date = :attendance_date
-                    AND r.attendance_type = 'time_in') AS present_students_advisory,
-                (SELECT COUNT(DISTINCT s.student_id)
-                 FROM teacher_other_section_assignments assignment
-                 INNER JOIN students s ON s.section_id = assignment.section_id
-                 WHERE assignment.teacher_id = :other_students_teacher_id
-                    AND s.is_active = 1) AS total_other_handled_students,
-                (SELECT COUNT(DISTINCT r.student_id)
-                 FROM teacher_other_section_assignments assignment
-                 INNER JOIN manual_attendance_records r
-                    ON r.section_id = assignment.section_id
-                    AND r.attendance_date = :other_present_date
-                    AND r.attendance_type = 'time_in'
-                 INNER JOIN students s
-                    ON s.student_id = r.student_id
-                    AND s.section_id = r.section_id
-                    AND s.is_active = 1
-                 WHERE assignment.teacher_id = :other_present_teacher_id) AS present_students_other_handled,
-                (SELECT COUNT(*)
-                 FROM teacher_other_section_assignments assignment
-                 INNER JOIN students s
-                    ON s.section_id = assignment.section_id
-                    AND s.is_active = 1
-                 WHERE assignment.teacher_id = :absent_subjects_teacher_id
-                    AND NOT EXISTS (
-                        SELECT 1
-                        FROM manual_attendance_records r
-                        WHERE r.student_id = s.student_id
-                            AND r.section_id = s.section_id
-                            AND r.attendance_date = :absent_subjects_date
-                            AND r.attendance_type = 'time_in'
-                    )) AS absent_subjects_other_handled"
+                    AND r.attendance_type = 'time_in') AS present_students"
         );
         $stmt->execute([
             ':section_id' => $sectionId,
             ':teacher_id' => $teacherId,
             ':attendance_section_id' => $sectionId,
             ':attendance_date' => $date,
-            ':other_students_teacher_id' => $teacherId,
-            ':other_present_date' => $date,
-            ':other_present_teacher_id' => $teacherId,
-            ':absent_subjects_teacher_id' => $teacherId,
-            ':absent_subjects_date' => $date,
         ]);
         $metrics = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $totalAdvisoryStudents = (int) $metrics['total_advisory_students'];
-        $presentStudentsAdvisory = (int) $metrics['present_students_advisory'];
-        $totalOtherHandledStudents = (int) $metrics['total_other_handled_students'];
+        $totalStudents = (int) $metrics['total_students'];
+        $presentStudents = (int) $metrics['present_students'];
 
         return [
-            'totalAdvisoryStudents' => $totalAdvisoryStudents,
-            'totalOtherHandledStudents' => $totalOtherHandledStudents,
-            'presentStudentsAdvisory' => $presentStudentsAdvisory,
-            'absentStudentsAdvisory' => max(0, $totalAdvisoryStudents - $presentStudentsAdvisory),
-            'totalAssignedStudents' => $totalAdvisoryStudents + $totalOtherHandledStudents,
-            'presentStudentsOtherHandled' => (int) $metrics['present_students_other_handled'],
-            'absentSubjectsOtherHandled' => (int) $metrics['absent_subjects_other_handled'],
+            'totalStudents' => $totalStudents,
+            'presentStudents' => $presentStudents,
+            'absentStudents' => max(0, $totalStudents - $presentStudents),
         ];
     }
 
