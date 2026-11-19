@@ -62,13 +62,12 @@ $currentDateDisplay = date('F d, Y');
                             <tr>
                                 <th>Timestamp</th>
                                 <th>User</th>
-                                <th>Role</th>
                                 <th>Action Description</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #777; padding: 20px;">
+                                <td colspan="3" style="text-align: center; color: #777; padding: 20px;">
                                     <em>empty</em>
                                 </td>
                             </tr>

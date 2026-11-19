@@ -44,14 +44,6 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
                 <form action="index.php?page=signup" method="POST">
 
                     <div class="input-group">
-                        <label for="role">Role</label>
-                        <select id="role" name="role" class="custom-select">
-                            <option selected>Adviser</option>
-                            <option >Subject Teacher</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
                         <label for="unique_id">Unique ID (Generated Automatically)</label>
                         <input type="text" id="unique_id" name="unique_id" value="<?php echo 'BL1es-' . date('Y') . mt_rand(1000, 9999); ?>" readonly>
                     </div>
@@ -112,7 +104,6 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
     
-    <script src="/public/js/signup.js"></script>
     <script>
         window.allSections = <?= json_encode($sections) ?>;
     </script>

@@ -9,7 +9,6 @@ class TeachersModel{
 
     public function handleSignup(
         string $uniqueId, 
-        string $role, 
         string $firstName, 
         string $lastName, 
         string $email, 
@@ -50,7 +49,7 @@ class TeachersModel{
         try {
             $this->pdo->beginTransaction();
 
-            // Lock the selected section so concurrent signups cannot assign two advisers to it.
+            // Lock the selected section during signup.
             $sectionCheck = $this->pdo->prepare(
                 "SELECT section_id FROM sections WHERE section_id = ? FOR UPDATE"
             );
@@ -60,28 +59,11 @@ class TeachersModel{
                 return ['success' => false, 'message' => 'Invalid section selected. Please choose a valid grade and section.'];
             }
 
-            if (strcasecmp(trim($role), 'Adviser') === 0) {
-                $adviserCheck = $this->pdo->prepare(
-                    "SELECT 1 FROM teachers
-                    WHERE section_id = ? AND LOWER(TRIM(role)) = 'adviser'
-                    LIMIT 1"
-                );
-                $adviserCheck->execute([$sectionId]);
-                if ($adviserCheck->fetchColumn()) {
-                    $this->pdo->rollBack();
-                    return [
-                        'success' => false,
-                        'message' => 'This grade and section already has an adviser. Please choose another section or contact the school administrator if you believe this is an error.',
-                    ];
-                }
-            }
-
-            $query = "INSERT INTO teachers (user_id, role, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :role, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+            $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
        
             $stmt = $this->pdo->prepare($query);
         
             $stmt->bindParam(':user_id', $uniqueId, PDO::PARAM_STR);
-            $stmt->bindParam(':role', $role, PDO::PARAM_STR);
             $stmt->bindParam(':full_name', $fullName, PDO::PARAM_STR);
             $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
             $stmt->bindParam(':last_name', $lastName, PDO::PARAM_STR);

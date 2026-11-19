@@ -46,7 +46,6 @@ $currentPage = 'admin_manage_teachers';
                                 <th>Unique ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Role</th>
                                 <th>Section / Advisory</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -54,7 +53,7 @@ $currentPage = 'admin_manage_teachers';
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="7" class="empty-state"><em>empty</em></td>
+                                <td colspan="6" class="empty-state"><em>empty</em></td>
                             </tr>
                         </tbody>
                     </table>
@@ -78,14 +77,6 @@ $currentPage = 'admin_manage_teachers';
                 <div class="section-form-group">
                     <label for="teacher_email">Email</label>
                     <input type="email" id="teacher_email" name="teacher_email" class="section-form-control" placeholder="Enter teacher email" required>
-                </div>
-                <div class="section-form-group">
-                    <label for="teacher_role">Role</label>
-                    <select id="teacher_role" name="teacher_role" class="section-form-control" required>
-                        <option value="" disabled selected>Select Role</option>
-                        <option value="Adviser">Adviser</option>
-                        <option value="Subject Teacher">Subject Teacher</option>
-                    </select>
                 </div>
                 <div class="section-form-group section-form-group-last">
                     <label for="teacher_section">Section / Advisory</label>

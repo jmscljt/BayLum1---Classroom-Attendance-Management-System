@@ -6,7 +6,6 @@ require_once __DIR__ . '/TeachersController.php';
         public function handleSignupRequest(): array
         {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $role               = $_POST['role'] ?? '';
                 $uniqueId           = $_POST['unique_id'] ?? '';
                 $email              = $_POST['email'] ?? '';
                 $password           = $_POST['password'] ?? '';
@@ -28,7 +27,6 @@ require_once __DIR__ . '/TeachersController.php';
 
                 $result = $this->handleSignup(
                     $uniqueId,
-                    $role,
                     $firstName,
                     $lastName,
                     $email,
