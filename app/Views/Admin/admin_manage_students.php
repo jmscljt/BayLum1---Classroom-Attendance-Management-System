@@ -11,7 +11,7 @@ $currentPage = 'admin_manage_students';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/public/css/admin_style.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/css/admin_style.css">
     <title>Student Management - Bayan Luma 1 Elementary School</title>
 </head>
 <body>
@@ -51,9 +51,11 @@ $currentPage = 'admin_manage_students';
                     <span>Grade &amp; Section</span>
                     <select id="studentSectionFilter" class="section-form-control">
                         <option value="">All Sections</option>
-                        <option value="6_mabait">Grade 4 - Mabait</option>
-                        <option value="6_matapat">Grade 5 - Matapat</option>
-                        <option value="5_masipag">Grade 6 - Masipag</option>
+                        <?php foreach ($sections as $section): ?>
+                            <option value="<?= (int) $section['section_id'] ?>">
+                                <?= htmlspecialchars($section['grade_level'] . ' - ' . $section['section_name'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </label>
             </section>
@@ -108,9 +110,11 @@ $currentPage = 'admin_manage_students';
                     <label for="studentGradeSection">Grade &amp; Section</label>
                     <select id="studentGradeSection" name="section" class="section-form-control" required>
                         <option value="" disabled selected>Select Section</option>
-                        <option value="6_mabait">Grade 4 - Mabait</option>
-                        <option value="6_matapat">Grade 5 - Matapat</option>
-                        <option value="5_masipag">Grade 6 - Masipag</option>
+                        <?php foreach ($sections as $section): ?>
+                            <option value="<?= (int) $section['section_id'] ?>">
+                                <?= htmlspecialchars($section['grade_level'] . ' - ' . $section['section_name'], ENT_QUOTES, 'UTF-8') ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="section-form-group section-form-group-last">
@@ -129,6 +133,6 @@ $currentPage = 'admin_manage_students';
         </div>
     </div>
 
-    <script src="/public/js/adminManageStudents.js"></script>
+    <script src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/js/adminManageStudents.js"></script>
 </body>
 </html>

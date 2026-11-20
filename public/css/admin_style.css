@@ -598,6 +598,30 @@ header {
     gap: 10px;
 }
 
+.section-row-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.section-feedback {
+    margin: 0 0 15px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.section-feedback.is-success {
+    background: #f0fff4;
+    color: #276749;
+}
+
+.section-feedback.is-error {
+    background: #fff5f5;
+    color: #9b2c2c;
+}
+
 /* ===== Admin Sections - End ===== */
 
 

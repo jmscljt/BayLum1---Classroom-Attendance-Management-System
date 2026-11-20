@@ -1,7 +1,10 @@
 <?php
+
+require_once __DIR__ . '/../../Models/Admin/AdminModel.php';
+
 class AdminAuthController
 {
-    public function __construct(private PDO $pdo)
+    public function __construct(private AdminModel $adminModel)
     {
     }
 
@@ -10,17 +13,7 @@ class AdminAuthController
         $identifier = trim($post['admin_id'] ?? '');
         $password = $post['admin_password'] ?? '';
 
-        $statement = $this->pdo->prepare(
-            'SELECT admin_id, full_name, password_hash
-             FROM admins
-             WHERE username = :username OR email = :email
-             LIMIT 1'
-        );
-        $statement->execute([
-            'username' => $identifier,
-            'email' => $identifier,
-        ]);
-        $admin = $statement->fetch(PDO::FETCH_ASSOC);
+        $admin = $this->adminModel->findAdminByIdentifier($identifier);
 
         if (!$admin || !password_verify($password, $admin['password_hash'])) {
             $this->redirectWithMessage('admin_login', 'Invalid username/email or password.', 'error');
@@ -55,21 +48,17 @@ class AdminAuthController
             $this->redirectWithMessage('admin_signup', 'Passwords do not match.', 'error');
         }
 
-        if ((int) $this->pdo->query('SELECT COUNT(*) FROM admins')->fetchColumn() > 0) {
+        if ($this->adminModel->countAdmins() > 0) {
             $this->redirectWithMessage('admin_login', 'An administrator account already exists. Please log in.', 'error');
         }
 
         try {
-            $statement = $this->pdo->prepare(
-                'INSERT INTO admins (full_name, username, email, password_hash)
-                 VALUES (:full_name, :username, :email, :password_hash)'
+            $adminId = $this->adminModel->createAdmin(
+                $fullName,
+                $username,
+                $email,
+                password_hash($password, PASSWORD_DEFAULT)
             );
-            $statement->execute([
-                'full_name' => $fullName,
-                'username' => $username,
-                'email' => $email,
-                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            ]);
         } catch (PDOException $exception) {
             if ($exception->getCode() === '23000') {
                 $this->redirectWithMessage('admin_signup', 'That username or email is already in use.', 'error');
@@ -80,7 +69,7 @@ class AdminAuthController
 
         session_regenerate_id(true);
         $_SESSION['admin_logged_in'] = true;
-        $_SESSION['admin_id'] = (int) $this->pdo->lastInsertId();
+        $_SESSION['admin_id'] = $adminId;
         $_SESSION['admin_name'] = $fullName;
 
         header('Location: index.php?page=admin_dashboard');
