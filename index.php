@@ -12,7 +12,6 @@ require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
 require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 require_once 'app/Controllers/Teachers/FingerprintAttendanceController.php';
-require_once 'app/Controllers/Teachers/OtherSectionHandledController.php';
 require_once 'app/Controllers/Teachers/AttendanceSettingsController.php';
 
 //Admin Controllers
@@ -202,17 +201,6 @@ switch ($page) {
         );
         exit();
 
-    case 'otherSectionHandled':
-        $controller = new OtherSectionHandledController($pdo);
-        $pageData = $controller->getPageData($_SESSION, $_GET, $_POST, $_SERVER['REQUEST_METHOD']);
-        $assignedSections = $pageData['assignedSections'];
-        $availableSections = $pageData['availableSections'];
-        $subjects = $pageData['subjects'];
-        $csrfToken = $pageData['csrfToken'];
-        $assignedMessage = $pageData['assignedMessage'];
-        $view = 'app/Views/Teachers/otherSectionHandled.php';
-        break;
-        
     default:
         $view = 'app/Views/Teachers/dashboard.php';
         break;
