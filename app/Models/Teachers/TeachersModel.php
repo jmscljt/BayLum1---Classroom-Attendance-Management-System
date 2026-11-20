@@ -135,6 +135,152 @@ class TeachersModel{
         ];
     }
 
+    public function getTeacherAccount(int $teacherId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT t.id, t.user_id, t.full_name, t.section_id,
+                s.grade_level AS assigned_grade_level,
+                s.section_name AS advisory_section
+             FROM teachers t
+             LEFT JOIN sections s ON s.section_id = t.section_id
+             WHERE t.id = ?
+             LIMIT 1'
+        );
+        $stmt->execute([$teacherId]);
+        $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $teacher ?: null;
+    }
+
+    public function getAvailableSections(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT section_id, grade_level, section_name
+             FROM sections
+             ORDER BY grade_level ASC, section_name ASC'
+        );
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateTeacherSection(int $teacherId, int $sectionId): array
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $sectionStmt = $this->pdo->prepare(
+                'SELECT section_id
+                 FROM sections
+                 WHERE section_id = ?
+                 FOR UPDATE'
+            );
+            $sectionStmt->execute([$sectionId]);
+            if (!$sectionStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'The selected section does not exist.'];
+            }
+
+            $teacherStmt = $this->pdo->prepare(
+                'SELECT id
+                 FROM teachers
+                 WHERE id = ?
+                 FOR UPDATE'
+            );
+            $teacherStmt->execute([$teacherId]);
+            if (!$teacherStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Your account could not be found.'];
+            }
+
+            $assignedStmt = $this->pdo->prepare(
+                'SELECT id
+                 FROM teachers
+                 WHERE section_id = ? AND id <> ?
+                 LIMIT 1
+                 FOR UPDATE'
+            );
+            $assignedStmt->execute([$sectionId, $teacherId]);
+            if ($assignedStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'This section is already assigned to another teacher.',
+                ];
+            }
+
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE teachers SET section_id = ? WHERE id = ?'
+            );
+            $updateStmt->execute([$sectionId, $teacherId]);
+            $this->pdo->commit();
+
+            $account = $this->getTeacherAccount($teacherId);
+            if (!$account) {
+                return ['success' => false, 'message' => 'Unable to refresh your account information.'];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Assigned section updated successfully.',
+                'account' => $account,
+            ];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Teacher section update error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to update your assigned section. Please try again.'];
+        }
+    }
+
+    public function updateTeacherPassword(
+        int $teacherId,
+        string $currentPassword,
+        string $newPassword,
+        string $confirmPassword
+    ): array {
+        if ($newPassword !== $confirmPassword) {
+            return ['success' => false, 'message' => 'New passwords do not match.'];
+        }
+
+        if (strlen($newPassword) < 8) {
+            return ['success' => false, 'message' => 'New password must be at least 8 characters long.'];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $stmt = $this->pdo->prepare(
+                'SELECT password
+                 FROM teachers
+                 WHERE id = ?
+                 FOR UPDATE'
+            );
+            $stmt->execute([$teacherId]);
+            $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$teacher || !password_verify($currentPassword, $teacher['password'])) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Current password is incorrect.'];
+            }
+
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE teachers SET password = ? WHERE id = ?'
+            );
+            $updateStmt->execute([$hashedPassword, $teacherId]);
+            $this->pdo->commit();
+
+            return ['success' => true, 'message' => 'Password updated successfully.'];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Teacher password update error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to update your password. Please try again.'];
+        }
+    }
+
 
 
    public function addStudent(array $studentData): array

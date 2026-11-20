@@ -51,6 +51,7 @@ require_once __DIR__ . '/TeachersController.php';
                         $_SESSION['user_logged_in'] = true;
                         $_SESSION['user_id'] = $teacher['id'];
                         $_SESSION['user_name'] = $teacher['full_name'];
+                        $_SESSION['user_unique_id'] = $teacher['user_id'];
                         
                         $_SESSION['assigned_grade_level'] = $teacher['assigned_grade_level'] ?? '';
                         $_SESSION['advisory_section'] = $teacher['advisory_section'] ?? '';
@@ -94,6 +95,7 @@ require_once __DIR__ . '/TeachersController.php';
                     $_SESSION['user_logged_in'] = true;
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['full_name'];
+                    $_SESSION['user_unique_id'] = $user['user_id'];
                     $_SESSION['section_id'] = $user['section_id'] ?? null;
 
                     $_SESSION['assigned_grade_level'] = $user['assigned_grade_level'] ?? $user['grade_level'] ?? '';

@@ -13,6 +13,7 @@ require_once 'app/Controllers/Teachers/StudentsController.php';
 require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
 require_once 'app/Controllers/Teachers/FingerprintAttendanceController.php';
 require_once 'app/Controllers/Teachers/AttendanceSettingsController.php';
+require_once 'app/Controllers/Teachers/AccountSettingsController.php';
 
 //Admin Controllers
 require_once 'app/Controllers/Admin/AdminAuthController.php';
@@ -169,6 +170,16 @@ switch ($page) {
             header('Location: index.php?page=login');
             exit();
         }
+        $controller = new AccountSettingsController($pdo);
+        $pageData = $controller->getPageData(
+            $_SESSION,
+            $_POST,
+            $_SERVER['REQUEST_METHOD']
+        );
+        $account = $pageData['account'];
+        $sections = $pageData['sections'];
+        $csrfToken = $pageData['csrfToken'];
+        $accountResult = $pageData['result'];
         $view = 'app/Views/Teachers/accountSettings.php';
         break;
 

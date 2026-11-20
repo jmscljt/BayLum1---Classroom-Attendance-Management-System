@@ -1199,6 +1199,12 @@ header {
     color: #1a202c;
 }
 
+.settings-handled-values {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
 .teacher-settings-form {
     margin-top: 18px;
 }

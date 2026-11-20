@@ -9,6 +9,7 @@ $teacherName = $_SESSION['user_name'] ?? 'Teacher Name';
 $teacherUniqueId = $_SESSION['user_unique_id'] ?? 'Not available';
 $assignedGrade = $_SESSION['assigned_grade_level'] ?? 'Select Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
+$result = $accountResult ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,76 +40,83 @@ $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
 
             <section class="table-section-card teacher-settings-card">
                 <h3>Account Information</h3>
+                <?php if (!empty($result)): ?>
+                    <div class="alert alert-<?= !empty($result['success']) ? 'success' : 'error'; ?>" role="status">
+                        <?= $escape($result['message'] ?? '') ?>
+                    </div>
+                <?php endif; ?>
                 <div class="teacher-settings-details">
                     <div class="settings-detail">
                         <span class="settings-label">Unique ID (View Only)</span>
                         <span class="settings-value"><?= $escape($teacherUniqueId) ?></span>
                     </div>
                     <div class="settings-detail">
-                        <span class="settings-label">Name</span>
+                        <span class="settings-label">Username</span>
                         <span class="settings-value"><?= $escape($teacherName) ?></span>
                     </div>
 
                     <div class="settings-detail settings-section-detail">
-                        <div>
+                        <div class="settings-handled-values">
                             <span class="settings-label">Section (Handled)</span>
-                            <span class="settings-value"><?= $escape($assignedGrade . ' - ' . $advisorySection) ?></span>
+                            <span class="settings-value"><?= $escape($assignedGrade) ?> - <?= $escape($advisorySection) ?></span>
                         </div>
-                        <button type="button" class="settings-button settings-secondary-button">
+                        <button type="button" id="editAssignedSection" class="settings-button settings-secondary-button">
                             Edit
                         </button>
                     </div>
                 </div>
 
-                <div class="teacher-settings-form settings-section-form">
+                <form action="index.php?page=teachers_settings" method="POST" id="settingsSectionForm" class="teacher-settings-form settings-section-form" hidden>
+                    <input type="hidden" name="action" value="update_section">
+                    <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="settings-form-row">
                         <div class="settings-field">
                             <label for="settingsGrade">Grade</label>
-                            <select id="settingsGrade">
-                                <option selected><?= $escape($assignedGrade) ?></option>
-                                <option>Grade 4</option>
-                                <option>Grade 5</option>
-                                <option>Grade 6</option>
+                            <select id="settingsGrade" required>
+                                <option value="" disabled>Select Grade</option>
                             </select>
                         </div>
                         <div class="settings-field">
                             <label for="settingsSection">Section</label>
-                            <select id="settingsSection">
-                                <option selected><?= $escape($advisorySection) ?></option>
-                                <option>Mabait</option>
-                                <option>Magalang</option>
-                                <option>Masipag</option>
-                                <option>Masayahin</option>
-                                <option>Matapat</option>
+                            <select id="settingsSection" name="section_id" required>
+                                <option value="" disabled>Select Section</option>
                             </select>
                         </div>
-                        <button type="button" class="settings-button">Save</button>
+                        <button type="submit" class="settings-button">Save</button>
                     </div>
-                </div>
+                </form>
             </section>
 
             <section class="table-section-card teacher-settings-card">
                 <h3>Change Password</h3>
-                <div class="teacher-settings-form">
+                <form action="index.php?page=teachers_settings" method="POST" class="teacher-settings-form">
+                    <input type="hidden" name="action" value="update_password">
+                    <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="settings-form-row settings-password-fields">
                         <div class="settings-field">
                             <label for="currentPassword">Current Password</label>
-                            <input type="password" id="currentPassword" autocomplete="current-password">
+                            <input type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
                         </div>
                         <div class="settings-field">
                             <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword" autocomplete="new-password">
+                            <input type="password" id="newPassword" name="new_password" minlength="8" autocomplete="new-password" required>
                         </div>
                         <div class="settings-field">
                             <label for="confirmNewPassword">Confirm New Password</label>
-                            <input type="password" id="confirmNewPassword" autocomplete="new-password">
+                            <input type="password" id="confirmNewPassword" name="confirm_password" minlength="8" autocomplete="new-password" required>
                         </div>
                     </div>
-                    <button type="button" class="settings-button">Update Password</button>
-                </div>
+                    <button type="submit" class="settings-button">Update Password</button>
+                </form>
             </section>
 
         </div>
     </main>
+    <script>
+        const accountSections = <?= json_encode($sections) ?>;
+        const assignedGrade = <?= json_encode($assignedGrade) ?>;
+        const assignedSection = <?= json_encode($advisorySection) ?>;
+    </script>
+    <script src="/public/js/accountSettings.js"></script>
 </body>
 </html>
