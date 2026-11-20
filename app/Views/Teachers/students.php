@@ -351,7 +351,7 @@ $currentPage = 'students';
         </div>
     </main>
 
-    <script src="/public/js/studentsAbbsences.js"></script>
+    <script src="/public/js/studentAbsences.js"></script>
     <script src="/public/js/addStudentModal.js"></script>
 </body>
 </html>

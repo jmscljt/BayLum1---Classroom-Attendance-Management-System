@@ -10,7 +10,6 @@ const absenceSaveError = document.getElementById('absenceSaveError');
 const absenceStatusMessage = document.getElementById('absenceStatusMessage');
 let absenceRequest;
 let currentStudentId;
-let currentStudentName;
 let currentStudentRow;
 let pendingAbsence;
 let savingStatus = false;
@@ -158,7 +157,6 @@ async function loadAbsences(studentId) {
 
 async function openAbsencesModal(studentId, studentName, studentRow) {
     currentStudentId = studentId;
-    currentStudentName = studentName;
     currentStudentRow = studentRow;
     absencesModalTitle.textContent = `Absence History - ${studentName}`;
     absenceStatusMessage.hidden = true;
