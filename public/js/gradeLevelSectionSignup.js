@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", function() {
         
         // Filter and append matching sections
         const filteredSections = allSections.filter(sec => sec.grade_level === selectedGrade);
+        if (filteredSections.length === 0) {
+            sectionSelect.options[0].textContent = 'No sections available for this grade';
+            return;
+        }
+
         filteredSections.forEach(sec => {
             const option = document.createElement('option');
             option.value = sec.section_id;

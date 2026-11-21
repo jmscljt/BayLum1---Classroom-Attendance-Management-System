@@ -32,7 +32,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                     </div>
                 <?php endif; ?>
                 
-                <h1>Login</h1>
+                <h1>Admin Login</h1>
                 <form action="index.php?page=admin_authenticate" method="POST">
                     <div class="input-group">
                         <label for="admin_id">Username or Email</label>

@@ -17,10 +17,16 @@ require_once 'app/Controllers/Teachers/AccountSettingsController.php';
 
 //Admin Controllers
 require_once 'app/Controllers/Admin/AdminAuthController.php';
+require_once 'app/Controllers/Admin/AdminSectionsController.php';
+require_once 'app/Controllers/Admin/AdminStudentsController.php';
+require_once 'app/Controllers/Admin/AdminTeachersController.php';
 
 
 
-$base_url = '';
+$scriptDirectory = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+$base_url = $scriptDirectory === '/' || $scriptDirectory === '.'
+    ? ''
+    : rtrim($scriptDirectory, '/');
 
 $page = $_GET['page'] ?? 'login';
 $currentPage = $page; // Set the current page for navigation highlighting
@@ -42,12 +48,12 @@ if (strpos($page, 'admin_') === 0) {
         exit();
     }
     if ($adminPage === 'authenticate') {
-        $controller = new AdminAuthController($pdo);
+        $controller = new AdminAuthController(new AdminModel($pdo));
         $controller->handleLogin($_POST);
         exit();
     }
     if ($adminPage === 'register') {
-        $controller = new AdminAuthController($pdo);
+        $controller = new AdminAuthController(new AdminModel($pdo));
         $controller->handleSignup($_POST);
         exit();
     }
@@ -60,7 +66,7 @@ if (strpos($page, 'admin_') === 0) {
 
     switch ($adminPage) {
         case 'logout':
-            $controller = new AdminAuthController($pdo);
+            $controller = new AdminAuthController(new AdminModel($pdo));
             $controller->handleLogout();
             exit();
 
@@ -69,14 +75,37 @@ if (strpos($page, 'admin_') === 0) {
             break;
 
         case 'manage_sections':
+            $controller = new AdminSectionsController(new AdminModel($pdo));
+            $pageData = $controller->getPageData(
+                $_SESSION,
+                $_POST,
+                $_SERVER['REQUEST_METHOD']
+            );
+            $sections = $pageData['sections'];
+            $grades = $pageData['grades'];
+            $teachers = $pageData['teachers'];
+            $csrfToken = $pageData['csrfToken'];
+            $sectionResult = $pageData['result'];
             $view = 'app/Views/Admin/admin_manage_sections.php';
             break;
 
         case 'manage_teachers':
+            $controller = new AdminTeachersController(new AdminModel($pdo));
+            $pageData = $controller->getPageData(
+                $_SESSION,
+                $_POST,
+                $_SERVER['REQUEST_METHOD']
+            );
+            $teachers = $pageData['teachers'];
+            $csrfToken = $pageData['csrfToken'];
+            $teacherResult = $pageData['result'];
             $view = 'app/Views/Admin/admin_manage_teachers.php';
             break;
 
         case 'manage_students':
+            $controller = new AdminStudentsController($pdo);
+            $pageData = $controller->getPageData();
+            $sections = $pageData['sections'];
             $view = 'app/Views/Admin/admin_manage_students.php';
             break;
 
@@ -108,6 +137,34 @@ if (strpos($page, 'admin_') === 0) {
 }
 
 
+
+if (
+    !in_array($page, ['login', 'signup', 'logout'], true)
+    && !empty($_SESSION['user_logged_in'])
+    && !empty($_SESSION['user_id'])
+) {
+    $teacherStatusStatement = $pdo->prepare(
+        'SELECT is_active FROM teachers WHERE id = :teacher_id LIMIT 1'
+    );
+    $teacherStatusStatement->execute(['teacher_id' => (int) $_SESSION['user_id']]);
+    $teacherIsActive = $teacherStatusStatement->fetchColumn();
+
+    if ($teacherIsActive === false || !(int) $teacherIsActive) {
+        unset(
+            $_SESSION['user_logged_in'],
+            $_SESSION['user_id'],
+            $_SESSION['user_name'],
+            $_SESSION['user_unique_id'],
+            $_SESSION['section_id'],
+            $_SESSION['assigned_grade_level'],
+            $_SESSION['advisory_section']
+        );
+        $_SESSION['auth_message'] = 'Your teacher account is inactive. Please contact the school administrator.';
+        $_SESSION['auth_message_type'] = 'error';
+        header('Location: index.php?page=login');
+        exit();
+    }
+}
 
 switch ($page) {
 

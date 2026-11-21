@@ -123,6 +123,13 @@ class TeachersModel{
         $teachers = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($teachers && password_verify($password, $teachers['password'])) {
+            if (!(int) $teachers['is_active']) {
+                return [
+                    'success' => false,
+                    'message' => 'This account is inactive. Please contact the school administrator.',
+                ];
+            }
+
             return [
                 'success' => true,
                 'user' => $teachers,

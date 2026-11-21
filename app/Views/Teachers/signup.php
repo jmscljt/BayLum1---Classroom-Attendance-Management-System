@@ -9,7 +9,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 $gradesStmt = $pdo->query("SELECT DISTINCT grade_level FROM sections ORDER BY grade_level ASC");
 $grades = $gradesStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$sectionsStmt = $pdo->query("SELECT section_id, grade_level, section_name FROM sections ORDER BY section_name ASC");
+$sectionsStmt = $pdo->query("SELECT section_id, grade_level, section_name FROM sections ORDER BY grade_level ASC, section_name ASC");
 $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
@@ -17,22 +17,22 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?php echo $base_url; ?>/public/css/teachers_style.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/css/teachers_style.css">
     <title>BL1ES - Sign Up</title>
 </head>
 <body>
     <div class="side-cover">
-        <img src="/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
-        <img src="/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
-        <img src="/images/BL1-Cover3.png" alt="Cover 3" class="cover-image cover3">
-        <img src="/images/BL1-Cover4.png" alt="Cover 4" class="cover-image cover4">
-        <img src="/images/BL1-Cover5.png" alt="Cover 5" class="cover-image cover5">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover3.png" alt="Cover 3" class="cover-image cover3">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover4.png" alt="Cover 4" class="cover-image cover4">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover5.png" alt="Cover 5" class="cover-image cover5">
         <div class="gradient-overlay"></div>
     </div>
 
     <div class="form-wrapper">
         <div class="form-box signup">
-            <img src="/images/BL1-Logo.png" alt="Logo" class="logo">
+            <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Logo.png" alt="Logo" class="logo">
             <div class="signup-card">
                 <?php if (!empty($message)): ?>
                     <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'error'; ?>">
@@ -105,8 +105,8 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
     
     <script>
-        window.allSections = <?= json_encode($sections) ?>;
+        window.allSections = <?= json_encode($sections, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
-    <script src="/public/js/gradeLevelSectionSignup.js"></script>
+    <script src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/js/gradeLevelSectionSignup.js"></script>
 </body>
 </html>

@@ -1,2 +1,0 @@
-ALTER TABLE teachers
-    DROP COLUMN role;
