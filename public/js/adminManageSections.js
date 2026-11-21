@@ -6,6 +6,23 @@ const sectionForm = sectionModal ? sectionModal.querySelector('form') : null;
 
 let sectionModalReturnFocus = null;
 
+function removeSectionAdviserField() {
+    const adviserGroup = document.getElementById('sectionAdviserGroup');
+    if (adviserGroup) adviserGroup.remove();
+}
+
+function showSectionAdviserField() {
+    removeSectionAdviserField();
+
+    const template = document.getElementById('sectionAdviserTemplate');
+    const actions = sectionForm ? sectionForm.querySelector('.section-modal-actions') : null;
+    if (!template || !actions) return null;
+
+    const fragment = template.content.cloneNode(true);
+    sectionForm.insertBefore(fragment, actions);
+    return document.getElementById('sectionAdviserGroup');
+}
+
 function openSectionModal() {
     if (!sectionModal || !sectionForm) return;
 
@@ -29,7 +46,7 @@ if (sectionModal && openSectionModalButton && sectionForm) {
         document.getElementById('section_id').value = '';
         document.getElementById('modalTitle').textContent = 'Add New Section';
         document.getElementById('saveSectionButton').textContent = 'Save Section';
-        document.getElementById('noAdviserOption').disabled = false;
+        removeSectionAdviserField();
         sectionModalReturnFocus = openSectionModalButton;
         openSectionModal();
     });
@@ -41,6 +58,7 @@ if (sectionModal && openSectionModalButton && sectionForm) {
             document.getElementById('section_id').value = button.dataset.sectionId;
             document.getElementById('grade_level').value = button.dataset.gradeLevel;
             document.getElementById('section_name').value = button.dataset.sectionName;
+            showSectionAdviserField();
             document.getElementById('adviser_id').value = button.dataset.adviserId;
             document.getElementById('noAdviserOption').disabled = button.dataset.hasAdviser === 'true';
             document.getElementById('modalTitle').textContent = 'Edit Grade & Section';
@@ -72,3 +90,37 @@ document.querySelectorAll('.remove-section-form').forEach(form => {
         }
     });
 });
+
+const sectionTableSearch = document.getElementById('sectionTableSearch');
+const sectionTableBody = document.querySelector('.data-table tbody');
+
+if (sectionTableSearch && sectionTableBody) {
+    sectionTableSearch.addEventListener('input', () => {
+        const query = sectionTableSearch.value.trim().toLowerCase();
+        let visibleRows = 0;
+
+        sectionTableBody.querySelectorAll('tr').forEach(row => {
+            if (row.querySelector('td.empty-state')) {
+                row.hidden = query !== '';
+                return;
+            }
+
+            const matches = row.textContent.toLowerCase().includes(query);
+            row.hidden = !matches;
+            if (matches) visibleRows++;
+        });
+
+        let noResultsRow = sectionTableBody.querySelector('.search-empty-state');
+        if (query !== '' && visibleRows === 0) {
+            if (!noResultsRow) {
+                noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'search-empty-state';
+                noResultsRow.innerHTML = '<td colspan="4" class="empty-state"><em>No matching grade, section, or adviser found.</em></td>';
+                sectionTableBody.appendChild(noResultsRow);
+            }
+            noResultsRow.hidden = false;
+        } else if (noResultsRow) {
+            noResultsRow.hidden = true;
+        }
+    });
+}

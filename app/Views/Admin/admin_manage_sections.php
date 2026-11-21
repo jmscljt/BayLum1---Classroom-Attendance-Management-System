@@ -37,7 +37,16 @@ $currentPage = 'admin_manage_sections';
             </div>
 
             <div class="table-section-card">
-                <h3>List of School Grade & Sections</h3>
+                <div class="table-toolbar">
+                    <h3>List of School Grade & Sections</h3>
+                    <input
+                        id="sectionTableSearch"
+                        class="section-table-search"
+                        type="search"
+                        placeholder="Search grade, section, or adviser..."
+                        aria-label="Search grade and sections"
+                    >
+                </div>
                 <?php if (!empty($sectionResult)): ?>
                     <p class="section-feedback <?= !empty($sectionResult['success']) ? 'is-success' : 'is-error' ?>" role="status">
                         <?= htmlspecialchars($sectionResult['message'], ENT_QUOTES, 'UTF-8') ?>
@@ -65,7 +74,7 @@ $currentPage = 'admin_manage_sections';
                                         <td><?= htmlspecialchars($section['section_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                         <td>
                                             <?php if (empty($section['advisers'])): ?>
-                                                <em>Not assigned</em>
+                                                <em>---</em>
                                             <?php else: ?>
                                                 <?= htmlspecialchars(implode(', ', array_column($section['advisers'], 'full_name')), ENT_QUOTES, 'UTF-8') ?>
                                             <?php endif; ?>
@@ -85,7 +94,7 @@ $currentPage = 'admin_manage_sections';
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                                                     <input type="hidden" name="action" value="remove_section">
                                                     <input type="hidden" name="section_id" value="<?= (int) $section['section_id'] ?>">
-                                                    <button class="section-cancel-btn" type="submit" data-section-name="<?= htmlspecialchars($section['grade_level'] . ' - ' . $section['section_name'], ENT_QUOTES, 'UTF-8') ?>">Remove</button>
+                                                    <button class="section-cancel-btn section-remove-btn" type="submit" data-section-name="<?= htmlspecialchars($section['grade_level'] . ' - ' . $section['section_name'], ENT_QUOTES, 'UTF-8') ?>">Remove Section</button>
                                                 </form>
                                             </div>
                                         </td>
@@ -123,20 +132,22 @@ $currentPage = 'admin_manage_sections';
                 </div>
                 <div class="section-form-group">
                     <label for="section_name">Section Name</label>
-                    <input type="text" id="section_name" name="section_name" class="section-form-control" placeholder="e.g. Masigasig" maxlength="50" required>
+                    <input type="text" id="section_name" name="section_name" class="section-form-control" placeholder="e.g. Masipag" maxlength="50" required>
                 </div>
-                <div class="section-form-group section-form-group-last">
-                    <label for="adviser_id">Assigned Adviser (Optional)</label>
-                    <select id="adviser_id" name="adviser_id" class="section-form-control">
-                        <option value="" id="noAdviserOption">No adviser assigned</option>
-                        <?php foreach ($teachers as $teacher): ?>
-                            <option value="<?= (int) $teacher['id'] ?>">
-                                <?= htmlspecialchars($teacher['full_name'], ENT_QUOTES, 'UTF-8') ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <small>Choosing a teacher moves them from their current section. When editing a section with an adviser, that adviser moves to the teacher's previous section.</small>
-                </div>
+                <template id="sectionAdviserTemplate">
+                    <div id="sectionAdviserGroup" class="section-form-group section-form-group-last">
+                        <label for="adviser_id">Assigned Adviser (Optional)</label>
+                        <select id="adviser_id" name="adviser_id" class="section-form-control">
+                            <option value="" id="noAdviserOption">No adviser assigned</option>
+                            <?php foreach ($teachers as $teacher): ?>
+                                <option value="<?= (int) $teacher['id'] ?>">
+                                    <?= htmlspecialchars($teacher['full_name'], ENT_QUOTES, 'UTF-8') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small>Choosing a teacher moves them from their current section. When editing a section with an adviser, that adviser moves to the teacher's previous section.</small>
+                    </div>
+                </template>
                 <div class="section-modal-actions">
                     <button id="cancelSectionModal" type="button" class="section-cancel-btn">Cancel</button>
                     <button id="saveSectionButton" type="submit" class="section-action-btn">Save Section</button>

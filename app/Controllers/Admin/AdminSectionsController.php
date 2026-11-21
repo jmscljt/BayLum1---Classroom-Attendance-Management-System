@@ -76,12 +76,7 @@ class AdminSectionsController
             return ['success' => false, 'message' => 'Enter a section name of up to 50 characters.'];
         }
 
-        $teacherId = $this->validateTeacherId($post['adviser_id'] ?? '');
-        if ($teacherId === false) {
-            return ['success' => false, 'message' => 'Please select a valid adviser.'];
-        }
-
-        return $this->adminModel->addSection($gradeLevel, $sectionName, $teacherId);
+        return $this->adminModel->addSection($gradeLevel, $sectionName);
     }
 
     private function removeSection(array $post): array

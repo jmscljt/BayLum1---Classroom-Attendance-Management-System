@@ -267,7 +267,7 @@ class AdminModel
         }
     }
 
-    public function addSection(string $gradeLevel, string $sectionName, ?int $teacherId): array
+    public function addSection(string $gradeLevel, string $sectionName): array
     {
         try {
             $this->pdo->beginTransaction();
@@ -288,23 +288,6 @@ class AdminModel
                 return ['success' => false, 'message' => 'That section already exists for this grade.'];
             }
 
-            if ($teacherId !== null) {
-                $teacherStatement = $this->pdo->prepare(
-                    'SELECT id
-                     FROM teachers
-                     WHERE id = :teacher_id
-                     FOR UPDATE'
-                );
-                $teacherStatement->execute(['teacher_id' => $teacherId]);
-                if (!$teacherStatement->fetchColumn()) {
-                    $this->pdo->rollBack();
-                    return [
-                        'success' => false,
-                        'message' => 'That teacher is no longer available to assign as an adviser.',
-                    ];
-                }
-            }
-
             $insertStatement = $this->pdo->prepare(
                 'INSERT INTO sections (grade_level, section_name)
                  VALUES (:grade_level, :section_name)'
@@ -313,25 +296,6 @@ class AdminModel
                 'grade_level' => $gradeLevel,
                 'section_name' => $sectionName,
             ]);
-            $sectionId = (int) $this->pdo->lastInsertId();
-
-            if ($teacherId !== null) {
-                $assignStatement = $this->pdo->prepare(
-                    'UPDATE teachers SET section_id = :section_id WHERE id = :teacher_id'
-                );
-                $assignStatement->execute([
-                    'section_id' => $sectionId,
-                    'teacher_id' => $teacherId,
-                ]);
-                if ($assignStatement->rowCount() !== 1) {
-                    $this->pdo->rollBack();
-                    return [
-                        'success' => false,
-                        'message' => 'The adviser could not be assigned. Please try again.',
-                    ];
-                }
-            }
-
             $this->pdo->commit();
             return ['success' => true, 'message' => 'Section added successfully.'];
         } catch (PDOException $exception) {
