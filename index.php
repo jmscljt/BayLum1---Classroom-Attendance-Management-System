@@ -117,10 +117,6 @@ if (strpos($page, 'admin_') === 0) {
             $view = 'app/Views/Admin/teacher_activity_logs.php';
             break;
 
-        case 'devices':
-            $view = 'app/Views/Admin/admin_devices.php';
-            break;
-
         case 'settings':
             $view = 'app/Views/Admin/admin_settings.php';
             break;
@@ -226,7 +222,7 @@ switch ($page) {
         $view = 'app/Views/Teachers/students.php';
         break;
 
-    case 'teachers_settings':
+    case 'accountSsettings':
         if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
             header('Location: index.php?page=login');
             exit();
