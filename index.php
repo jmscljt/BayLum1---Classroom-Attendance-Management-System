@@ -222,7 +222,7 @@ switch ($page) {
         $view = 'app/Views/Teachers/students.php';
         break;
 
-    case 'accountSsettings':
+    case 'accountSettings':
         if (empty($_SESSION['user_logged_in']) || empty($_SESSION['user_id'])) {
             header('Location: index.php?page=login');
             exit();

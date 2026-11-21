@@ -493,7 +493,7 @@ header {
     height: calc(100vh - 60px);
     min-height: 0;
     overflow-y: auto;
-    width: 100%;
+    width: calc(100% - 250px);
     box-sizing: border-box;
 }
 
@@ -844,7 +844,7 @@ header {
     margin-right: auto; /* This pushes everything after it (the 3 buttons) all the way to the right */
     font-size: 15px;
     font-weight: 600;
-    color: #1e293b;
+    color: #2d3748;
 }
 
 .import_excel_btn, .export_excel_btn, .add-student-btn, .view-inactive-btn {
@@ -897,6 +897,106 @@ header {
     background-color: #11632f;
 }
 
+.student-masterlist-table,
+.inactive-students-table {
+    table-layout: auto;
+}
+
+.student-masterlist-table th,
+.student-masterlist-table td,
+.inactive-students-table th,
+.inactive-students-table td {
+    padding: 8px 7px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.student-masterlist-table th {
+    font-size: 12px;
+    text-align: center;
+}
+
+.student-masterlist-table td {
+    font-size: 12px;
+    text-align: center;
+}
+
+.student-masterlist-table th:nth-child(2),
+.student-masterlist-table td:nth-child(2),
+.student-masterlist-table th:nth-child(3),
+.student-masterlist-table td:nth-child(3),
+.student-masterlist-table th:nth-child(4),
+.student-masterlist-table td:nth-child(4),
+.student-masterlist-table th:nth-child(5),
+.student-masterlist-table td:nth-child(5),
+.student-masterlist-table th:nth-child(6),
+.student-masterlist-table td:nth-child(6) {
+    text-align: left;
+}
+
+.student-masterlist-table th:last-child,
+.student-masterlist-table td:last-child {
+    width: 230px;
+    text-align: left;
+}
+
+.student-masterlist-table .action-buttons {
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.student-masterlist-table .btn-view,
+.student-masterlist-table .btn-edit,
+.student-masterlist-table .btn-remove {
+    min-width: 0;
+    max-width: none;
+    height: 30px;
+    margin: 0;
+    padding: 0 7px;
+    font-size: 11px;
+}
+
+.student-masterlist-table .btn-view {
+    width: 88px;
+}
+
+.student-masterlist-table .btn-edit {
+    width: 48px;
+}
+
+.student-masterlist-table .btn-remove {
+    width: 74px;
+}
+
+.as608-id,
+.as608-unregistered {
+    display: inline-block;
+    min-width: 88px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.as608-id {
+    /* background: #dcfce7; */
+    color: #0056b3;
+}
+
+.as608-unregistered {
+    /* background: #fee2e2; */
+    color: #991b1b;
+}
+
+.inactive-students-modal-content {
+    max-width: 920px;
+}
+
+.inactive-students-modal-content .table-responsive {
+    max-height: 65vh;
+}
+
 /* Add Student Modal */
 .modal-overlay {
     display: none; /* Hidden by default */
@@ -917,9 +1017,29 @@ header {
     padding: 25px;
     border-radius: 8px;
     width: 100%;
-    max-width: 550px;
+    max-width: 650px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-sizing: border-box;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.2s ease-in-out;
+}
+
+#editStudentForm,
+#addStudentForm {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+}
+
+#editStudentForm .form-group,
+#addStudentForm .form-group {
+    margin-bottom: 12px;
+}
+
+#editStudentForm .modal-actions,
+#addStudentForm .modal-actions {
+    grid-column: 1 / -1;
 }
 
 .modal-header {
@@ -1227,6 +1347,51 @@ header {
 
 /* ===== Students - End ===== */
 
+@media (max-width: 1100px) {
+    .student-actions-right {
+        flex-wrap: wrap;
+    }
+
+    .student_count {
+        flex: 1 0 100%;
+        margin-right: 0;
+    }
+
+    .table-section-card {
+        min-width: 0;
+    }
+
+    .table-section-card .table-responsive {
+        border-radius: 6px;
+    }
+
+    .student-masterlist-table {
+        min-width: 1020px;
+    }
+}
+
+@media (max-width: 700px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 16px;
+    }
+
+    .student-buttons-section {
+        align-items: flex-start;
+    }
+
+    #editStudentForm,
+    #addStudentForm {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        width: calc(100% - 24px);
+        max-width: none;
+        padding: 20px;
+    }
+}
 
 
 

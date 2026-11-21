@@ -95,9 +95,10 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                                     $attendanceType = $activity['attendance_type'];
                                     $statusLabel = $attendanceType === 'time_in' ? 'Time - In' : 'Time - Out';
                                     $studentName = trim(
+                                        $activity['last_name'] . ', ' .
                                         $activity['first_name'] . ' ' .
                                         ($activity['middle_name'] ?? '') . ' ' .
-                                        $activity['last_name']
+                                        ($activity['suffix'] ?? '')
                                     );
                                     ?>
                                     <tr>

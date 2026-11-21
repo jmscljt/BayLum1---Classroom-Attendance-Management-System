@@ -73,7 +73,10 @@ $currentPage = 'admin_manage_students';
                         <thead>
                             <tr>
                                 <th scope="col">LRN</th>
-                                <th scope="col">Student Name</th>
+                                <th scope="col">First Name</th>
+                                <th scope="col">Middle Name</th>
+                                <th scope="col">Last Name</th>
+                                <th scope="col">Suffix</th>
                                 <th scope="col">Grade &amp; Section</th>
                                 <th scope="col">Gender</th>
                                 <th scope="col">Fingerprint Status</th>
@@ -82,7 +85,7 @@ $currentPage = 'admin_manage_students';
                         </thead>
                         <tbody id="studentTableBody">
                             <tr id="studentEmptyState">
-                                <td colspan="6" class="empty-state"><em>No student records have been added yet.</em></td>
+                                <td colspan="9" class="empty-state"><em>No student records have been added yet.</em></td>
                             </tr>
                         </tbody>
                     </table>
@@ -103,8 +106,20 @@ $currentPage = 'admin_manage_students';
                     <input id="studentLrn" name="lrn" type="text" class="section-form-control" placeholder="12-digit LRN" inputmode="numeric" maxlength="12" required>
                 </div>
                 <div class="section-form-group">
-                    <label for="studentName">Student Full Name</label>
-                    <input id="studentName" name="student_name" type="text" class="section-form-control" placeholder="Last Name, First Name M.I." required>
+                    <label for="studentFirstName">First Name</label>
+                    <input id="studentFirstName" name="first_name" type="text" class="section-form-control" placeholder="Enter first name" required>
+                </div>
+                <div class="section-form-group">
+                    <label for="studentMiddleName">Middle Name</label>
+                    <input id="studentMiddleName" name="middle_name" type="text" class="section-form-control" placeholder="Enter middle name">
+                </div>
+                <div class="section-form-group">
+                    <label for="studentLastName">Last Name</label>
+                    <input id="studentLastName" name="last_name" type="text" class="section-form-control" placeholder="Enter last name" required>
+                </div>
+                <div class="section-form-group">
+                    <label for="studentSuffix">Suffix</label>
+                    <input id="studentSuffix" name="suffix" type="text" class="section-form-control" placeholder="e.g. Jr., Sr., III">
                 </div>
                 <div class="section-form-group">
                     <label for="studentGradeSection">Grade &amp; Section</label>
