@@ -508,6 +508,15 @@ header {
     background-color: #cbd5e0;
 }
 
+.teacher-remove-btn {
+    background-color: #b30000;
+    color: #ffffff;
+}
+
+.teacher-remove-btn:hover {
+    background-color: #8f0000;
+}
+
 .section-modal-overlay {
     position: fixed;
     inset: 0;
@@ -652,11 +661,29 @@ header {
     outline: 2px solid rgba(0, 86, 179, 0.15);
 }
 
-.teacher-add-btn {
+
+.teacher-status-badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.teacher-status-badge.is-active {
+    background-color: #c6f6d5;
+    color: #22543d;
+}
+
+.teacher-status-badge.is-inactive {
+    background-color: #fed7d7;
+    color: #9b2c2c;
+}
+
+.teacher-status-toggle-btn {
     border: 0;
     border-radius: 6px;
     padding: 9px 14px;
-    background-color: #0056b3;
     color: #ffffff;
     font-size: 13px;
     font-weight: 600;
@@ -664,8 +691,30 @@ header {
     transition: background-color 0.2s ease;
 }
 
-.teacher-add-btn:hover {
-    background-color: #004085;
+.teacher-status-toggle-btn.deactivate {
+    background-color: #b30000;
+}
+
+.teacher-status-toggle-btn.deactivate:hover {
+    background-color: #8f0000;
+}
+
+.teacher-status-toggle-btn.activate {
+    background-color: #15803d;
+    color: #ffffff;
+}
+
+.teacher-status-toggle-btn.activate:hover {
+    background-color: #166534;
+}
+
+.teacher-row[hidden] {
+    display: none;
+}
+
+.teacher-row .section-row-actions button {
+    padding: 7px 10px;
+    font-size: 12px;
 }
 
 @media (max-width: 760px) {

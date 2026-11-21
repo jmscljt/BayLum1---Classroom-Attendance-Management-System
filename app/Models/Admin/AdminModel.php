@@ -116,6 +116,157 @@ class AdminModel
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getTeacherAccounts(): array
+    {
+        $statement = $this->pdo->query(
+            'SELECT t.id, t.user_id, t.full_name, t.first_name, t.last_name,
+                    t.email, t.section_id, t.is_active, t.created_at,
+                    s.grade_level, s.section_name
+             FROM teachers t
+             LEFT JOIN sections s ON s.section_id = t.section_id
+             ORDER BY t.full_name ASC'
+        );
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function setTeacherAccountStatus(int $teacherId, bool $isActive): array
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $teacherStatement = $this->pdo->prepare(
+                'SELECT is_active FROM teachers WHERE id = :teacher_id FOR UPDATE'
+            );
+            $teacherStatement->execute(['teacher_id' => $teacherId]);
+            $currentStatus = $teacherStatement->fetchColumn();
+            if ($currentStatus === false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'That teacher account no longer exists.'];
+            }
+
+            if ((bool) $currentStatus === $isActive) {
+                $this->pdo->commit();
+                return [
+                    'success' => true,
+                    'message' => 'That teacher account is already ' . ($isActive ? 'active.' : 'inactive.'),
+                ];
+            }
+
+            $statement = $this->pdo->prepare(
+                'UPDATE teachers SET is_active = :is_active WHERE id = :teacher_id'
+            );
+            $statement->execute([
+                'is_active' => $isActive ? 1 : 0,
+                'teacher_id' => $teacherId,
+            ]);
+
+            $this->pdo->commit();
+            return [
+                'success' => true,
+                'message' => 'Teacher account ' . ($isActive ? 'activated' : 'deactivated') . ' successfully.',
+            ];
+        } catch (PDOException $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Admin update teacher status error: ' . $exception->getMessage());
+            return ['success' => false, 'message' => 'Unable to update the teacher account status.'];
+        }
+    }
+
+    public function updateTeacherAccount(
+        int $teacherId,
+        string $fullName,
+        string $firstName,
+        string $lastName,
+        string $email,
+        ?string $passwordHash
+    ): array {
+        try {
+            $this->pdo->beginTransaction();
+
+            $teacherStatement = $this->pdo->prepare(
+                'SELECT id FROM teachers WHERE id = :teacher_id FOR UPDATE'
+            );
+            $teacherStatement->execute(['teacher_id' => $teacherId]);
+            if (!$teacherStatement->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'That teacher account no longer exists.'];
+            }
+
+            $emailStatement = $this->pdo->prepare(
+                'SELECT id FROM teachers
+                 WHERE email = :email AND id <> :teacher_id
+                 LIMIT 1'
+            );
+            $emailStatement->execute(['email' => $email, 'teacher_id' => $teacherId]);
+            if ($emailStatement->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'That email is already registered to another account.'];
+            }
+
+            if ($passwordHash === null) {
+                $statement = $this->pdo->prepare(
+                    'UPDATE teachers
+                     SET full_name = :full_name, first_name = :first_name, last_name = :last_name,
+                         email = :email
+                     WHERE id = :teacher_id'
+                );
+                $parameters = [
+                    'full_name' => $fullName,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $email,
+                    'teacher_id' => $teacherId,
+                ];
+            } else {
+                $statement = $this->pdo->prepare(
+                    'UPDATE teachers
+                     SET full_name = :full_name, first_name = :first_name, last_name = :last_name,
+                         email = :email, password = :password
+                     WHERE id = :teacher_id'
+                );
+                $parameters = [
+                    'full_name' => $fullName,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $email,
+                    'password' => $passwordHash,
+                    'teacher_id' => $teacherId,
+                ];
+            }
+            $statement->execute($parameters);
+
+            $this->pdo->commit();
+            return ['success' => true, 'message' => 'Teacher account updated successfully.'];
+        } catch (PDOException $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Admin update teacher error: ' . $exception->getMessage());
+            return ['success' => false, 'message' => 'Unable to update the teacher account.'];
+        }
+    }
+
+    public function removeTeacherAccount(int $teacherId): array
+    {
+        try {
+            $statement = $this->pdo->prepare('DELETE FROM teachers WHERE id = :teacher_id');
+            $statement->execute(['teacher_id' => $teacherId]);
+            if ($statement->rowCount() !== 1) {
+                return ['success' => false, 'message' => 'That teacher account no longer exists.'];
+            }
+            return ['success' => true, 'message' => 'Teacher account removed successfully.'];
+        } catch (PDOException $exception) {
+            error_log('Admin remove teacher error: ' . $exception->getMessage());
+            return [
+                'success' => false,
+                'message' => 'This teacher account cannot be removed because it has related records.',
+            ];
+        }
+    }
+
     public function addSection(string $gradeLevel, string $sectionName, ?int $teacherId): array
     {
         try {

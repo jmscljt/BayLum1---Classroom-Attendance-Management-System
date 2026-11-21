@@ -19,6 +19,7 @@ require_once 'app/Controllers/Teachers/AccountSettingsController.php';
 require_once 'app/Controllers/Admin/AdminAuthController.php';
 require_once 'app/Controllers/Admin/AdminSectionsController.php';
 require_once 'app/Controllers/Admin/AdminStudentsController.php';
+require_once 'app/Controllers/Admin/AdminTeachersController.php';
 
 
 
@@ -89,6 +90,15 @@ if (strpos($page, 'admin_') === 0) {
             break;
 
         case 'manage_teachers':
+            $controller = new AdminTeachersController(new AdminModel($pdo));
+            $pageData = $controller->getPageData(
+                $_SESSION,
+                $_POST,
+                $_SERVER['REQUEST_METHOD']
+            );
+            $teachers = $pageData['teachers'];
+            $csrfToken = $pageData['csrfToken'];
+            $teacherResult = $pageData['result'];
             $view = 'app/Views/Admin/admin_manage_teachers.php';
             break;
 
@@ -123,6 +133,34 @@ if (strpos($page, 'admin_') === 0) {
 }
 
 
+
+if (
+    !in_array($page, ['login', 'signup', 'logout'], true)
+    && !empty($_SESSION['user_logged_in'])
+    && !empty($_SESSION['user_id'])
+) {
+    $teacherStatusStatement = $pdo->prepare(
+        'SELECT is_active FROM teachers WHERE id = :teacher_id LIMIT 1'
+    );
+    $teacherStatusStatement->execute(['teacher_id' => (int) $_SESSION['user_id']]);
+    $teacherIsActive = $teacherStatusStatement->fetchColumn();
+
+    if ($teacherIsActive === false || !(int) $teacherIsActive) {
+        unset(
+            $_SESSION['user_logged_in'],
+            $_SESSION['user_id'],
+            $_SESSION['user_name'],
+            $_SESSION['user_unique_id'],
+            $_SESSION['section_id'],
+            $_SESSION['assigned_grade_level'],
+            $_SESSION['advisory_section']
+        );
+        $_SESSION['auth_message'] = 'Your teacher account is inactive. Please contact the school administrator.';
+        $_SESSION['auth_message_type'] = 'error';
+        header('Location: index.php?page=login');
+        exit();
+    }
+}
 
 switch ($page) {
 
