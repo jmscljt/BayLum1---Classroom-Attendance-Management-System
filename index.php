@@ -104,8 +104,15 @@ if (strpos($page, 'admin_') === 0) {
 
         case 'manage_students':
             $controller = new AdminStudentsController($pdo);
-            $pageData = $controller->getPageData();
+            $pageData = $controller->getPageData(
+                $_SESSION,
+                $_POST,
+                $_SERVER['REQUEST_METHOD']
+            );
             $sections = $pageData['sections'];
+            $students = $pageData['students'];
+            $csrfToken = $pageData['csrfToken'];
+            $studentResult = $pageData['result'];
             $view = 'app/Views/Admin/admin_manage_students.php';
             break;
 

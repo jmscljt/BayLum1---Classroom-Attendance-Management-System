@@ -59,6 +59,162 @@ class AdminModel
         return $statement->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getStudents(): array
+    {
+        $statement = $this->pdo->query(
+            'SELECT s.student_id AS lrn, s.first_name, s.middle_name, s.last_name,
+                    s.gender, s.fingerprint_id, s.section_id,
+                    sec.grade_level, sec.section_name
+             FROM students s
+             INNER JOIN sections sec ON sec.section_id = s.section_id
+             WHERE s.is_active = 1
+             ORDER BY s.last_name ASC, s.first_name ASC, s.middle_name ASC'
+        );
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function addStudent(array $data): array
+    {
+        $lrn = trim((string) ($data['lrn'] ?? ''));
+        $firstName = trim((string) ($data['first_name'] ?? ''));
+        $middleName = trim((string) ($data['middle_name'] ?? ''));
+        $lastName = trim((string) ($data['last_name'] ?? ''));
+        $gender = trim((string) ($data['gender'] ?? ''));
+        $sectionId = filter_var($data['section_id'] ?? null, FILTER_VALIDATE_INT);
+
+        if (
+            preg_match('/^\d{1,19}$/D', $lrn) !== 1
+            || $firstName === ''
+            || $lastName === ''
+            || !in_array($gender, ['Male', 'Female'], true)
+            || $sectionId === false
+        ) {
+            return ['success' => false, 'message' => 'Enter valid student details and select a section and gender.'];
+        }
+
+        try {
+            $duplicate = $this->pdo->prepare('SELECT 1 FROM students WHERE student_id = :lrn LIMIT 1');
+            $duplicate->execute(['lrn' => $lrn]);
+            if ($duplicate->fetchColumn()) {
+                return ['success' => false, 'message' => 'A student with this LRN already exists.'];
+            }
+
+            $statement = $this->pdo->prepare(
+                'INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, gender, is_active)
+                 VALUES (:lrn, :section_id, :first_name, :middle_name, :last_name, :gender, 1)'
+            );
+            $statement->execute([
+                'lrn' => $lrn,
+                'section_id' => (int) $sectionId,
+                'first_name' => $firstName,
+                'middle_name' => $middleName !== '' ? $middleName : null,
+                'last_name' => $lastName,
+                'gender' => $gender,
+            ]);
+
+            return ['success' => true, 'message' => 'Student added successfully.'];
+        } catch (PDOException $exception) {
+            error_log('Admin add student error: ' . $exception->getMessage());
+            return ['success' => false, 'message' => 'Unable to add the student.'];
+        }
+    }
+
+    public function updateStudent(array $data): array
+    {
+        $currentLrn = trim((string) ($data['current_lrn'] ?? ''));
+        $lrn = trim((string) ($data['lrn'] ?? ''));
+        $firstName = trim((string) ($data['first_name'] ?? ''));
+        $middleName = trim((string) ($data['middle_name'] ?? ''));
+        $lastName = trim((string) ($data['last_name'] ?? ''));
+        $gender = trim((string) ($data['gender'] ?? ''));
+        $sectionId = filter_var($data['section_id'] ?? null, FILTER_VALIDATE_INT);
+
+        if (
+            preg_match('/^\d{1,19}$/D', $currentLrn) !== 1
+            || preg_match('/^\d{1,19}$/D', $lrn) !== 1
+            || $firstName === ''
+            || $lastName === ''
+            || !in_array($gender, ['Male', 'Female'], true)
+            || $sectionId === false
+        ) {
+            return ['success' => false, 'message' => 'Enter valid student details and select a section and gender.'];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $existing = $this->pdo->prepare(
+                'SELECT student_id FROM students
+                 WHERE student_id = :current_lrn AND is_active = 1 FOR UPDATE'
+            );
+            $existing->execute(['current_lrn' => $currentLrn]);
+            if (!$existing->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Student not found.'];
+            }
+
+            $duplicate = $this->pdo->prepare(
+                'SELECT 1 FROM students WHERE student_id = :lrn AND student_id <> :current_lrn LIMIT 1'
+            );
+            $duplicate->execute(['lrn' => $lrn, 'current_lrn' => $currentLrn]);
+            if ($duplicate->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'A student with this LRN already exists.'];
+            }
+
+            $update = $this->pdo->prepare(
+                'UPDATE students
+                 SET student_id = :lrn, section_id = :section_id,
+                     first_name = :first_name, middle_name = :middle_name,
+                     last_name = :last_name, gender = :gender
+                 WHERE student_id = :current_lrn AND is_active = 1'
+            );
+            $update->execute([
+                'lrn' => $lrn,
+                'section_id' => (int) $sectionId,
+                'first_name' => $firstName,
+                'middle_name' => $middleName !== '' ? $middleName : null,
+                'last_name' => $lastName,
+                'gender' => $gender,
+                'current_lrn' => $currentLrn,
+            ]);
+
+            if ($lrn !== $currentLrn) {
+                foreach (['attendance_logs', 'manual_attendance_records'] as $table) {
+                    $reference = $this->pdo->prepare(
+                        "UPDATE {$table} SET student_id = :lrn WHERE student_id = :current_lrn"
+                    );
+                    $reference->execute(['lrn' => $lrn, 'current_lrn' => $currentLrn]);
+                }
+            }
+
+            $this->pdo->commit();
+            return ['success' => true, 'message' => 'Student updated successfully.'];
+        } catch (PDOException $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Admin update student error: ' . $exception->getMessage());
+            return ['success' => false, 'message' => 'Unable to update the student.'];
+        }
+    }
+
+    public function deactivateStudent(string $lrn): array
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE students SET is_active = 0
+             WHERE student_id = :lrn AND is_active = 1'
+        );
+        $statement->execute(['lrn' => $lrn]);
+
+        if ($statement->rowCount() !== 1) {
+            return ['success' => false, 'message' => 'Student not found.'];
+        }
+
+        return ['success' => true, 'message' => 'Student deactivated successfully.'];
+    }
+
     public function getSections(): array
     {
         $sections = $this->getSectionOptions();
@@ -515,5 +671,5 @@ class AdminModel
                 'message' => 'Unable to update this section. Check the grade, section name, and adviser, then try again.',
             ];
         }
-    }
+    } 
 }

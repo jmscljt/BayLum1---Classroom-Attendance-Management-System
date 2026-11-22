@@ -516,6 +516,10 @@ header {
 .data-table .empty-state {
     padding: 20px;
     color: #777;
+}
+
+.student-record-row[hidden] {
+    display: none;
     text-align: center;
 }
 
@@ -873,17 +877,17 @@ header {
     outline: 2px solid rgba(0, 86, 179, 0.15);
 }
 
-.student-section-field {
+.student-filter-field {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    width: 240px;
+    width: 180px;
     color: #4a5568;
     font-size: 12px;
     font-weight: 600;
 }
 
-.student-section-field .section-form-control {
+.student-filter-field .section-form-control {
     padding: 9px 10px;
     font-size: 13px;
 }
@@ -939,6 +943,11 @@ header {
 .student-row-actions {
     display: flex;
     gap: 6px;
+}
+
+.student-row-actions form {
+    display: inline-flex;
+    margin: 0;
 }
 
 .student-row-actions .action-btn {
