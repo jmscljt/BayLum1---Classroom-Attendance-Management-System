@@ -389,5 +389,6 @@ $currentPage = 'students';
 
     <script src="/public/js/studentAbsences.js"></script>
     <script src="/public/js/addStudentModal.js"></script>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

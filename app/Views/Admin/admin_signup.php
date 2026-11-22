@@ -70,5 +70,6 @@ $old = $data['old'] ?? [];
             </div>
         </div>
     </div>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

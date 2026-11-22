@@ -118,5 +118,6 @@ $result = $accountResult ?? null;
         const assignedSection = <?= json_encode($advisorySection) ?>;
     </script>
     <script src="<?= $escape($base_url) ?>/public/js/accountSettings.js"></script>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

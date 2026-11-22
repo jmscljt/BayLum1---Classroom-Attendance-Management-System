@@ -108,5 +108,6 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
         window.allSections = <?= json_encode($sections, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
     <script src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/js/gradeLevelSectionSignup.js"></script>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

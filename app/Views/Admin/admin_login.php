@@ -51,5 +51,6 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
             </div>
         </div>
     </div>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>
