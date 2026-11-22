@@ -63,6 +63,7 @@ document.querySelectorAll('.edit-student-btn').forEach(function(button) {
         document.getElementById('studentFirstName').value = button.dataset.firstName || '';
         document.getElementById('studentMiddleName').value = button.dataset.middleName || '';
         document.getElementById('studentLastName').value = button.dataset.lastName || '';
+        document.getElementById('studentSuffix').value = button.dataset.suffix || '';
         const sectionId = button.dataset.sectionId || '';
         const sectionOption = document.querySelector('#studentSection option[value="' + sectionId + '"]');
         document.getElementById('studentGradeLevel').value = sectionOption ? sectionOption.dataset.grade : '';

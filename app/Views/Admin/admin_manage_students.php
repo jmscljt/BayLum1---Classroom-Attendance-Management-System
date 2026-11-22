@@ -98,7 +98,10 @@ $currentPage = 'admin_manage_students';
                         <thead>
                             <tr>
                                 <th scope="col">LRN</th>
-                                <th scope="col">Student Name</th>
+                                <th scope="col">First Name</th>
+                                <th scope="col">Middle Name</th>
+                                <th scope="col">Last Name</th>
+                                <th scope="col">Suffix</th>
                                 <th scope="col">Grade &amp; Section</th>
                                 <th scope="col">Gender</th>
                                 <th scope="col">Fingerprint Status</th>
@@ -109,21 +112,19 @@ $currentPage = 'admin_manage_students';
                             <?php if (!empty($students)): ?>
                                 <?php foreach ($students as $student): ?>
                                     <?php
-                                    $middleName = trim((string) ($student['middle_name'] ?? ''));
-                                    $middleInitial = $middleName !== ''
-                                        ? strtoupper(substr($middleName, 0, 1)) . '.'
-                                        : '';
-                                    $studentName = trim(
-                                        ($student['last_name'] ?? '') . ', ' .
-                                        ($student['first_name'] ?? '') .
-                                        ($middleInitial !== '' ? ' ' . $middleInitial : '')
-                                    );
+                                    $studentName = trim(implode(' ', array_filter([
+                                        $student['first_name'] ?? '',
+                                        $student['middle_name'] ?? '',
+                                        $student['last_name'] ?? '',
+                                        $student['suffix'] ?? '',
+                                    ], static fn ($part): bool => trim((string) $part) !== '')));
                                     $studentSearchText = strtolower(
                                         (string) $student['lrn'] . ' ' .
                                         $studentName . ' ' .
                                         ($student['first_name'] ?? '') . ' ' .
                                         ($student['middle_name'] ?? '') . ' ' .
-                                        ($student['last_name'] ?? '')
+                                        ($student['last_name'] ?? '') . ' ' .
+                                        ($student['suffix'] ?? '')
                                     );
                                     ?>
                                     <tr
@@ -133,7 +134,10 @@ $currentPage = 'admin_manage_students';
                                         data-search="<?= htmlspecialchars($studentSearchText, ENT_QUOTES, 'UTF-8') ?>"
                                     >
                                         <td><?= htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8') ?></td>
-                                        <td><?= htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($student['first_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($student['middle_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($student['last_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td><?= htmlspecialchars((string) ($student['suffix'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= htmlspecialchars(
                                             ($student['grade_level'] ?? '') . ' - ' . ($student['section_name'] ?? ''),
                                             ENT_QUOTES,
@@ -152,6 +156,7 @@ $currentPage = 'admin_manage_students';
                                                     data-first-name="<?= htmlspecialchars((string) ($student['first_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                                     data-middle-name="<?= htmlspecialchars((string) ($student['middle_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                                     data-last-name="<?= htmlspecialchars((string) ($student['last_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-suffix="<?= htmlspecialchars((string) ($student['suffix'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                                     data-section-id="<?= (int) $student['section_id'] ?>"
                                                     data-gender="<?= htmlspecialchars((string) ($student['gender'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                                 ><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
@@ -172,11 +177,11 @@ $currentPage = 'admin_manage_students';
                                     </tr>
                                 <?php endforeach; ?>
                                 <tr id="studentEmptyState" class="empty-state-row" hidden>
-                                    <td colspan="6" class="empty-state"><em>No matching student records found.</em></td>
+                                    <td colspan="9" class="empty-state"><em>No matching student records found.</em></td>
                                 </tr>
                             <?php else: ?>
                                 <tr id="studentEmptyState">
-                                    <td colspan="6" class="empty-state"><em>No student records have been added yet.</em></td>
+                                    <td colspan="9" class="empty-state"><em>No student records have been added yet.</em></td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -211,6 +216,10 @@ $currentPage = 'admin_manage_students';
                 <div class="section-form-group">
                     <label for="studentLastName">Last Name</label>
                     <input id="studentLastName" name="last_name" type="text" class="section-form-control" placeholder="Enter last name" required>
+                </div>
+                <div class="section-form-group">
+                    <label for="studentSuffix">Suffix</label>
+                    <input id="studentSuffix" name="suffix" type="text" class="section-form-control" placeholder="e.g. Jr., Sr., III">
                 </div>
                 <div class="section-form-group">
                     <label for="studentGradeLevel">Grade Level</label>

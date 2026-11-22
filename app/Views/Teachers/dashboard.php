@@ -55,67 +55,72 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                 </div>
             </div>
 
-            <!-- Metric Summary Cards with Colored Borders & Shadows -->
-            <div class="metrics-grid">
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Present Students</span>
-                    <span class="metric-value"><?php echo isset($presentStudents) ? $presentStudents : '0'; ?></span>
-                </div>
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Absent Students</span>
-                    <span class="metric-value"><?php echo isset($absentStudents) ? $absentStudents : '0'; ?></span>
-                </div>
-                <div class="metric-card metric-card-blue">
-                    <span class="metric-title">Total Students</span>
-                    <span class="metric-value"><?php echo isset($totalStudents) ? $totalStudents : '0'; ?></span>
-                </div>
-            </div>
+            <div class="dashboard-content-grid">
+                <div class="dashboard-placeholder" aria-hidden="true"></div>
 
-            <div class="table-section-card">
-                <h3>Recent Attendance Activity</h3>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>LRN</th>
-                                <th>Student Name</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($recentAttendanceActivity)): ?>
+                <div class="metrics-grid">
+                    <div class="metric-card metric-card-blue">
+                        <span class="metric-title">Present Students</span>
+                        <span class="metric-value"><?php echo isset($presentStudents) ? $presentStudents : '0'; ?></span>
+                    </div>
+                    <div class="metric-card metric-card-blue">
+                        <span class="metric-title">Absent Students</span>
+                        <span class="metric-value"><?php echo isset($absentStudents) ? $absentStudents : '0'; ?></span>
+                    </div>
+                    <div class="metric-card metric-card-blue">
+                        <span class="metric-title">Total Students</span>
+                        <span class="metric-value"><?php echo isset($totalStudents) ? $totalStudents : '0'; ?></span>
+                    </div>
+                </div>
+
+                <div class="table-section-card">
+                    <h3>Recent Attendance Activity</h3>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="5">No attendance activity recorded yet.</td>
+                                    <th>Time</th>
+                                    <th>LRN</th>
+                                    <th>Student Name</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
                                 </tr>
-                            <?php else: ?>
-                                <?php foreach ($recentAttendanceActivity as $activity): ?>
-                                    <?php
-                                    $attendanceType = $activity['attendance_type'];
-                                    $statusLabel = $attendanceType === 'time_in' ? 'Time - In' : 'Time - Out';
-                                    $studentName = trim(
-                                        $activity['first_name'] . ' ' .
-                                        ($activity['middle_name'] ?? '') . ' ' .
-                                        $activity['last_name']
-                                    );
-                                    ?>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($recentAttendanceActivity)): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars(date('h:i A', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($activity['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars(date('M d, Y', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><span class="badge <?php echo $attendanceType === 'time_in' ? 'time-in' : 'time-out'; ?>"><?php echo htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                        <td colspan="5">No attendance activity recorded yet.</td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                                <?php else: ?>
+                                    <?php foreach ($recentAttendanceActivity as $activity): ?>
+                                        <?php
+                                        $attendanceType = $activity['attendance_type'];
+                                        $statusLabel = $attendanceType === 'time_in' ? 'Time - In' : 'Time - Out';
+                                        $studentName = trim(
+                                            $activity['last_name'] . ', ' .
+                                            $activity['first_name'] . ' ' .
+                                            ($activity['middle_name'] ?? '') . ' ' .
+                                            ($activity['suffix'] ?? '')
+                                        );
+                                        ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars(date('h:i A', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($activity['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars(date('M d, Y', strtotime($activity['recorded_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><span class="badge <?php echo $attendanceType === 'time_in' ? 'time-in' : 'time-out'; ?>"><?php echo htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
         </div>
     </main>
 
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

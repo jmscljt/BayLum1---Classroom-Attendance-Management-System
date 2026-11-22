@@ -297,6 +297,7 @@ class TeachersModel{
             $firstName = trim($studentData['first_name'] ?? '');
             $middleName = trim($studentData['middle_name'] ?? null);
             $lastName = trim($studentData['last_name'] ?? '');
+            $suffix = trim($studentData['suffix'] ?? '');
             $gender = trim($studentData['gender'] ?? '');
             $sectionId = trim($studentData['section_id'] ?? '');
 
@@ -319,7 +320,7 @@ class TeachersModel{
                 ];
             }
 
-            $query = "INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, gender) VALUES (:student_id, :section_id, :first_name, :middle_name, :last_name, :gender)";
+            $query = "INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, suffix, gender) VALUES (:student_id, :section_id, :first_name, :middle_name, :last_name, :suffix, :gender)";
             $stmt = $this->pdo->prepare($query);
             $stmt->execute([
                 ':student_id' => $studentId,
@@ -327,6 +328,7 @@ class TeachersModel{
                 ':first_name' => $firstName,
                 ':middle_name' => $middleName !== '' ? $middleName : null,
                 ':last_name' => $lastName,
+                ':suffix' => $suffix !== '' ? $suffix : null,
                 ':gender' => $gender,
             ]);
 
@@ -350,7 +352,7 @@ class TeachersModel{
 
     public function updateStudent(string $currentStudentId, int $sectionId, array $studentData): array
     {
-        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'gender'] as $field) {
+        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'suffix', 'gender', 'fingerprint_id'] as $field) {
             if (isset($studentData[$field]) && !is_string($studentData[$field])) {
                 return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
             }
@@ -360,7 +362,9 @@ class TeachersModel{
         $firstName = trim($studentData['first_name'] ?? '');
         $middleName = trim($studentData['middle_name'] ?? '');
         $lastName = trim($studentData['last_name'] ?? '');
+        $suffix = trim($studentData['suffix'] ?? '');
         $gender = trim($studentData['gender'] ?? '');
+        $fingerprintId = trim($studentData['fingerprint_id'] ?? '');
 
         if (
             preg_match('/^\d{1,19}$/D', $studentId) !== 1
@@ -369,6 +373,17 @@ class TeachersModel{
             || !in_array($gender, ['Male', 'Female'], true)
         ) {
             return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
+        }
+
+        if (
+            $fingerprintId !== ''
+            && (
+                preg_match('/^\d{1,3}$/D', $fingerprintId) !== 1
+                || (int) $fingerprintId < 1
+                || (int) $fingerprintId > 127
+            )
+        ) {
+            return ['success' => false, 'message' => 'AS608 Fingerprint ID must be a number from 1 to 127.'];
         }
 
         try {
@@ -406,12 +421,35 @@ class TeachersModel{
                 return ['success' => false, 'message' => 'A student with this LRN already exists.'];
             }
 
+            if ($fingerprintId !== '') {
+                $fingerprintDuplicateStmt = $this->pdo->prepare(
+                    'SELECT 1
+                     FROM students
+                     WHERE fingerprint_id = :fingerprint_id
+                        AND student_id <> :current_student_id
+                     LIMIT 1'
+                );
+                $fingerprintDuplicateStmt->execute([
+                    ':fingerprint_id' => (int) $fingerprintId,
+                    ':current_student_id' => $currentStudentId,
+                ]);
+                if ($fingerprintDuplicateStmt->fetchColumn()) {
+                    $this->pdo->rollBack();
+                    return [
+                        'success' => false,
+                        'message' => 'This AS608 Fingerprint ID is already assigned to another student.',
+                    ];
+                }
+            }
+
             $updateStmt = $this->pdo->prepare(
                 'UPDATE students
                  SET student_id = :new_student_id,
                      first_name = :first_name,
                      middle_name = :middle_name,
                      last_name = :last_name,
+                     suffix = :suffix,
+                     fingerprint_id = :fingerprint_id,
                      gender = :gender
                  WHERE student_id = :current_student_id
                     AND section_id = :section_id
@@ -422,6 +460,8 @@ class TeachersModel{
                 ':first_name' => $firstName,
                 ':middle_name' => $middleName !== '' ? $middleName : null,
                 ':last_name' => $lastName,
+                ':suffix' => $suffix !== '' ? $suffix : null,
+                ':fingerprint_id' => $fingerprintId !== '' ? (int) $fingerprintId : null,
                 ':gender' => $gender,
                 ':current_student_id' => $currentStudentId,
                 ':section_id' => $sectionId,
@@ -448,7 +488,7 @@ class TeachersModel{
 
             $errorInfo = $e->errorInfo;
             if ((int) ($errorInfo[1] ?? 0) === 1062) {
-                return ['success' => false, 'message' => 'A student with this LRN already exists.'];
+                return ['success' => false, 'message' => 'This LRN or AS608 Fingerprint ID is already assigned to another student.'];
             }
 
             error_log('Update student error: ' . $e->getMessage());
@@ -491,7 +531,7 @@ class TeachersModel{
     public function getInactiveStudents(int $sectionId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT student_id AS lrn, first_name, middle_name, last_name, gender
+            'SELECT student_id AS lrn, first_name, middle_name, last_name, suffix, gender
              FROM students
              WHERE section_id = :section_id AND is_active = 0
              ORDER BY last_name, first_name'
@@ -924,6 +964,7 @@ class TeachersModel{
                 s.first_name,
                 s.middle_name,
                 s.last_name,
+                s.suffix,
                 s.gender,
                 GROUP_CONCAT(DISTINCT r.attendance_method ORDER BY r.attendance_method SEPARATOR ', ') AS methods,
                 MAX(CASE WHEN r.attendance_type = 'time_in' THEN r.recorded_at END) AS time_in,
@@ -934,7 +975,7 @@ class TeachersModel{
              WHERE r.teacher_id = :teacher_id
                 AND r.section_id = :section_id
                 AND r.attendance_date = :attendance_date
-             GROUP BY s.student_id, s.first_name, s.middle_name, s.last_name, s.gender
+             GROUP BY s.student_id, s.first_name, s.middle_name, s.last_name, s.suffix, s.gender
              ORDER BY s.last_name, s.first_name"
         );
         $stmt->execute([
@@ -978,7 +1019,8 @@ class TeachersModel{
                 s.student_id AS lrn,
                 s.first_name,
                 s.middle_name,
-                s.last_name
+                s.last_name,
+                s.suffix
              FROM manual_attendance_records r
              INNER JOIN students s
                 ON s.student_id = r.student_id AND s.section_id = r.section_id
@@ -1006,7 +1048,7 @@ class TeachersModel{
     public function getFingerprintStudents(int $sectionId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT student_id AS lrn, first_name, middle_name, last_name, fingerprint_id
+            'SELECT student_id AS lrn, first_name, middle_name, last_name, suffix, fingerprint_id
              FROM students
              WHERE section_id = :section_id AND is_active = 1
              ORDER BY last_name, first_name'
@@ -1191,8 +1233,8 @@ class TeachersModel{
                         s.student_id AS lrn,
                         s.first_name,
                         s.middle_name,
-                        CONCAT(UPPER(LEFT(s.middle_name, 1)), '.') AS middle_initial,
                         s.last_name,
+                        s.suffix,
                         s.gender,
                         (
                             SELECT COUNT(DISTINCT a.log_date)

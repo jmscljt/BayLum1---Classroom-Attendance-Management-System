@@ -60,6 +60,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const firstNameInput = document.getElementById("edit_first_name");
     const middleNameInput = document.getElementById("edit_middle_name");
     const lastNameInput = document.getElementById("edit_last_name");
+    const suffixInput = document.getElementById("edit_suffix");
+    const fingerprintIdInput = document.getElementById("edit_fingerprint_id");
     const genderInput = document.getElementById("edit_gender");
 
     document.querySelectorAll(".btn-edit").forEach(function(button) {
@@ -70,6 +72,8 @@ document.addEventListener("DOMContentLoaded", function() {
             firstNameInput.value = button.dataset.firstName || "";
             middleNameInput.value = button.dataset.middleName || "";
             lastNameInput.value = button.dataset.lastName || "";
+            suffixInput.value = button.dataset.suffix || "";
+            fingerprintIdInput.value = button.dataset.fingerprintId || "";
             genderInput.value = button.dataset.gender || "";
             editModal.style.display = "flex";
             editModal.setAttribute("aria-hidden", "false");

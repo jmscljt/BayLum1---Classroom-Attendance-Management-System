@@ -50,7 +50,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
             </div>
 
             <div class="table-section-card">
-                <h4>Attendance Record Summary of <?php echo htmlspecialchars($assignedGrade . ' ' . $advisorySection); ?></h4>
+                <h3>Attendance Record Summary of <?php echo htmlspecialchars($assignedGrade . ' ' . $advisorySection); ?></h3>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -64,7 +64,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                         <tbody>
                             <?php if (empty($attendanceSummaries)): ?>
                                 <tr>
-                                    <td colspan="4"><?php echo $searchDate === null ? 'No attendance records have been recorded yet.' : 'No attendance record for this day.'; ?></td>
+                                    <td colspan="4" class="empty-state"><?php echo $searchDate === null ? 'No attendance records have been recorded yet.' : 'No attendance record for this day.'; ?></td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($attendanceSummaries as $summary): ?>
@@ -121,14 +121,14 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                         <tbody>
                             <?php if (empty($attendanceLogs)): ?>
                                 <tr>
-                                    <td colspan="7">No attendance record for this day.</td>
+                                    <td colspan="7" class="empty-state">No attendance record for this day.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($attendanceLogs as $log): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars(date('M j, Y', strtotime($logDate)), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars(trim($log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . $log['last_name']), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars(trim($log['last_name'] . ', ' . $log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . ($log['suffix'] ?? '')), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo $log['time_in'] ? htmlspecialchars(date('h:i A', strtotime($log['time_in'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
                                         <td><?php echo $log['time_out'] ? htmlspecialchars(date('h:i A', strtotime($log['time_out'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>

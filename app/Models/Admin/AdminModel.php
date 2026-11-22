@@ -62,7 +62,7 @@ class AdminModel
     public function getStudents(): array
     {
         $statement = $this->pdo->query(
-            'SELECT s.student_id AS lrn, s.first_name, s.middle_name, s.last_name,
+            'SELECT s.student_id AS lrn, s.first_name, s.middle_name, s.last_name, s.suffix,
                     s.gender, s.fingerprint_id, s.section_id,
                     sec.grade_level, sec.section_name
              FROM students s
@@ -80,6 +80,7 @@ class AdminModel
         $firstName = trim((string) ($data['first_name'] ?? ''));
         $middleName = trim((string) ($data['middle_name'] ?? ''));
         $lastName = trim((string) ($data['last_name'] ?? ''));
+        $suffix = trim((string) ($data['suffix'] ?? ''));
         $gender = trim((string) ($data['gender'] ?? ''));
         $sectionId = filter_var($data['section_id'] ?? null, FILTER_VALIDATE_INT);
 
@@ -101,8 +102,8 @@ class AdminModel
             }
 
             $statement = $this->pdo->prepare(
-                'INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, gender, is_active)
-                 VALUES (:lrn, :section_id, :first_name, :middle_name, :last_name, :gender, 1)'
+                'INSERT INTO students (student_id, section_id, first_name, middle_name, last_name, suffix, gender, is_active)
+                 VALUES (:lrn, :section_id, :first_name, :middle_name, :last_name, :suffix, :gender, 1)'
             );
             $statement->execute([
                 'lrn' => $lrn,
@@ -110,6 +111,7 @@ class AdminModel
                 'first_name' => $firstName,
                 'middle_name' => $middleName !== '' ? $middleName : null,
                 'last_name' => $lastName,
+                'suffix' => $suffix !== '' ? $suffix : null,
                 'gender' => $gender,
             ]);
 
@@ -127,6 +129,7 @@ class AdminModel
         $firstName = trim((string) ($data['first_name'] ?? ''));
         $middleName = trim((string) ($data['middle_name'] ?? ''));
         $lastName = trim((string) ($data['last_name'] ?? ''));
+        $suffix = trim((string) ($data['suffix'] ?? ''));
         $gender = trim((string) ($data['gender'] ?? ''));
         $sectionId = filter_var($data['section_id'] ?? null, FILTER_VALIDATE_INT);
 
@@ -167,7 +170,7 @@ class AdminModel
                 'UPDATE students
                  SET student_id = :lrn, section_id = :section_id,
                      first_name = :first_name, middle_name = :middle_name,
-                     last_name = :last_name, gender = :gender
+                     last_name = :last_name, suffix = :suffix, gender = :gender
                  WHERE student_id = :current_lrn AND is_active = 1'
             );
             $update->execute([
@@ -176,6 +179,7 @@ class AdminModel
                 'first_name' => $firstName,
                 'middle_name' => $middleName !== '' ? $middleName : null,
                 'last_name' => $lastName,
+                'suffix' => $suffix !== '' ? $suffix : null,
                 'gender' => $gender,
                 'current_lrn' => $currentLrn,
             ]);

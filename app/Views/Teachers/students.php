@@ -37,7 +37,7 @@ $currentPage = 'students';
 
             <div class="student-buttons-section">
                 <div class="student-actions-right">
-                    <h4 class="student_count">Student Count: <?php echo (int)($studentCount ?? 0); ?></h4>
+                    <h4 class="student_count">Total Students: <?php echo (int)($studentCount ?? 0); ?></h4>
                     <!-- <button class="import_excel_btn">Import Excel</button>
                     <button class="export_excel_btn">Export Excel</button> -->
                     <button type="button" class="add-student-btn">Add Student</button>
@@ -55,11 +55,14 @@ $currentPage = 'students';
                         <button type="button" class="close-modal" aria-label="Close">&times;</button>
                     </div>
                     <div class="table-responsive">
-                        <table class="data-table">
+                        <table class="data-table inactive-students-table">
                             <thead>
                                 <tr>
                                     <th>LRN</th>
-                                    <th>Student Name</th>
+                                    <th>First Name</th>
+                                    <th>Middle Name</th>
+                                    <th>Last Name</th>
+                                    <th>Suffix</th>
                                     <th>Gender</th>
                                     <th>Action</th>
                                 </tr>
@@ -69,7 +72,10 @@ $currentPage = 'students';
                                     <?php foreach ($inactiveStudents as $student): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                            <td><?php echo htmlspecialchars(trim($student['last_name'] . ', ' . $student['first_name'] . ' ' . ($student['middle_name'] ?? '')), ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($student['first_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                            <td><?php echo htmlspecialchars($student['suffix'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td><?php echo htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                             <td>
                                                 <form action="index.php?page=students" method="POST">
@@ -83,7 +89,7 @@ $currentPage = 'students';
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <tr>
-                                        <td colspan="4" class="no-data-cell">No inactive students found.</td>
+                                        <td colspan="7" class="no-data-cell">No inactive students found.</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
@@ -101,13 +107,15 @@ $currentPage = 'students';
             <!-- students.php View -->
             <div class="table-section-card">
                 <div class="table-responsive">
-                    <table class="data-table">
+                    <table class="data-table student-masterlist-table">
                         <thead>
                             <tr>
-                                <th>Fingerprint Status</th>
-                                <th>AS608 ID</th>
+                                <th>AS608 Fingerprint ID</th>
                                 <th>LRN</th>
-                                <th>Student Name</th>
+                                <th>First Name</th>
+                                <th>Middle Name</th>
+                                <th>Last Name</th>
+                                <th>Suffix</th>
                                 <th>Gender</th>
                                 <th>Present</th>
                                 <th>Absent</th>
@@ -119,10 +127,21 @@ $currentPage = 'students';
                             <?php if (!empty($masterlist)): ?>
                                 <?php foreach ($masterlist as $student): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($student['status'] ?? 'Unregistered'); ?></td>
-                                        <td><?php echo htmlspecialchars((string) ($student['fingerprint_id'] ?? '-'), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td>
+                                            <?php
+                                            $fingerprintId = trim((string) ($student['fingerprint_id'] ?? ''));
+                                            if ($fingerprintId !== '') {
+                                                echo '<span class="as608-id">' . htmlspecialchars($fingerprintId, ENT_QUOTES, 'UTF-8') . '</span>';
+                                            } else {
+                                                echo '<span class="as608-unregistered">Unregistered</span>';
+                                            }
+                                            ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($student['lrn'] ?? ''); ?></td>
-                                        <td><?php echo htmlspecialchars($student['last_name'] . ', ' . $student['first_name'] . ' ' . $student['middle_initial'] ?? ''); ?></td>
+                                        <td><?php echo htmlspecialchars($student['first_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['suffix'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($student['gender'] ?? 'N'); ?></td>
                                         <td><?php echo (int) ($student['present_count'] ?? 0); ?></td>
                                         <td><?php echo (int) ($student['absent_count'] ?? 0); ?></td>
@@ -133,7 +152,7 @@ $currentPage = 'students';
                                                     type="button"
                                                     class="btn-view"
                                                     data-student-id="<?php echo htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8'); ?>"
-                                                    data-student-name="<?php echo htmlspecialchars(trim($student['last_name'] . ', ' . $student['first_name'] . ' ' . ($student['middle_initial'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-student-name="<?php echo htmlspecialchars(trim($student['last_name'] . ', ' . $student['first_name'] . ' ' . ($student['middle_name'] ?? '') . ' ' . ($student['suffix'] ?? '')), ENT_QUOTES, 'UTF-8'); ?>"
                                                 >View Absences</button>
                                                 <button
                                                     type="button"
@@ -142,6 +161,8 @@ $currentPage = 'students';
                                                     data-first-name="<?php echo htmlspecialchars($student['first_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                                     data-middle-name="<?php echo htmlspecialchars($student['middle_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                                     data-last-name="<?php echo htmlspecialchars($student['last_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-suffix="<?php echo htmlspecialchars($student['suffix'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                    data-fingerprint-id="<?php echo htmlspecialchars((string) ($student['fingerprint_id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
                                                     data-gender="<?php echo htmlspecialchars($student['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                                                 >Edit</button>
                                                 <button
@@ -155,7 +176,7 @@ $currentPage = 'students';
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" class="no-data-cell">No students record found.</td>
+                                    <td colspan="11" class="no-data-cell">No students record found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -190,6 +211,16 @@ $currentPage = 'students';
                         <div class="form-group">
                             <label for="edit_last_name">Last Name</label>
                             <input type="text" id="edit_last_name" name="last_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_suffix">Suffix</label>
+                            <input type="text" id="edit_suffix" name="suffix" placeholder="e.g. Jr., Sr., III">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit_fingerprint_id">AS608 Fingerprint ID</label>
+                            <input type="number" id="edit_fingerprint_id" name="fingerprint_id" min="1" max="127" step="1" placeholder="1-127 (blank to unregister)">
                         </div>
 
                         <div class="form-group">
@@ -263,6 +294,11 @@ $currentPage = 'students';
                         <div class="form-group">
                             <label for="last_name">Last Name</label>
                             <input type="text" id="last_name" name="last_name" placeholder="Enter Last Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="suffix">Suffix</label>
+                            <input type="text" id="suffix" name="suffix" placeholder="e.g. Jr., Sr., III">
                         </div>
 
                         <div class="form-group">
@@ -353,5 +389,6 @@ $currentPage = 'students';
 
     <script src="/public/js/studentAbsences.js"></script>
     <script src="/public/js/addStudentModal.js"></script>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ if (!isset($base_url)) {
     $base_url = '';
 }
 
-$currentPage = 'teachers_settings';
+$currentPage = 'accountSettings';
 $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 $teacherName = $_SESSION['user_name'] ?? 'Teacher Name';
 $teacherUniqueId = $_SESSION['user_unique_id'] ?? 'Not available';
@@ -118,5 +118,6 @@ $result = $accountResult ?? null;
         const assignedSection = <?= json_encode($advisorySection) ?>;
     </script>
     <script src="<?= $escape($base_url) ?>/public/js/accountSettings.js"></script>
+    <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

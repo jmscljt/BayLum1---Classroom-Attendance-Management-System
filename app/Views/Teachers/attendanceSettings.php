@@ -81,7 +81,8 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
                                 <?php
                                 $studentName = trim(
                                     $student['last_name'] . ', ' . $student['first_name'] . ' ' .
-                                    ($student['middle_name'] ?? '')
+                                ($student['middle_name'] ?? '') . ' ' .
+                                ($student['suffix'] ?? '')
                                 );
                                 ?>
                                 <option
