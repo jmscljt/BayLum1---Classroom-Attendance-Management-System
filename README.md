@@ -12,3 +12,17 @@ The Uno connects to the computer hosting the website by USB. Apply `database/mig
 5. Open a time-in or time-out session with the existing attendance code flow. While the reader remains connected, scan a registered student's finger. The AS608 matched ID is sent to the server, mapped to the student's LRN, and saved in the existing attendance records. The logs show whether a record was made manually or by fingerprint.
 
 If a scan is rejected, the dashboard reports the exact AS608 slot it matched and whether that slot is unregistered, mapped to another section, or inactive. Re-enrolling to a new slot changes the website mapping but leaves the old sensor template in place; after confirming the new enrollment, remove the old template with `DELETE:<old-id>` in Arduino IDE Serial Monitor if it is no longer needed. Fingerprint templates are stored in the sensor, not the Uno; the Uno sketch does not erase them on reset. Never reuse a slot without resolving its existing template and student mapping. The web serial connection requires localhost or HTTPS and is not supported by every browser.
+
+## Deploying to Vercel
+
+The root `Dockerfile` runs the PHP app with FrankenPHP, and the `Caddyfile` sends app requests through `index.php` while serving `/public/` and `/images/` assets. Keep Vercel's **Root Directory** set to the repository root. If the Vercel project already has another framework preset, select the **Container** preset.
+
+Before deploying, create an externally hosted MySQL database and import the application's schema and required migrations. This repository does not include a full schema dump, so export the initial schema from the existing database. Then add these environment variables in the Vercel project settings:
+
+- `DB_HOST`: database hostname
+- `DB_PORT`: database port (usually `3306`)
+- `DB_NAME`: database name
+- `DB_USER`: database username
+- `DB_PASSWORD`: database password
+
+Do not use the local XAMPP database as the production database. The application currently uses PHP's default file-based sessions; for reliable logins across scaled Vercel instances, configure a shared session store before production use.
