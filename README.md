@@ -27,3 +27,7 @@ Before deploying, create an externally hosted MySQL database and import the appl
 - `DB_SSL_CA`: CA certificate path for TLS connections (for example, `/etc/ssl/cert.pem` on Vercel)
 
 Do not use the local XAMPP database as the production database. The application currently uses PHP's default file-based sessions; for reliable logins across scaled Vercel instances, configure a shared session store before production use.
+
+## TiDB teacher schema migration
+
+After importing the database, run `database/migrations/20261124_fix_teacher_id_autoincrement.sql` in TiDB. The `teachers.id` column must use `AUTO_INCREMENT` because account signup inserts a teacher without supplying the ID.

@@ -97,8 +97,11 @@ class TeachersModel{
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            // Log the error for debugging
-            error_log('Signup error: ' . $e->getMessage());
+            error_log(sprintf(
+                'Signup error: %s (SQLSTATE %s)',
+                $e->getMessage(),
+                $e->getCode()
+            ));
             return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
         }
 
