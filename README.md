@@ -20,9 +20,10 @@ The root `Dockerfile` runs the PHP app with FrankenPHP, and the `Caddyfile` send
 Before deploying, create an externally hosted MySQL database and import the application's schema and required migrations. This repository does not include a full schema dump, so export the initial schema from the existing database. Then add these environment variables in the Vercel project settings:
 
 - `DB_HOST`: database hostname
-- `DB_PORT`: database port (usually `3306`)
+- `DB_PORT`: database port (TiDB Serverless commonly uses `4000`; use the value shown by TiDB)
 - `DB_NAME`: database name
 - `DB_USER`: database username
-- `DB_PASSWORD`: database password
+- `DB_PASS` (or `DB_PASSWORD`): database password
+- `DB_SSL_CA`: CA certificate path for TLS connections (for example, `/etc/ssl/cert.pem` on Vercel)
 
 Do not use the local XAMPP database as the production database. The application currently uses PHP's default file-based sessions; for reliable logins across scaled Vercel instances, configure a shared session store before production use.
