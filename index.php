@@ -181,7 +181,7 @@ switch ($page) {
     case 'login':
         $controller = new AuthController($pdo);
         $data = $controller->handleLoginRequest();
-        $view = $projectRoot . '/app/Views/Teachers/login.php';
+        $view = $projectRoot . '/app/Views/Teachers/Login.php';
         break;
 
     case 'logout':
