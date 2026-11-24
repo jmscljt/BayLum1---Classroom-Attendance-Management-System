@@ -194,6 +194,7 @@ switch ($page) {
         $totalStudents = $pageData['totalStudents'];
         $presentStudents = $pageData['presentStudents'];
         $absentStudents = $pageData['absentStudents'];
+        $analytics = $pageData['analytics'];
         $recentAttendanceActivity = $pageData['recentAttendanceActivity'];
         $view = 'app/Views/Teachers/dashboard.php';
         break;

@@ -505,16 +505,12 @@ header {
 .dashboard-content-grid {
     display: grid;
     grid-template-columns: minmax(160px, 2fr) minmax(0, 12fr);
-    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(360px, auto) minmax(300px, auto);
     grid-template-areas:
-        "metrics placeholder"
+        "metrics analytics"
         "metrics table";
     gap: 18px;
-    height: calc(3 * 170px + 2 * 15px);
-}
-
-.dashboard-placeholder {
-    grid-area: placeholder;
+    height: auto;
 }
 
 .metrics-grid {
@@ -541,10 +537,18 @@ header {
 }
 
 .dashboard-content-grid .table-section-card {
-    grid-area: table;
     display: flex;
     flex-direction: column;
     min-height: 0;
+}
+
+.dashboard-content-grid .analytics-section {
+    grid-area: analytics;
+    margin-bottom: 0;
+}
+
+.dashboard-content-grid > .table-section-card:not(.analytics-section) {
+    grid-area: table;
 }
 
 .dashboard-content-grid .table-responsive {
@@ -764,6 +768,47 @@ header {
 }
 /* ===== Dashboard - End ===== */
 
+/* ===== Dashboard Analytics - Start ===== */
+.main-content.scrollable {
+    height: calc(100vh - 60px);
+    min-height: 0;
+}
+
+.analytics-section {
+    min-height: 0;
+}
+
+.analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.analytics-header h3 {
+    margin-bottom: 4px;
+}
+
+.analytics-subtitle {
+    font-size: 12px;
+    color: #718096;
+}
+
+.analytics-chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 260px;
+}
+
+.analytics-empty {
+    padding: 30px 0;
+    text-align: center;
+    color: #718096;
+    font-size: 13px;
+}
+
+/* ===== Dashboard Analytics - End ===== */
 
 
 
@@ -1424,16 +1469,16 @@ header {
 @media (max-width: 700px) {
     .dashboard-content-grid {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto auto;
+        grid-template-rows: auto auto auto;
         grid-template-areas:
             "metrics"
+            "analytics"
             "table";
-        height: auto;
         min-height: 0;
     }
 
-    .dashboard-placeholder {
-        display: none;
+    .analytics-chart-wrap {
+        height: 280px;
     }
 
     .dashboard-content-grid .table-section-card {

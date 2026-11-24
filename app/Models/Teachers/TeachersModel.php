@@ -1514,5 +1514,167 @@ class TeachersModel{
             }
         }
     }
+
+    /**
+     * Get monthly daily attendance averages for the section's active students.
+     */
+    public function getMonthlyAttendanceAnalytics(
+        int $sectionId,
+        int $monthsBack = 6,
+        bool $excusedCountsAsAbsent = false
+    ): array {
+        $monthsBack = max(1, min(12, $monthsBack));
+
+        $today = new DateTimeImmutable('today'); // uses the Asia/Manila default timezone
+        $firstMonth = $today->modify('first day of this month')
+            ->modify('-' . ($monthsBack - 1) . ' months');
+        $start = $firstMonth->format('Y-m-d');
+        $end = $today->format('Y-m-d');
+
+        $months = [];
+        for ($i = 0; $i < $monthsBack; $i++) {
+            $month = $firstMonth->modify('+' . $i . ' months');
+            $months[$month->format('Y-m')] = [
+                'label'   => $month->format('M Y'),
+                'days'    => [],
+                'present' => ['M' => 0, 'F' => 0],
+                'absent'  => ['M' => 0, 'F' => 0],
+            ];
+        }
+
+        $stmt = $this->pdo->prepare(
+            "SELECT
+                d.school_day,
+                LOWER(TRIM(s.gender)) AS gender,
+                (
+                    EXISTS (
+                        SELECT 1
+                        FROM manual_attendance_records r
+                        INNER JOIN manual_attendance_sessions rs
+                            ON rs.id = r.session_id
+                            AND rs.section_id = r.section_id
+                            AND rs.attendance_date = r.attendance_date
+                            AND rs.attendance_type = 'time_in'
+                            AND rs.closed_at IS NOT NULL
+                        WHERE r.student_id = CAST(s.student_id AS CHAR)
+                            AND r.section_id = s.section_id
+                            AND r.attendance_date = d.school_day
+                            AND r.attendance_type = 'time_in'
+                    )
+                    OR EXISTS (
+                        SELECT 1
+                        FROM attendance_logs ap
+                        WHERE ap.student_id = s.student_id
+                            AND ap.log_date = d.school_day
+                            AND ap.attendance_status = 'Present'
+                    )
+                ) AS is_present,
+                EXISTS (
+                    SELECT 1
+                    FROM attendance_logs ax
+                    WHERE ax.student_id = s.student_id
+                        AND ax.log_date = d.school_day
+                        AND ax.attendance_status = 'Excused'
+                ) AS is_excused
+             FROM (
+                SELECT mas.attendance_date AS school_day
+                FROM manual_attendance_sessions mas
+                WHERE mas.section_id = :days_section_sessions
+                    AND mas.attendance_type = 'time_in'
+                    AND mas.closed_at IS NOT NULL
+                    AND mas.attendance_date BETWEEN :days_start_sessions AND :days_end_sessions
+                UNION
+                SELECT a1.log_date AS school_day
+                FROM attendance_logs a1
+                INNER JOIN students s1
+                    ON s1.student_id = a1.student_id
+                    AND s1.section_id = :days_section_logs
+                    AND s1.is_active = 1
+                WHERE a1.attendance_status IN ('Present', 'Absent', 'Excused')
+                    AND a1.log_date BETWEEN :days_start_logs AND :days_end_logs
+             ) d
+             LEFT JOIN students s
+                ON s.section_id = :student_section
+                AND s.is_active = 1
+             ORDER BY d.school_day"
+        );
+        $stmt->execute([
+            ':days_section_sessions' => $sectionId,
+            ':days_start_sessions'   => $start,
+            ':days_end_sessions'     => $end,
+            ':days_section_logs'    => $sectionId,
+            ':days_start_logs'      => $start,
+            ':days_end_logs'        => $end,
+            ':student_section'      => $sectionId,
+        ]);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $ym = substr($row['school_day'], 0, 7);
+            if (!isset($months[$ym])) {
+                continue;
+            }
+
+            $months[$ym]['days'][$row['school_day']] = true;
+
+            $genderKey = match ($row['gender']) {
+                'male'   => 'M',
+                'female' => 'F',
+                default  => null,
+            };
+            if ($genderKey === null) {
+                continue;
+            }
+
+            if ((int) $row['is_present'] === 1) {
+                $months[$ym]['present'][$genderKey]++;
+                continue;
+            }
+            if ((int) $row['is_excused'] === 1 && !$excusedCountsAsAbsent) {
+                continue;
+            }
+            $months[$ym]['absent'][$genderKey]++;
+        }
+
+        $result = [
+            'months'        => [],
+            'schoolDays'    => [],
+            'presentMale'   => [],
+            'presentFemale' => [],
+            'absentMale'    => [],
+            'absentFemale'  => [],
+        ];
+        $totals = ['days' => 0, 'pm' => 0, 'pf' => 0, 'am' => 0, 'af' => 0];
+
+        foreach ($months as $month) {
+            $days = count($month['days']);
+            $result['months'][] = $month['label'];
+            $result['schoolDays'][] = $days;
+
+            $result['presentMale'][]   = $days > 0 ? round($month['present']['M'] / $days, 1) : null;
+            $result['presentFemale'][] = $days > 0 ? round($month['present']['F'] / $days, 1) : null;
+            $result['absentMale'][]    = $days > 0 ? round($month['absent']['M'] / $days, 1) : null;
+            $result['absentFemale'][]  = $days > 0 ? round($month['absent']['F'] / $days, 1) : null;
+
+            $totals['days'] += $days;
+            $totals['pm'] += $month['present']['M'];
+            $totals['pf'] += $month['present']['F'];
+            $totals['am'] += $month['absent']['M'];
+            $totals['af'] += $month['absent']['F'];
+        }
+
+        // Overall averages are weighted by school days, not an average of monthly averages.
+        $overall = static fn(int $sum): ?float =>
+            $totals['days'] > 0 ? round($sum / $totals['days'], 1) : null;
+
+        $result['overall'] = [
+            'schoolDays'    => $totals['days'],
+            'presentMale'   => $overall($totals['pm']),
+            'presentFemale' => $overall($totals['pf']),
+            'absentMale'    => $overall($totals['am']),
+            'absentFemale'  => $overall($totals['af']),
+        ];
+
+        return $result;
+    }
 }
 ?>

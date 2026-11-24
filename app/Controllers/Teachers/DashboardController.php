@@ -19,12 +19,14 @@ class DashboardController extends TeachersController
             $sectionId,
             date('Y-m-d')
         );
+        $analytics = $this->getMonthlyAttendanceAnalytics($sectionId);
         $recentAttendanceActivity = $this->getRecentAttendanceActivity($teacherId, $sectionId);
 
         return [
             'totalStudents' => $dashboardMetrics['totalStudents'],
             'presentStudents' => $dashboardMetrics['presentStudents'],
             'absentStudents' => $dashboardMetrics['absentStudents'],
+            'analytics' => $analytics,
             'recentAttendanceActivity' => $recentAttendanceActivity,
         ];
     }

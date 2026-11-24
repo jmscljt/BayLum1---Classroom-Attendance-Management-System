@@ -30,7 +30,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
         </div>
     </header>
 
-    <main class="main-content">
+    <main class="main-content scrollable">
         <div class="dashboard-container">
             <?php if (!empty($message)): ?>
                 <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'error'; ?>">
@@ -56,8 +56,6 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
             </div>
 
             <div class="dashboard-content-grid">
-                <div class="dashboard-placeholder" aria-hidden="true"></div>
-
                 <div class="metrics-grid">
                     <div class="metric-card metric-card-blue">
                         <span class="metric-title">Present Students</span>
@@ -71,6 +69,20 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                         <span class="metric-title">Total Students</span>
                         <span class="metric-value"><?php echo isset($totalStudents) ? $totalStudents : '0'; ?></span>
                     </div>
+                </div>
+
+                <div class="table-section-card analytics-section">
+                    <div class="analytics-header">
+                        <div>
+                            <h3>Monthly Attendance Analytics</h3>
+                            <p class="analytics-subtitle">Average students per school day · last 6 months</p>
+                        </div>
+                    </div>
+
+                    <div class="analytics-chart-wrap">
+                        <canvas id="monthlyAttendanceChart"></canvas>
+                    </div>
+                    <p id="analyticsEmpty" class="analytics-empty" hidden></p>
                 </div>
 
                 <div class="table-section-card">
@@ -122,5 +134,8 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
     </main>
 
     <script src="/public/js/alertTimer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>window.analyticsData = <?php echo json_encode($analytics ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script>
+    <script src="/public/js/dashboardAnalytics.js"></script>
 </body>
 </html>
