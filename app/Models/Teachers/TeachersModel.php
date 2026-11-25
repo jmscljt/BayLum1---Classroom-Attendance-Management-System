@@ -275,19 +275,15 @@ class TeachersModel{
         }
 
         try {
-            $this->pdo->beginTransaction();
-
             $stmt = $this->pdo->prepare(
                 'SELECT password
                  FROM teachers
-                 WHERE id = ?
-                 FOR UPDATE'
+                 WHERE id = ?'
             );
             $stmt->execute([$teacherId]);
             $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$teacher || !password_verify($currentPassword, $teacher['password'])) {
-                $this->pdo->rollBack();
                 return ['success' => false, 'message' => 'Current password is incorrect.'];
             }
 
@@ -296,13 +292,9 @@ class TeachersModel{
                 'UPDATE teachers SET password = ? WHERE id = ?'
             );
             $updateStmt->execute([$hashedPassword, $teacherId]);
-            $this->pdo->commit();
 
             return ['success' => true, 'message' => 'Password updated successfully.'];
         } catch (PDOException $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
             error_log('Teacher password update error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Unable to update your password. Please try again.'];
         }
