@@ -1,18 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
     const panel = document.getElementById('fingerprint-reader');
-    const connectButton = document.getElementById('connectFingerprintReader');
-    const disconnectButton = document.getElementById('disconnectFingerprintReader');
     const status = document.getElementById('fingerprintReaderStatus');
     const enrollForm = document.getElementById('fingerprintEnrollForm');
     const studentSearch = document.getElementById('fingerprintStudentSearch');
     const studentSearchStatus = document.getElementById('fingerprintStudentSearchStatus');
     const studentSelect = document.getElementById('fingerprintStudent');
-    const slotInput = document.getElementById('fingerprintSlot');
     const enrollButton = document.getElementById('enrollFingerprintButton');
     if (
-        !panel || !connectButton || !disconnectButton || !status
+        !panel || !status
         || !enrollForm || !studentSearch || !studentSearchStatus
-        || !studentSelect || !slotInput || !enrollButton
+        || !studentSelect || !enrollButton
     ) {
         return;
     }
@@ -43,18 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterStudents();
 
-    let port;
-    let reader;
-    let reading = false;
     let buffer = '';
     let lastFingerprintId = null;
     let lastScanAt = 0;
     let requestInProgress = false;
     let pendingEnrollment = null;
+    let esp32Connected = false;
 
     function showStatus(message) {
         status.textContent = message;
     }
+
+    async function checkDeviceStatus() {
+        try {
+            const result = await postRequest({ action: 'device_status' });
+            esp32Connected = Boolean(result.connected && result.sensor_ready);
+            if (!pendingEnrollment) {
+                showStatus(result.message);
+            }
+            enrollButton.disabled = !esp32Connected || !studentSelect.value || Boolean(pendingEnrollment);
+        } catch (error) {
+            esp32Connected = false;
+            showStatus(error.message || 'Could not check the ESP32 fingerprint reader.');
+            enrollButton.disabled = true;
+        }
+    }
+
+    checkDeviceStatus();
+    window.setInterval(checkDeviceStatus, 3000);
 
     async function postRequest(payload) {
         const response = await fetch(panel.dataset.endpoint, {
@@ -118,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
             enrollment.option.disabled = false;
             enrollment.option.textContent = `${enrollment.studentName} (registered: ID ${fingerprintId})`;
             studentSelect.value = enrollment.studentLrn;
-            slotInput.value = '';
             showStatus(result.message);
         } catch (error) {
             showStatus(
@@ -128,8 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         } finally {
             requestInProgress = false;
-            enrollButton.disabled = !port || !studentSelect.value || !slotInput.value;
-            disconnectButton.disabled = false;
+            enrollButton.disabled = !esp32Connected || !studentSelect.value;
         }
     }
 
@@ -151,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (line === 'READY') {
+            esp32Connected = true;
             showStatus('AS608 connected. Scan a registered finger or enroll a student below.');
         } else if (line === 'NO_MATCH') {
             showStatus('Fingerprint not recognized. Enroll this finger to a student before taking attendance.');
@@ -171,104 +183,16 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             if (pendingEnrollment) {
                 pendingEnrollment = null;
-                enrollButton.disabled = !port || !studentSelect.value || !slotInput.value;
-                disconnectButton.disabled = false;
+                enrollButton.disabled = !esp32Connected || !studentSelect.value;
             }
             showStatus(messages[line] || line);
         }
     }
 
-    async function sendCommand(command) {
-        if (!port || !port.writable) {
-            throw new Error('The serial port is not connected.');
-        }
-        const writer = port.writable.getWriter();
-        try {
-            await writer.write(new TextEncoder().encode(`${command}\n`));
-        } finally {
-            writer.releaseLock();
-        }
-    }
-
-    async function disconnect() {
-        reading = false;
-        pendingEnrollment = null;
-        if (reader) {
-            await reader.cancel();
-        }
-    }
-
-    connectButton.addEventListener('click', async () => {
-        if (!('serial' in navigator)) {
-            showStatus('Web Serial is unavailable. Use a current Chrome or Edge browser.');
-            return;
-        }
-
-        connectButton.disabled = true;
-        try {
-            port = await navigator.serial.requestPort();
-            await port.open({ baudRate: 57600 });
-            reader = port.readable.pipeThrough(new TextDecoderStream()).getReader();
-            reading = true;
-            connectButton.hidden = true;
-            disconnectButton.hidden = false;
-            enrollButton.disabled = false;
-            showStatus('Reader connected. Initializing AS608...');
-
-            while (reading) {
-                const { value, done } = await reader.read();
-                if (done) {
-                    break;
-                }
-                buffer += value;
-                const lines = buffer.split(/\r?\n/);
-                buffer = lines.pop() || '';
-                lines.forEach(handleLine);
-            }
-        } catch (error) {
-            showStatus(error.message || 'Could not connect to the fingerprint reader.');
-        } finally {
-            if (reader) {
-                const activeReader = reader;
-                reader = null;
-                activeReader.releaseLock();
-            }
-            if (port) {
-                const activePort = port;
-                port = null;
-                if (activePort.readable !== null || activePort.writable !== null) {
-                    try {
-                        await activePort.close();
-                    } catch (error) {
-                        if (error.name !== 'InvalidStateError') {
-                            showStatus(error.message || 'The reader connection could not be closed.');
-                        }
-                    }
-                }
-            }
-            reading = false;
-            connectButton.disabled = false;
-            connectButton.hidden = false;
-            disconnectButton.hidden = true;
-            disconnectButton.disabled = false;
-            enrollButton.disabled = true;
-            if (pendingEnrollment) {
-                pendingEnrollment = null;
-                showStatus('Reader disconnected before enrollment finished. Check whether the AS608 stored the selected slot before retrying.');
-            }
-        }
-    });
-
-    disconnectButton.addEventListener('click', () => {
-        disconnect().catch((error) => {
-            showStatus(error.message || 'Could not disconnect the reader.');
-        });
-    });
-
     enrollForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        if (!port || !reading) {
-            showStatus('Connect the AS608 reader before enrolling a student.');
+        if (!esp32Connected) {
+            showStatus('Waiting for the ESP32 fingerprint reader. The ESP32 connects automatically when powered.');
             return;
         }
         if (pendingEnrollment || requestInProgress) {
@@ -276,11 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const studentLrn = studentSelect.value;
-        const fingerprintId = Number(slotInput.value);
         const option = studentSelect.options[studentSelect.selectedIndex];
         const studentName = option ? (option.dataset.studentName || option.textContent) : '';
-        if (!studentLrn || !Number.isInteger(fingerprintId) || fingerprintId < 1 || fingerprintId > 127) {
-            showStatus('Select an active student and an unused AS608 ID from 1 to 127.');
+        if (!studentLrn) {
+            showStatus('Select an active student.');
             return;
         }
 
@@ -290,18 +213,39 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const result = await postRequest({
                 action: 'check_enrollment',
-                student_lrn: studentLrn,
-                fingerprint_id: fingerprintId
+                student_lrn: studentLrn
             });
             pendingEnrollment = {
                 studentLrn,
                 studentName,
-                fingerprintId,
+                fingerprintId: result.fingerprint_id,
+                commandId: result.command_id,
                 option
             };
-            await sendCommand(`ENROLL:${fingerprintId}`);
-            disconnectButton.disabled = true;
-            showStatus(result.message + ' Follow the instructions and scan the same finger twice.');
+            showStatus(result.message + ` Assigned AS608 ID ${result.fingerprint_id}. Follow the instructions and scan the same finger twice.`);
+            const statusInterval = window.setInterval(async () => {
+                if (!pendingEnrollment || pendingEnrollment.commandId !== result.command_id) {
+                    window.clearInterval(statusInterval);
+                    return;
+                }
+                try {
+                    const statusResult = await postRequest({
+                        action: 'enrollment_status',
+                        student_lrn: studentLrn,
+                        command_id: result.command_id
+                    });
+                    if (statusResult.message === 'Fingerprint enrollment completed.') {
+                        window.clearInterval(statusInterval);
+                        pendingEnrollment = null;
+                        enrollButton.disabled = false;
+                        showStatus(statusResult.message);
+                    } else {
+                        showStatus(statusResult.message);
+                    }
+                } catch (error) {
+                    showStatus(error.message || 'Could not check fingerprint enrollment status.');
+                }
+            }, 1000);
         } catch (error) {
             pendingEnrollment = null;
             enrollButton.disabled = false;
@@ -312,10 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     studentSelect.addEventListener('change', () => {
-        enrollButton.disabled = !port || !studentSelect.value || !slotInput.value || Boolean(pendingEnrollment);
+        enrollButton.disabled = !esp32Connected || !studentSelect.value || Boolean(pendingEnrollment);
     });
     studentSearch.addEventListener('input', filterStudents);
-    slotInput.addEventListener('input', () => {
-        enrollButton.disabled = !port || !studentSelect.value || !slotInput.value || Boolean(pendingEnrollment);
-    });
 });

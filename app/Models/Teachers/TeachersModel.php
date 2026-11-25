@@ -449,7 +449,7 @@ class TeachersModel{
 
     public function updateStudent(string $currentStudentId, int $sectionId, array $studentData): array
     {
-        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'suffix', 'gender', 'fingerprint_id'] as $field) {
+        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'suffix', 'gender', 'fingerprint_id', 'clear_fingerprint_id'] as $field) {
             if (isset($studentData[$field]) && !is_string($studentData[$field])) {
                 return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
             }
@@ -462,6 +462,28 @@ class TeachersModel{
         $suffix = trim($studentData['suffix'] ?? '');
         $gender = trim($studentData['gender'] ?? '');
         $fingerprintId = trim($studentData['fingerprint_id'] ?? '');
+        $clearFingerprint = ($studentData['clear_fingerprint_id'] ?? '') === '1';
+
+        if (!$clearFingerprint && !isset($studentData['fingerprint_id'])) {
+            $currentFingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1'
+            );
+            $currentFingerprintStmt->execute([
+                ':student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+            $existingFingerprintId = $currentFingerprintStmt->fetchColumn();
+            $fingerprintId = $existingFingerprintId === false || $existingFingerprintId === null
+                ? ''
+                : (string) $existingFingerprintId;
+        }
+        if ($clearFingerprint) {
+            $fingerprintId = '';
+        }
 
         if (
             preg_match('/^\d{1,19}$/D', $studentId) !== 1
@@ -481,6 +503,25 @@ class TeachersModel{
             )
         ) {
             return ['success' => false, 'message' => 'AS608 Fingerprint ID must be a number from 1 to 127.'];
+        }
+
+        $deletedFingerprintId = null;
+        if ($clearFingerprint) {
+            $oldFingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1'
+            );
+            $oldFingerprintStmt->execute([
+                ':student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+            $oldFingerprintId = $oldFingerprintStmt->fetchColumn();
+            if ($oldFingerprintId !== false && $oldFingerprintId !== null) {
+                $deletedFingerprintId = (int) $oldFingerprintId;
+            }
         }
 
         try {
@@ -577,7 +618,14 @@ class TeachersModel{
             }
 
             $this->pdo->commit();
-            return ['success' => true, 'message' => 'Student updated successfully.'];
+            if ($deletedFingerprintId !== null) {
+                $this->queueFingerprintDeviceCommand('DELETE', $deletedFingerprintId);
+            }
+            return [
+                'success' => true,
+                'message' => 'Student updated successfully.',
+                'deleted_fingerprint_id' => $deletedFingerprintId,
+            ];
         } catch (PDOException $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -599,9 +647,24 @@ class TeachersModel{
     public function deactivateStudent(string $studentId, int $sectionId): array
     {
         try {
+            $fingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1
+                 FOR UPDATE'
+            );
+            $fingerprintStmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+            ]);
+            $fingerprintId = $fingerprintStmt->fetchColumn();
+
             $stmt = $this->pdo->prepare(
                 'UPDATE students
-                 SET is_active = 0
+                 SET is_active = 0,
+                     fingerprint_id = NULL
                  WHERE student_id = :student_id
                     AND section_id = :section_id
                     AND is_active = 1'
@@ -614,8 +677,18 @@ class TeachersModel{
             if ($stmt->rowCount() !== 1) {
                 return ['success' => false, 'message' => 'Student not found in your assigned section.'];
             }
+            $deletedFingerprintId = $fingerprintId !== false && $fingerprintId !== null
+                ? (int) $fingerprintId
+                : null;
+            if ($deletedFingerprintId !== null) {
+                $this->queueFingerprintDeviceCommand('DELETE', $deletedFingerprintId);
+            }
 
-            return ['success' => true, 'message' => 'Student removed from the list. Attendance history was preserved.'];
+            return [
+                'success' => true,
+                'message' => 'Student removed from the list. Attendance history was preserved.',
+                'deleted_fingerprint_id' => $deletedFingerprintId,
+            ];
         } catch (PDOException $e) {
             error_log('Remove student error: ' . $e->getMessage());
             return [
@@ -1157,12 +1230,8 @@ class TeachersModel{
     public function checkFingerprintEnrollment(
         int $teacherId,
         string $studentLrn,
-        int $fingerprintId
+        ?int $fingerprintId = null
     ): array {
-        if ($fingerprintId < 1 || $fingerprintId > 127) {
-            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
-        }
-
         $teacherStmt = $this->pdo->prepare(
             'SELECT section_id FROM teachers WHERE id = :teacher_id'
         );
@@ -1187,6 +1256,22 @@ class TeachersModel{
         if ($currentFingerprintId === false) {
             return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
         }
+        if ($currentFingerprintId !== false && $currentFingerprintId !== null) {
+            return [
+                'success' => true,
+                'fingerprint_id' => (int) $currentFingerprintId,
+                'message' => 'This student is already registered. Re-enrollment will replace ID ' . (int) $currentFingerprintId . '.',
+            ];
+        }
+        if ($fingerprintId === null) {
+            $fingerprintId = $this->findAvailableFingerprintId();
+            if ($fingerprintId === null) {
+                return ['success' => false, 'message' => 'All AS608 fingerprint slots from 1 to 127 are currently assigned.'];
+            }
+        }
+        if ($fingerprintId < 1 || $fingerprintId > 127) {
+            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+        }
         $mappingStmt = $this->pdo->prepare(
             'SELECT student_id
              FROM students
@@ -1205,18 +1290,81 @@ class TeachersModel{
         $message = $currentFingerprintId === null
             ? 'Ready to enroll.'
             : 'This will keep or replace the student’s current mapping from ID ' . $currentFingerprintId . '.';
-        return ['success' => true, 'message' => $message];
+        return ['success' => true, 'fingerprint_id' => $fingerprintId, 'message' => $message];
+    }
+
+    private function queueFingerprintDeviceCommand(string $command, int $fingerprintId): void
+    {
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS fingerprint_device_commands (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                device_id VARCHAR(64) NOT NULL DEFAULT "esp32-as608",
+                command VARCHAR(16) NOT NULL,
+                fingerprint_id SMALLINT UNSIGNED NOT NULL,
+                student_lrn VARCHAR(19) NULL,
+                status VARCHAR(16) NOT NULL DEFAULT "pending",
+                error_message VARCHAR(255) NULL,
+                created_at DATETIME NOT NULL,
+                updated_at DATETIME NOT NULL
+            ) ENGINE=InnoDB'
+        );
+        $now = date('Y-m-d H:i:s');
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO fingerprint_device_commands
+             (device_id, command, fingerprint_id, status, created_at, updated_at)
+             VALUES ("esp32-as608", :command, :fingerprint_id, "pending", :created_at, :updated_at)'
+        );
+        $stmt->execute([
+            ':command' => $command,
+            ':fingerprint_id' => $fingerprintId,
+            ':created_at' => $now,
+            ':updated_at' => $now,
+        ]);
+    }
+
+    public function getFingerprintCapacity(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT COUNT(DISTINCT fingerprint_id)
+             FROM students
+             WHERE is_active = 1
+               AND fingerprint_id BETWEEN 1 AND 127'
+        );
+        $used = (int) $stmt->fetchColumn();
+        return [
+            'used' => $used,
+            'available' => 127 - $used,
+            'total' => 127,
+        ];
+    }
+
+    private function findAvailableFingerprintId(): ?int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT fingerprint_id
+             FROM students
+             WHERE fingerprint_id IS NOT NULL
+               AND is_active = 1'
+        );
+        $stmt->execute();
+
+        $usedIds = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $usedId) {
+            $usedIds[(int) $usedId] = true;
+        }
+        for ($id = 1; $id <= 127; $id++) {
+            if (!isset($usedIds[$id])) {
+                return $id;
+            }
+        }
+        return null;
     }
 
     public function saveFingerprintEnrollment(
         int $teacherId,
         string $studentLrn,
-        int $fingerprintId
+        ?int $fingerprintId = null
     ): array {
-        if ($fingerprintId < 1 || $fingerprintId > 127) {
-            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
-        }
-
         $this->pdo->beginTransaction();
         try {
             $teacherStmt = $this->pdo->prepare(
@@ -1245,6 +1393,34 @@ class TeachersModel{
             if ($currentFingerprintId === false) {
                 $this->pdo->rollBack();
                 return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
+            }
+            if ($fingerprintId === null) {
+                $fingerprintId = $currentFingerprintId !== null
+                    ? (int) $currentFingerprintId
+                    : $this->findAvailableFingerprintId();
+                if ($fingerprintId === null) {
+                    $this->pdo->rollBack();
+                    return ['success' => false, 'message' => 'All AS608 fingerprint slots from 1 to 127 are currently assigned.'];
+                }
+            }
+            if ($fingerprintId < 1 || $fingerprintId > 127) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+            }
+            $mappingStmt = $this->pdo->prepare(
+                'SELECT student_id
+                 FROM students
+                 WHERE fingerprint_id = :fingerprint_id
+                   AND student_id <> :student_id
+                 LIMIT 1'
+            );
+            $mappingStmt->execute([
+                ':fingerprint_id' => $fingerprintId,
+                ':student_id' => $studentLrn,
+            ]);
+            if ($mappingStmt->fetchColumn() !== false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Fingerprint ID ' . $fingerprintId . ' is already assigned to another student.'];
             }
             $updateStmt = $this->pdo->prepare(
                 'UPDATE students

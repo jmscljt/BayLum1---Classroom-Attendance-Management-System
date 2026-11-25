@@ -20,6 +20,7 @@ class AttendanceSettingsController extends TeachersController
             'attendanceCodes' => $this->getOrCreateAttendanceCodes((int) $session['user_id']),
             'csrfToken' => $session['csrf_token'],
             'fingerprintStudents' => $this->getFingerprintStudents((int) ($session['section_id'] ?? 0)),
+            'fingerprintCapacity' => $this->getFingerprintCapacity(),
         ];
     }
 }
