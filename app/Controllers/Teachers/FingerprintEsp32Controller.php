@@ -16,6 +16,14 @@ class FingerprintEsp32Controller
     public function handleRequest(string $requestMethod, string $rawInput): void
     {
         header('Content-Type: application/json; charset=utf-8');
+        if ($requestMethod === 'GET') {
+            $this->respond(200, [
+                'success' => true,
+                'status' => 'reachable',
+                'endpoint' => 'fingerprintEsp32',
+            ]);
+            return;
+        }
         if ($requestMethod !== 'POST') {
             $this->respond(405, ['success' => false, 'error' => 'POST is required.']);
             return;
