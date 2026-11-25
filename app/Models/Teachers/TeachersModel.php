@@ -1009,6 +1009,14 @@ class TeachersModel{
                         (teacher_id, section_id, attendance_type, attendance_date, opened_at)
                      VALUES (:teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
                 );
+                $openParameters = [
+                    ':teacher_id' => $teacherId,
+                    ':section_id' => (int) $sectionId,
+                    ':attendance_type' => $attendanceType,
+                    ':attendance_date' => date('Y-m-d'),
+                    ':opened_at' => date('Y-m-d H:i:s'),
+                ];
+                $openStmt->execute($openParameters);
             } else {
                 $sessionId = $this->getNextManualAttendanceId(
                     'manual_attendance_session_sequence',
@@ -1020,14 +1028,13 @@ class TeachersModel{
                      VALUES (:id, :teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
                 );
                 $openStmt->bindValue(':id', $sessionId, PDO::PARAM_INT);
+                $openStmt->bindValue(':teacher_id', $teacherId, PDO::PARAM_INT);
+                $openStmt->bindValue(':section_id', (int) $sectionId, PDO::PARAM_INT);
+                $openStmt->bindValue(':attendance_type', $attendanceType, PDO::PARAM_STR);
+                $openStmt->bindValue(':attendance_date', date('Y-m-d'), PDO::PARAM_STR);
+                $openStmt->bindValue(':opened_at', date('Y-m-d H:i:s'), PDO::PARAM_STR);
+                $openStmt->execute();
             }
-            $openStmt->execute([
-                ':teacher_id' => $teacherId,
-                ':section_id' => (int) $sectionId,
-                ':attendance_type' => $attendanceType,
-                ':attendance_date' => date('Y-m-d'),
-                ':opened_at' => date('Y-m-d H:i:s'),
-            ]);
             if ($sessionId === null) {
                 $sessionId = (int) $this->pdo->lastInsertId();
             }
@@ -1208,6 +1215,16 @@ class TeachersModel{
                      VALUES
                         (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
                 );
+                $insertParameters = [
+                    ':session_id' => $session['id'],
+                    ':teacher_id' => $session['teacher_id'],
+                    ':section_id' => $session['section_id'],
+                    ':student_id' => $studentLrn,
+                    ':attendance_date' => $session['attendance_date'],
+                    ':attendance_type' => $session['attendance_type'],
+                    ':recorded_at' => date('Y-m-d H:i:s'),
+                    ':attendance_method' => $attendanceMethod,
+                ];
             } else {
                 $recordId = $this->getNextManualAttendanceId(
                     'manual_attendance_record_sequence',
@@ -1220,18 +1237,21 @@ class TeachersModel{
                         (:id, :session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
                 );
                 $insertStmt->bindValue(':id', $recordId, PDO::PARAM_INT);
+                $insertStmt->bindValue(':session_id', (int) $session['id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':teacher_id', (int) $session['teacher_id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':section_id', (int) $session['section_id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':student_id', $studentLrn, PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_date', $session['attendance_date'], PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_type', $session['attendance_type'], PDO::PARAM_STR);
+                $insertStmt->bindValue(':recorded_at', date('Y-m-d H:i:s'), PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_method', $attendanceMethod, PDO::PARAM_STR);
             }
             try {
-                $insertStmt->execute([
-                    ':session_id' => $session['id'],
-                    ':teacher_id' => $session['teacher_id'],
-                    ':section_id' => $session['section_id'],
-                    ':student_id' => $studentLrn,
-                    ':attendance_date' => $session['attendance_date'],
-                    ':attendance_type' => $session['attendance_type'],
-                    ':recorded_at' => date('Y-m-d H:i:s'),
-                    ':attendance_method' => $attendanceMethod,
-                ]);
+                if ($recordId === null) {
+                    $insertStmt->execute($insertParameters);
+                } else {
+                    $insertStmt->execute();
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() === '23000') {
                     $this->pdo->rollBack();
