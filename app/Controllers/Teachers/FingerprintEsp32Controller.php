@@ -17,11 +17,56 @@ class FingerprintEsp32Controller
     {
         header('Content-Type: application/json; charset=utf-8');
         if ($requestMethod === 'GET') {
-            $this->respond(200, [
-                'success' => true,
-                'status' => 'reachable',
-                'endpoint' => 'fingerprintEsp32',
-            ]);
+            $action = trim((string) ($_GET['action'] ?? ''));
+            if ($action === '') {
+                $this->respond(200, [
+                    'success' => true,
+                    'status' => 'reachable',
+                    'endpoint' => 'fingerprintEsp32',
+                ]);
+                return;
+            }
+            $payload = $_GET;
+            $payload['device_secret'] =
+                $_SERVER['HTTP_X_FINGERPRINT_DEVICE_SECRET'] ?? '';
+            $configuredSecret = $_ENV['FINGERPRINT_DEVICE_SECRET'] ?? getenv('FINGERPRINT_DEVICE_SECRET');
+            $providedSecret = $payload['device_secret'] ?? '';
+            if (
+                !is_string($configuredSecret)
+                || $configuredSecret === ''
+                || !is_string($providedSecret)
+                || !hash_equals($configuredSecret, $providedSecret)
+            ) {
+                $this->respond(403, ['success' => false, 'error' => 'Invalid fingerprint device secret.']);
+                return;
+            }
+            try {
+                $this->ensureDeviceTable();
+                if ($action === 'poll') {
+                    $this->pollCommand($payload);
+                    return;
+                }
+                if ($action === 'report_match') {
+                    $this->reportMatch($payload);
+                    return;
+                }
+                if ($action === 'report_enrolled') {
+                    $this->reportEnrollment($payload);
+                    return;
+                }
+                if ($action === 'report_failed') {
+                    $this->reportFailed($payload);
+                    return;
+                }
+                if ($action === 'report_deleted') {
+                    $this->reportDeleted($payload);
+                    return;
+                }
+                $this->respond(400, ['success' => false, 'error' => 'Unknown device action.']);
+            } catch (PDOException | RuntimeException $e) {
+                error_log('ESP32 fingerprint device GET error: ' . $e->getMessage());
+                $this->respond(500, ['success' => false, 'error' => 'Fingerprint device request failed.']);
+            }
             return;
         }
         if ($requestMethod !== 'POST') {
@@ -106,7 +151,10 @@ class FingerprintEsp32Controller
     {
         $deviceId = 'esp32-as608';
         $now = date('Y-m-d H:i:s');
-        $sensorReady = ($payload['sensor_ready'] ?? false) === true;
+        $sensorReady = filter_var(
+            $payload['sensor_ready'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
         $heartbeat = $this->pdo->prepare(
             'INSERT INTO fingerprint_devices
              (device_id, sensor_ready, last_seen_at, updated_at)

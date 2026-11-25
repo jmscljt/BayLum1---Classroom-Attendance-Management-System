@@ -4,9 +4,9 @@
 #include <HardwareSerial.h>
 #include <Adafruit_Fingerprint.h>
 
-const char* WIFI_SSID = "YOUR_WIFI_SSID";
+const char* WIFI_SSID = "2.4G-CASy";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
-const char* SERVER_URL = "http://192.168.1.100/MyPHPWebsite/BayLum1ElemSchool/BayLum1---Classroom-Attendance-Management-System/index.php?page=fingerprintEsp32";
+const char* SERVER_URL = "https://baylum1-attendance-cms.vercel.app/index.php?page=fingerprintEsp32";
 const char* DEVICE_SECRET = "CHANGE_THIS_TO_THE_SAME_FINGERPRINT_DEVICE_SECRET";
 
 #define AS608_RX_PIN 16
@@ -48,6 +48,34 @@ String httpPost(const String& payload) {
       Serial.print("Server response: ");
       Serial.println(response);
     }
+  }
+  http.end();
+  return response;
+}
+
+String httpGet(const String& query) {
+  if (WiFi.status() != WL_CONNECTED) {
+    return "";
+  }
+  HTTPClient http;
+  WiFiClientSecure secureClient;
+  String url = String(SERVER_URL) + "&" + query;
+  if (url.startsWith("https://")) {
+    secureClient.setInsecure();
+    http.begin(secureClient, url);
+  } else {
+    http.begin(url);
+  }
+  http.addHeader("X-Fingerprint-Device-Secret", DEVICE_SECRET);
+  http.setTimeout(8000);
+  int code = http.GET();
+  String response = code > 0 ? http.getString() : "";
+  if (code <= 0) {
+    Serial.print("HTTP GET failed: ");
+    Serial.println(http.errorToString(code));
+  } else {
+    Serial.print("HTTP status: ");
+    Serial.println(code);
   }
   http.end();
   return response;
@@ -140,34 +168,30 @@ void waitForFingerRemoval() {
 }
 
 void reportFailed(int commandId, const char* error) {
-  String payload = String("{\"action\":\"report_failed\",\"device_secret\":\"") +
-                   DEVICE_SECRET +
-                   "\",\"command_id\":" + commandId +
-                   ",\"error\":\"" + error + "\"}";
-  httpPost(payload);
+  String query = String("action=report_failed&command_id=") +
+                 commandId +
+                 "&error=" + String(error);
+  query.replace(" ", "%20");
+  httpGet(query);
 }
 
 void reportDeleted(int commandId, uint16_t fingerprintId) {
-  String payload = String("{\"action\":\"report_deleted\",\"device_secret\":\"") +
-                   DEVICE_SECRET +
-                   "\",\"command_id\":" + commandId +
-                   ",\"fingerprint_id\":" + fingerprintId + "}";
-  httpPost(payload);
+  String query = String("action=report_deleted&command_id=") +
+                 commandId +
+                 "&fingerprint_id=" + fingerprintId;
+  httpGet(query);
 }
 
 void reportEnrolled(int commandId, uint16_t fingerprintId) {
-  String payload = String("{\"action\":\"report_enrolled\",\"device_secret\":\"") +
-                   DEVICE_SECRET +
-                   "\",\"command_id\":" + commandId +
-                   ",\"fingerprint_id\":" + fingerprintId + "}";
-  httpPost(payload);
+  String query = String("action=report_enrolled&command_id=") +
+                 commandId +
+                 "&fingerprint_id=" + fingerprintId;
+  httpGet(query);
 }
 
 void reportMatch(uint16_t fingerprintId) {
-  String payload = String("{\"action\":\"report_match\",\"device_secret\":\"") +
-                   DEVICE_SECRET +
-                   "\",\"fingerprint_id\":" + fingerprintId + "}";
-  httpPost(payload);
+  String query = String("action=report_match&fingerprint_id=") + fingerprintId;
+  httpGet(query);
 }
 
 void processDelete(int commandId, uint16_t fingerprintId) {
@@ -208,10 +232,9 @@ void processEnroll(int commandId, uint16_t fingerprintId) {
 }
 
 void pollServer() {
-  String payload;
-  payloadDeviceJson("poll", payload);
-
-  String response = httpPost(payload);
+  String query = String("action=poll&sensor_ready=") +
+                 (sensorReady ? "true" : "false");
+  String response = httpGet(query);
   if (response.length() == 0) {
     return;
   }
