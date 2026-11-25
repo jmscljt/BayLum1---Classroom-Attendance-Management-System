@@ -776,13 +776,16 @@ class TeachersModel{
                     (teacher_id, section_id, attendance_date, attendance_type)
             ) ENGINE=InnoDB'
         );
-
-        foreach (['manual_attendance_sessions', 'manual_attendance_records'] as $table) {
-            $this->pdo->exec(
-                "ALTER TABLE {$table}
-                 MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT"
-            );
-        }
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_session_sequence (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_record_sequence (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+            ) ENGINE=InnoDB'
+        );
 
         $methodColumn = $this->pdo->query(
             "SHOW COLUMNS FROM manual_attendance_records LIKE 'attendance_method'"
@@ -803,6 +806,35 @@ class TeachersModel{
                  ADD COLUMN fingerprint_id SMALLINT UNSIGNED NULL'
             );
         }
+    }
+
+    private function hasAutoIncrementId(string $table): bool
+    {
+        $columnStmt = $this->pdo->query(
+            "SHOW COLUMNS FROM {$table} LIKE 'id'"
+        );
+        $column = $columnStmt->fetch(PDO::FETCH_ASSOC);
+        return $column
+            && stripos((string) ($column['Extra'] ?? ''), 'auto_increment') !== false;
+    }
+
+    private function getNextManualAttendanceId(
+        string $sequenceTable,
+        string $targetTable
+    ): int {
+        $sequenceMax = (int) $this->pdo
+            ->query("SELECT COALESCE(MAX(id), 0) FROM {$sequenceTable}")
+            ->fetchColumn();
+        $targetMax = (int) $this->pdo
+            ->query("SELECT COALESCE(MAX(id), 0) FROM {$targetTable}")
+            ->fetchColumn();
+        $nextId = max($sequenceMax, $targetMax) + 1;
+
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO {$sequenceTable} (id) VALUES (:id)"
+        );
+        $stmt->execute([':id' => $nextId]);
+        return $nextId;
     }
 
     public function getOrCreateAttendanceCodes(int $teacherId): array
@@ -970,11 +1002,25 @@ class TeachersModel{
                 ];
             }
 
-            $openStmt = $this->pdo->prepare(
-                'INSERT INTO manual_attendance_sessions
-                    (teacher_id, section_id, attendance_type, attendance_date, opened_at)
-                 VALUES (:teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
-            );
+            $sessionId = null;
+            if ($this->hasAutoIncrementId('manual_attendance_sessions')) {
+                $openStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_sessions
+                        (teacher_id, section_id, attendance_type, attendance_date, opened_at)
+                     VALUES (:teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
+                );
+            } else {
+                $sessionId = $this->getNextManualAttendanceId(
+                    'manual_attendance_session_sequence',
+                    'manual_attendance_sessions'
+                );
+                $openStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_sessions
+                        (id, teacher_id, section_id, attendance_type, attendance_date, opened_at)
+                     VALUES (:id, :teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
+                );
+                $openStmt->bindValue(':id', $sessionId, PDO::PARAM_INT);
+            }
             $openStmt->execute([
                 ':teacher_id' => $teacherId,
                 ':section_id' => (int) $sectionId,
@@ -982,7 +1028,9 @@ class TeachersModel{
                 ':attendance_date' => date('Y-m-d'),
                 ':opened_at' => date('Y-m-d H:i:s'),
             ]);
-            $sessionId = (int) $this->pdo->lastInsertId();
+            if ($sessionId === null) {
+                $sessionId = (int) $this->pdo->lastInsertId();
+            }
             $this->pdo->commit();
 
             return [
@@ -1152,12 +1200,27 @@ class TeachersModel{
                 ];
             }
 
-            $insertStmt = $this->pdo->prepare(
-                'INSERT INTO manual_attendance_records
-                    (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
-                 VALUES
-                    (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
-            );
+            $recordId = null;
+            if ($this->hasAutoIncrementId('manual_attendance_records')) {
+                $insertStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_records
+                        (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
+                     VALUES
+                        (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
+                );
+            } else {
+                $recordId = $this->getNextManualAttendanceId(
+                    'manual_attendance_record_sequence',
+                    'manual_attendance_records'
+                );
+                $insertStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_records
+                        (id, session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
+                     VALUES
+                        (:id, :session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
+                );
+                $insertStmt->bindValue(':id', $recordId, PDO::PARAM_INT);
+            }
             try {
                 $insertStmt->execute([
                     ':session_id' => $session['id'],
