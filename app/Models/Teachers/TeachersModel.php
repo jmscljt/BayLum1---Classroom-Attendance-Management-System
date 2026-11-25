@@ -739,8 +739,75 @@ class TeachersModel{
         }
     }
 
+    private function ensureManualAttendanceSchema(): void
+    {
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS teacher_attendance_codes (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                code CHAR(4) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_teacher_attendance_type (teacher_id, attendance_type),
+                UNIQUE KEY uq_teacher_attendance_code (code)
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_sessions (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                section_id BIGINT UNSIGNED NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                attendance_date DATE NOT NULL,
+                opened_at DATETIME NOT NULL,
+                closed_at DATETIME NULL,
+                INDEX idx_manual_session_teacher_active (teacher_id, closed_at),
+                INDEX idx_manual_session_section_date (section_id, attendance_date)
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_records (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                session_id BIGINT UNSIGNED NOT NULL,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                section_id BIGINT UNSIGNED NOT NULL,
+                student_id VARCHAR(19) NOT NULL,
+                attendance_date DATE NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                recorded_at DATETIME NOT NULL,
+                attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual",
+                UNIQUE KEY uq_manual_attendance_record
+                    (session_id, student_id, attendance_type),
+                INDEX idx_manual_record_lookup
+                    (teacher_id, section_id, attendance_date, attendance_type)
+            ) ENGINE=InnoDB'
+        );
+
+        $methodColumn = $this->pdo->query(
+            "SHOW COLUMNS FROM manual_attendance_records LIKE 'attendance_method'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (!$methodColumn) {
+            $this->pdo->exec(
+                'ALTER TABLE manual_attendance_records
+                 ADD COLUMN attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual"'
+            );
+        }
+
+        $fingerprintColumn = $this->pdo->query(
+            "SHOW COLUMNS FROM students LIKE 'fingerprint_id'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (!$fingerprintColumn) {
+            $this->pdo->exec(
+                'ALTER TABLE students
+                 ADD COLUMN fingerprint_id SMALLINT UNSIGNED NULL'
+            );
+        }
+    }
+
     public function getOrCreateAttendanceCodes(int $teacherId): array
     {
+        $this->ensureManualAttendanceSchema();
         $this->pdo->beginTransaction();
 
         try {
@@ -808,6 +875,7 @@ class TeachersModel{
 
     public function processAttendanceCode(string $code, ?int $browserSessionId = null): array
     {
+        $this->ensureManualAttendanceSchema();
         $codeStmt = $this->pdo->prepare(
             'SELECT teacher_id, attendance_type
              FROM teacher_attendance_codes
@@ -933,6 +1001,7 @@ class TeachersModel{
 
     public function recordFingerprintAttendance(int $teacherId, int $fingerprintId): array
     {
+        $this->ensureManualAttendanceSchema();
         if ($fingerprintId < 1 || $fingerprintId > 127) {
             return ['success' => false, 'message' => 'The scanner reported an invalid fingerprint ID.'];
         }
@@ -1018,6 +1087,7 @@ class TeachersModel{
         string $attendanceMethod = 'Manual'
     ): array
     {
+        $this->ensureManualAttendanceSchema();
         $studentLrn = trim($studentLrn);
         if (preg_match('/^\d{1,19}$/D', $studentLrn) !== 1) {
             return ['success' => false, 'message' => 'Enter a valid student LRN.'];
