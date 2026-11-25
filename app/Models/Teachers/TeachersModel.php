@@ -618,9 +618,6 @@ class TeachersModel{
             }
 
             $this->pdo->commit();
-            if ($deletedFingerprintId !== null) {
-                $this->queueFingerprintDeviceCommand('DELETE', $deletedFingerprintId);
-            }
             return [
                 'success' => true,
                 'message' => 'Student updated successfully.',
@@ -680,10 +677,6 @@ class TeachersModel{
             $deletedFingerprintId = $fingerprintId !== false && $fingerprintId !== null
                 ? (int) $fingerprintId
                 : null;
-            if ($deletedFingerprintId !== null) {
-                $this->queueFingerprintDeviceCommand('DELETE', $deletedFingerprintId);
-            }
-
             return [
                 'success' => true,
                 'message' => 'Student removed from the list. Attendance history was preserved.',
@@ -1361,35 +1354,6 @@ class TeachersModel{
             ? 'Ready to enroll.'
             : 'This will keep or replace the student’s current mapping from ID ' . $currentFingerprintId . '.';
         return ['success' => true, 'fingerprint_id' => $fingerprintId, 'message' => $message];
-    }
-
-    private function queueFingerprintDeviceCommand(string $command, int $fingerprintId): void
-    {
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS fingerprint_device_commands (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                device_id VARCHAR(64) NOT NULL DEFAULT "esp32-as608",
-                command VARCHAR(16) NOT NULL,
-                fingerprint_id SMALLINT UNSIGNED NOT NULL,
-                student_lrn VARCHAR(19) NULL,
-                status VARCHAR(16) NOT NULL DEFAULT "pending",
-                error_message VARCHAR(255) NULL,
-                created_at DATETIME NOT NULL,
-                updated_at DATETIME NOT NULL
-            ) ENGINE=InnoDB'
-        );
-        $now = date('Y-m-d H:i:s');
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO fingerprint_device_commands
-             (device_id, command, fingerprint_id, status, created_at, updated_at)
-             VALUES ("esp32-as608", :command, :fingerprint_id, "pending", :created_at, :updated_at)'
-        );
-        $stmt->execute([
-            ':command' => $command,
-            ':fingerprint_id' => $fingerprintId,
-            ':created_at' => $now,
-            ':updated_at' => $now,
-        ]);
     }
 
     public function getFingerprintCapacity(): array

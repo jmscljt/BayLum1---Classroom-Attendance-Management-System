@@ -225,33 +225,6 @@ class AdminModel
         $deletedFingerprintId = $fingerprintId !== false && $fingerprintId !== null
             ? (int) $fingerprintId
             : null;
-        if ($deletedFingerprintId !== null) {
-            $this->pdo->exec(
-                'CREATE TABLE IF NOT EXISTS fingerprint_device_commands (
-                    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                    device_id VARCHAR(64) NOT NULL DEFAULT "esp32-as608",
-                    command VARCHAR(16) NOT NULL,
-                    fingerprint_id SMALLINT UNSIGNED NOT NULL,
-                    student_lrn VARCHAR(19) NULL,
-                    status VARCHAR(16) NOT NULL DEFAULT "pending",
-                    error_message VARCHAR(255) NULL,
-                    created_at DATETIME NOT NULL,
-                    updated_at DATETIME NOT NULL
-                ) ENGINE=InnoDB'
-            );
-            $now = date('Y-m-d H:i:s');
-            $queue = $this->pdo->prepare(
-                'INSERT INTO fingerprint_device_commands
-                 (device_id, command, fingerprint_id, status, created_at, updated_at)
-                 VALUES ("esp32-as608", "DELETE", :fingerprint_id, "pending", :created_at, :updated_at)'
-            );
-            $queue->execute([
-                ':fingerprint_id' => $deletedFingerprintId,
-                ':created_at' => $now,
-                ':updated_at' => $now,
-            ]);
-        }
-
         return [
             'success' => true,
             'message' => 'Student deactivated successfully.',

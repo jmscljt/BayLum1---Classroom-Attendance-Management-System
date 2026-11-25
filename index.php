@@ -13,7 +13,6 @@ require_once $projectRoot . '/app/Controllers/Teachers/ManualAttendanceControlle
 require_once $projectRoot . '/app/Controllers/Teachers/StudentsController.php';
 require_once $projectRoot . '/app/Controllers/Teachers/AttendanceLogsController.php';
 require_once $projectRoot . '/app/Controllers/Teachers/FingerprintAttendanceController.php';
-require_once $projectRoot . '/app/Controllers/Teachers/FingerprintEsp32Controller.php';
 require_once $projectRoot . '/app/Controllers/Teachers/AttendanceSettingsController.php';
 require_once $projectRoot . '/app/Controllers/Teachers/AccountSettingsController.php';
 
@@ -276,14 +275,6 @@ switch ($page) {
             $_SERVER['REQUEST_METHOD'],
             file_get_contents('php://input'),
             $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''
-        );
-        exit();
-
-    case 'fingerprintEsp32':
-        $controller = new FingerprintEsp32Controller($pdo);
-        $controller->handleRequest(
-            $_SERVER['REQUEST_METHOD'],
-            file_get_contents('php://input')
         );
         exit();
 
