@@ -77,6 +77,7 @@ class TeachersModel{
             $usesAutoIncrement = $idColumn && stripos((string) ($idColumn['Extra'] ?? ''), 'auto_increment') !== false;
             $teacherId = null;
 
+            // Auto incrementation for making teachers account
             if ($usesAutoIncrement) {
                 $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
             } else {

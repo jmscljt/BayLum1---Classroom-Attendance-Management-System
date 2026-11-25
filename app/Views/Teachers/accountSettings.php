@@ -89,7 +89,7 @@ $result = $accountResult ?? null;
 
             <section class="table-section-card teacher-settings-card">
                 <h3>Change Password</h3>
-                <form action="index.php?page=teachers_settings" method="POST" class="teacher-settings-form">
+                <form action="index.php?page=accountSettings" method="POST" class="teacher-settings-form">
                     <input type="hidden" name="action" value="update_password">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="settings-form-row settings-password-fields">
