@@ -66,7 +66,7 @@ $result = $accountResult ?? null;
                     </div>
                 </div>
 
-                <form action="index.php?page=teachers_settings" method="POST" id="settingsSectionForm" class="teacher-settings-form settings-section-form" hidden>
+                <form action="index.php?page=accountSettings" method="POST" id="settingsSectionForm" class="teacher-settings-form settings-section-form" hidden>
                     <input type="hidden" name="action" value="update_section">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="settings-form-row">

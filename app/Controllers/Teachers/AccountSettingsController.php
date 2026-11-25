@@ -63,7 +63,7 @@ class AccountSettingsController extends TeachersController
                 }
             }
 
-            header('Location: index.php?page=teachers_settings');
+            header('Location: index.php?page=accountSettings');
             exit();
         }
 
