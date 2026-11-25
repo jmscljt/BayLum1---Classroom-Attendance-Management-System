@@ -46,13 +46,14 @@ $result = $accountResult ?? null;
                 </div>
             </div>
 
-            <section class="table-section-card teacher-settings-card">
-                <h3>Account Information</h3>
                 <?php if (!empty($result)): ?>
                     <div class="alert alert-<?= !empty($result['success']) ? 'success' : 'error'; ?>" role="status">
                         <?= $escape($result['message'] ?? '') ?>
                     </div>
                 <?php endif; ?>
+
+            <section class="table-section-card teacher-settings-card">
+                <h3>Account Information</h3>
                 <form action="index.php?page=accountSettings" method="POST" id="profileForm" class="teacher-settings-form">
                     <input type="hidden" name="action" value="update_profile">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
