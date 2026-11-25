@@ -8,3 +8,7 @@ SELECT COALESCE(MAX(id), 0) FROM teachers
 WHERE NOT EXISTS (
     SELECT 1 FROM teacher_id_sequence
 );
+
+-- Prefer the native TiDB/MySQL auto-increment path.
+ALTER TABLE teachers
+    MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;

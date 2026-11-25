@@ -72,10 +72,26 @@ class TeachersModel{
                 ];
             }
 
-            $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
-       
+            $idColumnStmt = $this->pdo->query("SHOW COLUMNS FROM teachers LIKE 'id'");
+            $idColumn = $idColumnStmt->fetch(PDO::FETCH_ASSOC);
+            $usesAutoIncrement = $idColumn && stripos((string) ($idColumn['Extra'] ?? ''), 'auto_increment') !== false;
+            $teacherId = null;
+
+            if ($usesAutoIncrement) {
+                $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+            } else {
+                $sequenceStmt = $this->pdo->prepare("INSERT INTO teacher_id_sequence () VALUES ()");
+                $sequenceStmt->execute();
+                $teacherId = (int) $this->pdo->lastInsertId();
+
+                $query = "INSERT INTO teachers (id, user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:id, :user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+            }
+
             $stmt = $this->pdo->prepare($query);
-        
+
+            if ($teacherId !== null) {
+                $stmt->bindParam(':id', $teacherId, PDO::PARAM_INT);
+            }
             $stmt->bindParam(':user_id', $uniqueId, PDO::PARAM_STR);
             $stmt->bindParam(':full_name', $fullName, PDO::PARAM_STR);
             $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
@@ -89,7 +105,7 @@ class TeachersModel{
                 return [
                     'success' => true,
                     'user_id' => $uniqueId,
-                    'insert_id' => (int)$this->pdo->lastInsertId(),
+                    'insert_id' => $teacherId ?? (int) $this->pdo->lastInsertId(),
                     'full_name' => $fullName,
                 ];
             }
