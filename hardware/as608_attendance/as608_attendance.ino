@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <HardwareSerial.h>
 #include <Adafruit_Fingerprint.h>
 
@@ -18,17 +19,36 @@ uint32_t lastPollAt = 0;
 uint32_t lastMatchAt = 0;
 uint16_t lastMatchedId = 0;
 bool sensorReady = false;
+bool wifiConnectStarted = false;
+uint32_t wifiConnectStartedAt = 0;
 
 String httpPost(const String& payload) {
   if (WiFi.status() != WL_CONNECTED) {
     return "";
   }
   HTTPClient http;
-  http.begin(SERVER_URL);
+  WiFiClientSecure secureClient;
+  if (String(SERVER_URL).startsWith("https://")) {
+    secureClient.setInsecure();
+    http.begin(secureClient, SERVER_URL);
+  } else {
+    http.begin(SERVER_URL);
+  }
   http.addHeader("Content-Type", "application/json");
   http.setTimeout(8000);
   int code = http.POST(payload);
   String response = code > 0 ? http.getString() : "";
+  if (code <= 0) {
+    Serial.print("HTTP POST failed: ");
+    Serial.println(http.errorToString(code));
+  } else {
+    Serial.print("HTTP status: ");
+    Serial.println(code);
+    if (code != 200) {
+      Serial.print("Server response: ");
+      Serial.println(response);
+    }
+  }
   http.end();
   return response;
 }
@@ -74,14 +94,26 @@ String jsonString(const String& json, const char* key) {
 
 bool connectWifi() {
   if (WiFi.status() == WL_CONNECTED) {
+    wifiConnectStarted = false;
     return true;
   }
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  uint32_t started = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - started < 15000) {
-    delay(250);
+
+  if (!wifiConnectStarted) {
+    WiFi.disconnect();
+    WiFi.mode(WIFI_STA);
+    Serial.print("Connecting to WiFi: ");
+    Serial.println(WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    wifiConnectStarted = true;
+    wifiConnectStartedAt = millis();
   }
+
+  if (millis() - wifiConnectStartedAt >= 15000) {
+    Serial.println("WiFi connection timed out.");
+    wifiConnectStarted = false;
+    return false;
+  }
+
   return WiFi.status() == WL_CONNECTED;
 }
 
@@ -227,10 +259,16 @@ void scanFingerprint() {
 
 void setup() {
   Serial.begin(115200);
+  delay(1000);
   fingerprintSerial.begin(57600, SERIAL_8N1, AS608_RX_PIN, AS608_TX_PIN);
   fingerprint.begin(57600);
 
-  connectWifi();
+  if (connectWifi()) {
+    Serial.print("ESP32 IP address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("WiFi connection failed.");
+  }
   sensorReady = fingerprint.verifyPassword();
   if (!sensorReady) {
     Serial.println("AS608 not found.");
@@ -242,15 +280,16 @@ void loop() {
     delay(1000);
     return;
   }
-  if (!sensorReady) {
-    sensorReady = fingerprint.verifyPassword();
-    delay(500);
-    return;
-  }
 
   if (millis() - lastPollAt >= 750) {
     lastPollAt = millis();
     pollServer();
+  }
+
+  if (!sensorReady) {
+    sensorReady = fingerprint.verifyPassword();
+    delay(500);
+    return;
   }
   scanFingerprint();
 }

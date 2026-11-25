@@ -23,6 +23,11 @@ if ($pass === false) {
 }
 $pass = $pass === false ? '' : $pass;
 $sslCa = $_ENV['DB_SSL_CA'] ?? getenv('DB_SSL_CA');
+$ifMissing = $sslCa === false || $sslCa === '';
+$bundledSslCa = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'certs' . DIRECTORY_SEPARATOR . 'isrgrootx1.pem';
+if ($ifMissing && is_file($bundledSslCa)) {
+    $sslCa = $bundledSslCa;
+}
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
