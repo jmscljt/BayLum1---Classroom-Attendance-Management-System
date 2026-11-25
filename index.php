@@ -248,10 +248,6 @@ switch ($page) {
         $view = $projectRoot . '/app/Views/Teachers/accountSettings.php';
         break;
 
-    case 'teachers_settings':
-        header('Location: index.php?page=accountSettings');
-        exit();
-
     case 'studentAbsences':
         $controller = new StudentsController($pdo);
         $controller->handleStudentAbsencesRequest($_SESSION, $_GET);

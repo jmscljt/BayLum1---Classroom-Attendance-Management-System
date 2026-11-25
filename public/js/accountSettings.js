@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const editButton = document.getElementById('editAssignedSection');
-    const form = document.getElementById('settingsSectionForm');
     const gradeSelect = document.getElementById('settingsGrade');
     const sectionSelect = document.getElementById('settingsSection');
 
@@ -36,8 +34,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
     loadSections();
     gradeSelect.addEventListener('change', loadSections);
-
-    editButton.addEventListener('click', function () {
-        form.hidden = !form.hidden;
-    });
 });

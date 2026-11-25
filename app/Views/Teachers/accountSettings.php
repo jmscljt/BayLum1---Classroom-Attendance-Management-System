@@ -7,6 +7,14 @@ $currentPage = 'accountSettings';
 $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 $teacherName = $_SESSION['user_name'] ?? 'Teacher Name';
 $teacherUniqueId = $_SESSION['user_unique_id'] ?? 'Not available';
+$teacherEmail = $_SESSION['user_email'] ?? ($account['email'] ?? 'Not available');
+$teacherFirstName = $account['first_name'] ?? ($_SESSION['user_first_name'] ?? '');
+$teacherLastName = $account['last_name'] ?? ($_SESSION['user_last_name'] ?? '');
+if ($teacherFirstName === '' && $teacherLastName === '') {
+    $nameParts = preg_split('/\s+/', trim($teacherName), 2);
+    $teacherFirstName = $nameParts[0] ?? '';
+    $teacherLastName = $nameParts[1] ?? '';
+}
 $assignedGrade = $_SESSION['assigned_grade_level'] ?? 'Select Grade';
 $advisorySection = $_SESSION['advisory_section'] ?? 'Select Section';
 $result = $accountResult ?? null;
@@ -45,30 +53,29 @@ $result = $accountResult ?? null;
                         <?= $escape($result['message'] ?? '') ?>
                     </div>
                 <?php endif; ?>
-                <div class="teacher-settings-details">
-                    <div class="settings-detail">
-                        <span class="settings-label">Unique ID (View Only)</span>
-                        <span class="settings-value"><?= $escape($teacherUniqueId) ?></span>
-                    </div>
-                    <div class="settings-detail">
-                        <span class="settings-label">Username</span>
-                        <span class="settings-value"><?= $escape($teacherName) ?></span>
-                    </div>
-
-                    <div class="settings-detail settings-section-detail">
-                        <div class="settings-handled-values">
-                            <span class="settings-label">Section (Handled)</span>
-                            <span class="settings-value"><?= $escape($assignedGrade) ?> - <?= $escape($advisorySection) ?></span>
-                        </div>
-                        <button type="button" id="editAssignedSection" class="settings-button settings-secondary-button">
-                            Edit
-                        </button>
-                    </div>
-                </div>
-
-                <form action="index.php?page=accountSettings" method="POST" id="settingsSectionForm" class="teacher-settings-form settings-section-form" hidden>
-                    <input type="hidden" name="action" value="update_section">
+                <form action="index.php?page=accountSettings" method="POST" id="profileForm" class="teacher-settings-form">
+                    <input type="hidden" name="action" value="update_profile">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
+                    <div class="teacher-settings-details">
+                        <div class="settings-detail">
+                            <span class="settings-label">Unique ID (View Only)</span>
+                            <span class="settings-value"><?= $escape($teacherUniqueId) ?></span>
+                        </div>
+                        <div class="settings-form-row profile-name-fields">
+                            <div class="settings-field">
+                                <label for="teacherFirstName">First Name</label>
+                                <input type="text" id="teacherFirstName" name="first_name" value="<?= $escape($teacherFirstName) ?>" required>
+                            </div>
+                            <div class="settings-field">
+                                <label for="teacherLastName">Last Name</label>
+                                <input type="text" id="teacherLastName" name="last_name" value="<?= $escape($teacherLastName) ?>" required>
+                            </div>
+                        </div>
+                        <div class="settings-detail settings-field">
+                            <label for="teacherEmail">Email</label>
+                            <input type="email" id="teacherEmail" name="email" value="<?= $escape($teacherEmail) ?>" required>
+                        </div>
+                    </div>
                     <div class="settings-form-row">
                         <div class="settings-field">
                             <label for="settingsGrade">Grade</label>
@@ -82,8 +89,8 @@ $result = $accountResult ?? null;
                                 <option value="" disabled>Select Section</option>
                             </select>
                         </div>
-                        <button type="submit" class="settings-button">Save</button>
                     </div>
+                    <button type="submit" class="settings-button">Update Profile</button>
                 </form>
             </section>
 

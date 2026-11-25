@@ -165,7 +165,7 @@ class TeachersModel{
     public function getTeacherAccount(int $teacherId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT t.id, t.user_id, t.full_name, t.section_id,
+            'SELECT t.id, t.user_id, t.full_name, t.first_name, t.last_name, t.email, t.section_id,
                 s.grade_level AS assigned_grade_level,
                 s.section_name AS advisory_section
              FROM teachers t
@@ -188,6 +188,91 @@ class TeachersModel{
         );
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateTeacherProfile(
+        int $teacherId,
+        string $firstName,
+        string $lastName,
+        string $email,
+        int $sectionId
+    ): array {
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+        $fullName = trim($firstName . ' ' . $lastName);
+        $email = trim($email);
+
+        if ($firstName === '' || $lastName === '') {
+            return ['success' => false, 'message' => 'First name and last name cannot be empty.'];
+        }
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return ['success' => false, 'message' => 'Please enter a valid email address.'];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $teacherStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers WHERE id = ? FOR UPDATE'
+            );
+            $teacherStmt->execute([$teacherId]);
+            if (!$teacherStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Your account could not be found.'];
+            }
+
+            $emailStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers WHERE email = ? AND id <> ? LIMIT 1'
+            );
+            $emailStmt->execute([$email, $teacherId]);
+            if ($emailStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'That email is already registered to another account.'];
+            }
+
+            $sectionStmt = $this->pdo->prepare(
+                'SELECT section_id FROM sections WHERE section_id = ? FOR UPDATE'
+            );
+            $sectionStmt->execute([$sectionId]);
+            if (!$sectionStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'The selected section does not exist.'];
+            }
+
+            $assignedStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers
+                 WHERE section_id = ? AND id <> ?
+                 LIMIT 1 FOR UPDATE'
+            );
+            $assignedStmt->execute([$sectionId, $teacherId]);
+            if ($assignedStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'This section is already assigned to another teacher.'];
+            }
+
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE teachers SET first_name = ?, last_name = ?, full_name = ?, email = ?, section_id = ? WHERE id = ?'
+            );
+            $updateStmt->execute([$firstName, $lastName, $fullName, $email, $sectionId, $teacherId]);
+            $this->pdo->commit();
+
+            $account = $this->getTeacherAccount($teacherId);
+            if (!$account) {
+                return ['success' => false, 'message' => 'Unable to refresh your account information.'];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Profile updated successfully.',
+                'account' => $account,
+            ];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Teacher profile update error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to update your profile. Please try again.'];
+        }
     }
 
     public function updateTeacherSection(int $teacherId, int $sectionId): array

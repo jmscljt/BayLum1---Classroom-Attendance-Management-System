@@ -29,20 +29,30 @@ class AccountSettingsController extends TeachersController
                 $action = $post['action'] ?? '';
                 $teacherId = (int) $session['user_id'];
 
-                if ($action === 'update_section') {
+                if ($action === 'update_profile') {
+                    $firstName = trim((string) ($post['first_name'] ?? ''));
+                    $lastName = trim((string) ($post['last_name'] ?? ''));
+                    $email = trim((string) ($post['email'] ?? ''));
                     $sectionId = filter_var($post['section_id'] ?? null, FILTER_VALIDATE_INT);
-                    if ($sectionId === false || $sectionId < 1) {
+                    if ($firstName === '' || $lastName === '' || $email === '' || $sectionId === false || $sectionId < 1) {
                         $session['account_form_result'] = [
                             'success' => false,
-                            'message' => 'Please select a valid grade and section.',
+                            'message' => 'Please enter your first name, last name, and email, and select a valid grade and section.',
                         ];
                     } else {
-                        $session['account_form_result'] = $this->updateTeacherSection(
+                        $session['account_form_result'] = $this->updateTeacherProfile(
                             $teacherId,
+                            $firstName,
+                            $lastName,
+                            $email,
                             (int) $sectionId
                         );
                         if (!empty($session['account_form_result']['success'])) {
                             $account = $session['account_form_result']['account'];
+                            $session['user_name'] = $account['full_name'];
+                            $session['user_email'] = $account['email'] ?? '';
+                            $session['user_first_name'] = $account['first_name'] ?? '';
+                            $session['user_last_name'] = $account['last_name'] ?? '';
                             $session['section_id'] = $account['section_id'] ?? null;
                             $session['assigned_grade_level'] = $account['assigned_grade_level'] ?? '';
                             $session['advisory_section'] = $account['advisory_section'] ?? '';
@@ -75,6 +85,9 @@ class AccountSettingsController extends TeachersController
         if ($account) {
             $session['user_name'] = $account['full_name'];
             $session['user_unique_id'] = $account['user_id'];
+            $session['user_email'] = $account['email'] ?? '';
+            $session['user_first_name'] = $account['first_name'] ?? '';
+            $session['user_last_name'] = $account['last_name'] ?? '';
             $session['section_id'] = $account['section_id'];
             $session['assigned_grade_level'] = $account['assigned_grade_level'] ?? '';
             $session['advisory_section'] = $account['advisory_section'] ?? '';

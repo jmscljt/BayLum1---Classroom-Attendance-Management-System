@@ -89,6 +89,7 @@ require_once __DIR__ . '/TeachersController.php';
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_name'] = $user['full_name'];
                     $_SESSION['user_unique_id'] = $user['user_id'];
+                    $_SESSION['user_email'] = $user['email'] ?? '';
                     $_SESSION['section_id'] = $user['section_id'] ?? null;
 
                     $_SESSION['assigned_grade_level'] = $user['assigned_grade_level'] ?? $user['grade_level'] ?? '';
