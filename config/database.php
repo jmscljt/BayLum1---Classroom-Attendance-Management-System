@@ -1,9 +1,23 @@
 <?php
 $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST');
-$port = $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: '4000';
-$db   = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'bl1es_database';
+$port = $_ENV['DB_PORT'] ?? getenv('DB_PORT');
+$db   = $_ENV['DB_NAME'] ?? getenv('DB_NAME');
 $user = $_ENV['DB_USER'] ?? getenv('DB_USER');
 $pass = $_ENV['DB_PASS'] ?? getenv('DB_PASS');
+
+// Use XAMPP defaults only when no deployment database variables are configured.
+if ($host === false || $host === '') {
+    $host = '127.0.0.1';
+}
+if ($port === false || $port === '') {
+    $port = '3306';
+}
+if ($db === false || $db === '') {
+    $db = 'bl1es_db';
+}
+if ($user === false || $user === '') {
+    $user = 'root';
+}
 if ($pass === false) {
     $pass = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD');
 }

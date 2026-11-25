@@ -37,32 +37,25 @@ require_once __DIR__ . '/TeachersController.php';
 
                 // Checking if success for auto login after signup
                 if ($result['success']) {
-                    $teacherStmt = $this->pdo->prepare(
-                        "SELECT t.*, s.grade_level AS assigned_grade_level,
-                            s.section_name AS advisory_section
-                        FROM teachers t
-                        LEFT JOIN sections s ON s.section_id = t.section_id
-                        WHERE t.id = ?"
+                    $sectionStmt = $this->pdo->prepare(
+                        'SELECT grade_level, section_name FROM sections WHERE section_id = ?'
                     );
-                    $teacherStmt->execute([$result['insert_id']]);
-                    $teacher = $teacherStmt->fetch(PDO::FETCH_ASSOC);
+                    $sectionStmt->execute([$sectionId]);
+                    $section = $sectionStmt->fetch(PDO::FETCH_ASSOC);
 
-                    if ($teacher) {
-                        $_SESSION['user_logged_in'] = true;
-                        $_SESSION['user_id'] = $teacher['id'];
-                        $_SESSION['user_name'] = $teacher['full_name'];
-                        $_SESSION['user_unique_id'] = $teacher['user_id'];
-                        
-                        $_SESSION['assigned_grade_level'] = $teacher['assigned_grade_level'] ?? '';
-                        $_SESSION['advisory_section'] = $teacher['advisory_section'] ?? '';
-                        $_SESSION['section_id'] = $teacher['section_id'] ?? null;
+                    $_SESSION['user_logged_in'] = true;
+                    $_SESSION['user_id'] = $result['insert_id'];
+                    $_SESSION['user_name'] = $result['full_name'];
+                    $_SESSION['user_unique_id'] = $result['user_id'];
+                    $_SESSION['assigned_grade_level'] = $section['grade_level'] ?? '';
+                    $_SESSION['advisory_section'] = $section['section_name'] ?? '';
+                    $_SESSION['section_id'] = $sectionId;
 
-                        $_SESSION['auth_message'] = "Account successfully created! Please log in.";
-                        $_SESSION['auth_message_type'] = "success";
+                    $_SESSION['auth_message'] = "Account successfully created! Please log in.";
+                    $_SESSION['auth_message_type'] = "success";
 
-                        header('Location: index.php?page=login');
-                        exit();
-                    }
+                    header('Location: index.php?page=login');
+                    exit();
                 }
 
                 // If it fails, save error and redirect back to signup form (not login!)
