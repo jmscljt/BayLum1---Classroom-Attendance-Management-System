@@ -24,10 +24,15 @@ class ManualAttendanceController
         try {
             $result = $this->process($post['manual_attendance'] ?? '', $session);
         } catch (PDOException | RuntimeException $e) {
-            error_log('Manual attendance error: ' . $e->getMessage());
+            $sqlState = $e instanceof PDOException ? (string) $e->getCode() : 'runtime';
+            error_log(
+                'Manual attendance error: '
+                . $e->getMessage()
+                . ' (SQLSTATE/class: ' . $sqlState . ')'
+            );
             $result = [
                 'success' => false,
-                'message' => 'Attendance could not be processed. Check that the manual-attendance database setup has been applied.',
+                'message' => 'Attendance could not be processed due to a database error. Please try again.',
             ];
         }
 
