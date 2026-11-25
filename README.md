@@ -31,3 +31,5 @@ Do not use the local XAMPP database as the production database. The application 
 ## TiDB teacher schema migration
 
 After importing the database, run `database/migrations/20261124_fix_teacher_id_autoincrement.sql` in TiDB. The `teachers.id` column must use `AUTO_INCREMENT` because account signup inserts a teacher without supplying the ID.
+
+Run `database/migrations/20261125_add_manual_attendance_schema.sql` as well. It creates or repairs the manual-attendance code, session, and record tables. Imported schemas may already contain these tables, so the migration ensures their `id` columns use `AUTO_INCREMENT`.

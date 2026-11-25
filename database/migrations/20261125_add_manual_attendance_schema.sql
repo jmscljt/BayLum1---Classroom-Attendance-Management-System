@@ -36,3 +36,11 @@ CREATE TABLE IF NOT EXISTS manual_attendance_records (
     INDEX idx_manual_record_lookup
         (teacher_id, section_id, attendance_date, attendance_type)
 ) ENGINE=InnoDB;
+
+-- Repair tables imported from older MySQL/MariaDB dumps. These tables may
+-- already exist but have primary keys that are not AUTO_INCREMENT.
+ALTER TABLE manual_attendance_sessions
+    MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE manual_attendance_records
+    MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT;

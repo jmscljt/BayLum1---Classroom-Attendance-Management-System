@@ -777,6 +777,13 @@ class TeachersModel{
             ) ENGINE=InnoDB'
         );
 
+        foreach (['manual_attendance_sessions', 'manual_attendance_records'] as $table) {
+            $this->pdo->exec(
+                "ALTER TABLE {$table}
+                 MODIFY COLUMN id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT"
+            );
+        }
+
         $methodColumn = $this->pdo->query(
             "SHOW COLUMNS FROM manual_attendance_records LIKE 'attendance_method'"
         )->fetch(PDO::FETCH_ASSOC);
