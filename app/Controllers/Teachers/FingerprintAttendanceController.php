@@ -95,13 +95,6 @@ class FingerprintAttendanceController
                             $hasFingerprintId ? (int) $fingerprintId : null
                         );
                 }
-                if ($action === 'check_enrollment' && $result['success']) {
-                    $commandId = $this->queueEnrollment(
-                        $studentLrn,
-                        (int) $result['fingerprint_id']
-                    );
-                    $result['command_id'] = $commandId;
-                }
             }
 
             if (!$result['success']) {

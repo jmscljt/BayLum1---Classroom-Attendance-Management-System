@@ -25,7 +25,8 @@ $pass = $pass === false ? '' : $pass;
 $sslCa = $_ENV['DB_SSL_CA'] ?? getenv('DB_SSL_CA');
 $ifMissing = $sslCa === false || $sslCa === '';
 $bundledSslCa = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'certs' . DIRECTORY_SEPARATOR . 'isrgrootx1.pem';
-if ($ifMissing && is_file($bundledSslCa)) {
+$isLocalHost = in_array(strtolower((string) $host), ['127.0.0.1', 'localhost', '::1'], true);
+if ($ifMissing && !$isLocalHost && is_file($bundledSslCa)) {
     $sslCa = $bundledSslCa;
 }
 $charset = 'utf8mb4';
