@@ -206,8 +206,15 @@ class AdminModel
 
     public function deactivateStudent(string $lrn): array
     {
+        $fingerprintStatement = $this->pdo->prepare(
+            'SELECT fingerprint_id FROM students
+             WHERE student_id = :lrn AND is_active = 1'
+        );
+        $fingerprintStatement->execute(['lrn' => $lrn]);
+        $fingerprintId = $fingerprintStatement->fetchColumn();
+
         $statement = $this->pdo->prepare(
-            'UPDATE students SET is_active = 0
+            'UPDATE students SET is_active = 0, fingerprint_id = NULL
              WHERE student_id = :lrn AND is_active = 1'
         );
         $statement->execute(['lrn' => $lrn]);
@@ -215,8 +222,14 @@ class AdminModel
         if ($statement->rowCount() !== 1) {
             return ['success' => false, 'message' => 'Student not found.'];
         }
-
-        return ['success' => true, 'message' => 'Student deactivated successfully.'];
+        $deletedFingerprintId = $fingerprintId !== false && $fingerprintId !== null
+            ? (int) $fingerprintId
+            : null;
+        return [
+            'success' => true,
+            'message' => 'Student deactivated successfully.',
+            'deleted_fingerprint_id' => $deletedFingerprintId,
+        ];
     }
 
     public function getSections(): array

@@ -5,9 +5,11 @@ require_once __DIR__ . '/../../Models/Teachers/TeachersModel.php';
 class FingerprintAttendanceController
 {
     private TeachersModel $teachersModel;
+    private PDO $pdo;
 
     public function __construct(PDO $pdo)
     {
+        $this->pdo = $pdo;
         $this->teachersModel = new TeachersModel($pdo);
     }
 
@@ -51,12 +53,17 @@ class FingerprintAttendanceController
         if (
             !is_string($action)
             || !in_array($action, ['attendance', 'check_enrollment', 'save_enrollment'], true)
-            || (!is_int($fingerprintId) && !(is_string($fingerprintId) && ctype_digit($fingerprintId)))
-            || (int) $fingerprintId < 1
-            || (int) $fingerprintId > 127
         ) {
-            $this->respond(400, ['error' => 'Choose a valid action and fingerprint ID from 1 to 127.']);
+            $this->respond(400, ['error' => 'Choose a valid fingerprint action.']);
             return;
+        }
+        $hasFingerprintId = is_int($fingerprintId)
+            || (is_string($fingerprintId) && ctype_digit($fingerprintId));
+        if ($action === 'attendance') {
+            if (!$hasFingerprintId || (int) $fingerprintId < 1 || (int) $fingerprintId > 127) {
+                $this->respond(400, ['error' => 'Choose a valid fingerprint ID from 1 to 127.']);
+                return;
+            }
         }
 
         try {
@@ -71,17 +78,16 @@ class FingerprintAttendanceController
                     $this->respond(400, ['error' => 'Select a valid student LRN.']);
                     return;
                 }
-
                 $result = $action === 'check_enrollment'
                     ? $this->teachersModel->checkFingerprintEnrollment(
                         (int) $session['user_id'],
                         $studentLrn,
-                        (int) $fingerprintId
+                        $hasFingerprintId ? (int) $fingerprintId : null
                     )
                     : $this->teachersModel->saveFingerprintEnrollment(
                         (int) $session['user_id'],
                         $studentLrn,
-                        (int) $fingerprintId
+                        $hasFingerprintId ? (int) $fingerprintId : null
                     );
             }
 
@@ -93,6 +99,10 @@ class FingerprintAttendanceController
             $this->respond(200, [
                 'success' => true,
                 'message' => $result['message'],
+                'fingerprint_id' => $result['fingerprint_id'] ?? null,
+                'command_id' => $result['command_id'] ?? null,
+                'connected' => $result['connected'] ?? null,
+                'sensor_ready' => $result['sensor_ready'] ?? null,
             ]);
         } catch (PDOException | RuntimeException $e) {
             error_log('Fingerprint attendance error: ' . $e->getMessage());

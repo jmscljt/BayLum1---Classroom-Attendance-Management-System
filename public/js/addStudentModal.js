@@ -61,7 +61,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const middleNameInput = document.getElementById("edit_middle_name");
     const lastNameInput = document.getElementById("edit_last_name");
     const suffixInput = document.getElementById("edit_suffix");
-    const fingerprintIdInput = document.getElementById("edit_fingerprint_id");
+    const clearFingerprintInput = document.getElementById("clear_fingerprint_id");
+    const fingerprintStatus = document.getElementById("edit_fingerprint_status");
     const genderInput = document.getElementById("edit_gender");
 
     document.querySelectorAll(".btn-edit").forEach(function(button) {
@@ -73,7 +74,11 @@ document.addEventListener("DOMContentLoaded", function() {
             middleNameInput.value = button.dataset.middleName || "";
             lastNameInput.value = button.dataset.lastName || "";
             suffixInput.value = button.dataset.suffix || "";
-            fingerprintIdInput.value = button.dataset.fingerprintId || "";
+            clearFingerprintInput.checked = false;
+            const fingerprintId = button.dataset.fingerprintId || "";
+            fingerprintStatus.textContent = fingerprintId
+                ? `Registered fingerprint ID: ${fingerprintId}`
+                : "No fingerprint is currently registered.";
             genderInput.value = button.dataset.gender || "";
             editModal.style.display = "flex";
             editModal.setAttribute("aria-hidden", "false");

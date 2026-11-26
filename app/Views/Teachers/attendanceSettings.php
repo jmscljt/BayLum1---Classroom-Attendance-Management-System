@@ -54,10 +54,10 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
                 data-endpoint="index.php?page=fingerprintAttendance"
                 data-csrf-token="<?= $escape($csrfToken) ?>">
                 <h3>AS608 Fingerprint Attendance</h3>
-                <p>Connect the Uno here. Choose an active student and an unused sensor ID from 1 to 127. This can register a new student or replace an existing mapping. Keep the same finger on the reader when prompted.</p>
-                <button type="button" class="view-btn" id="connectFingerprintReader">Connect AS608 Reader</button>
-                <button type="button" class="view-btn" id="disconnectFingerprintReader" hidden>Disconnect</button>
-                <p id="fingerprintReaderStatus" role="status" aria-live="polite">Not connected. Open this site in Chrome or Edge on localhost or HTTPS.</p>
+                <p>Choose an active student. Plug the ESP32 into this laptop and connect it below. The next available sensor ID from 1 to 127 is assigned automatically.</p>
+                <p><strong>AS608 capacity:</strong> <?= (int) $fingerprintCapacity['used'] ?> of <?= (int) $fingerprintCapacity['total'] ?> slots used; <?= (int) $fingerprintCapacity['available'] ?> available.</p>
+                <p id="fingerprintReaderStatus" role="status" aria-live="polite">ESP32 is not connected. Connect it through this browser.</p>
+                <button type="button" class="view-btn" id="connectFingerprintReaderButton">Connect ESP32 Reader</button>
 
                 <form id="fingerprintEnrollForm">
                     <div class="form-group">
@@ -98,10 +98,6 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="fingerprintSlot">Unused AS608 ID (1-127)</label>
-                        <input type="number" id="fingerprintSlot" name="fingerprint_id" min="1" max="127" required>
                     </div>
                     <button type="submit" class="view-btn" id="enrollFingerprintButton" disabled>Enroll Selected Student</button>
                 </form>

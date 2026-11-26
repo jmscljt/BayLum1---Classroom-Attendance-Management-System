@@ -1,66 +1,18 @@
+#include <HardwareSerial.h>
 #include <Adafruit_Fingerprint.h>
-#include <SoftwareSerial.h>
 
-SoftwareSerial fingerprintSerial(2, 3);
+#define AS608_RX_PIN 16
+#define AS608_TX_PIN 17
+
+HardwareSerial fingerprintSerial(2);
 Adafruit_Fingerprint fingerprint(&fingerprintSerial);
+
+uint32_t lastMatchAt = 0;
+uint16_t lastMatchedId = 0;
 bool sensorReady = false;
-
-bool captureFingerprint(uint8_t bufferNumber);
-void waitForFingerRemoval();
-void processCommand(String command);
-void enrollFingerprint(uint8_t id);
-
-void setup() {
-  Serial.begin(57600);
-  fingerprint.begin(57600);
-
-  if (fingerprint.verifyPassword()) {
-    sensorReady = true;
-    Serial.println("READY");
-  } else {
-    Serial.println("ERROR:AS608_NOT_FOUND");
-  }
-}
-
-void loop() {
-  if (Serial.available()) {
-    String command = Serial.readStringUntil('\n');
-    command.trim();
-    processCommand(command);
-    return;
-  }
-  if (!sensorReady) {
-    delay(100);
-    return;
-  }
-
-  uint8_t result = fingerprint.getImage();
-  if (result == FINGERPRINT_NOFINGER) {
-    delay(50);
-    return;
-  }
-  if (result != FINGERPRINT_OK) {
-    Serial.println("ERROR:IMAGE_CAPTURE");
-    waitForFingerRemoval();
-    return;
-  }
-  if (fingerprint.image2Tz() != FINGERPRINT_OK) {
-    Serial.println("NO_MATCH");
-    waitForFingerRemoval();
-    return;
-  }
-  if (fingerprint.fingerFastSearch() == FINGERPRINT_OK) {
-    Serial.print("MATCH:");
-    Serial.println(fingerprint.fingerID);
-  } else {
-    Serial.println("NO_MATCH");
-  }
-  waitForFingerRemoval();
-}
+String serialBuffer = "";
 
 bool captureFingerprint(uint8_t bufferNumber) {
-  Serial.println(bufferNumber == 1 ? "ENROLL:PLACE_FINGER" : "ENROLL:PLACE_AGAIN");
-
   uint8_t result;
   do {
     result = fingerprint.getImage();
@@ -70,93 +22,141 @@ bool captureFingerprint(uint8_t bufferNumber) {
   } while (result == FINGERPRINT_NOFINGER);
 
   if (result != FINGERPRINT_OK) {
-    Serial.println("ERROR:IMAGE_CAPTURE");
     return false;
   }
-  if (fingerprint.image2Tz(bufferNumber) != FINGERPRINT_OK) {
-    Serial.println("ERROR:IMAGE_CONVERSION");
-    return false;
-  }
-
-  return true;
+  return fingerprint.image2Tz(bufferNumber) == FINGERPRINT_OK;
 }
 
 void waitForFingerRemoval() {
-  while (true) {
-    uint8_t result = fingerprint.getImage();
-    if (result != FINGERPRINT_OK) {
-      return;
-    }
+  while (fingerprint.getImage() != FINGERPRINT_NOFINGER) {
     delay(100);
+  }
+  delay(300);
+}
+
+void processDelete(uint16_t fingerprintId) {
+  if (fingerprint.deleteModel(fingerprintId) == FINGERPRINT_OK) {
+    Serial.println("DELETED:" + String(fingerprintId));
+  } else {
+    Serial.println("ERROR:DELETE_FAILED");
   }
 }
 
-void enrollFingerprint(uint8_t id) {
-  if (fingerprint.loadModel(id) == FINGERPRINT_OK) {
+void processEnroll(uint16_t fingerprintId) {
+  if (fingerprintId < 1 || fingerprintId > 127) {
+    Serial.println("ERROR:INVALID_ID");
+    return;
+  }
+  if (fingerprint.loadModel(fingerprintId) == FINGERPRINT_OK) {
     Serial.println("ERROR:ID_IN_USE");
     return;
   }
 
+  Serial.println("ENROLL:PLACE_FINGER");
   if (!captureFingerprint(1)) {
+    Serial.println("ERROR:IMAGE_CAPTURE");
     return;
   }
+
   Serial.println("ENROLL:REMOVE_FINGER");
   waitForFingerRemoval();
+  Serial.println("ENROLL:PLACE_AGAIN");
+
   if (!captureFingerprint(2)) {
+    Serial.println("ERROR:IMAGE_CAPTURE");
     return;
   }
   if (fingerprint.createModel() != FINGERPRINT_OK) {
     Serial.println("ERROR:FINGER_MISMATCH");
+    return;
+  }
+  if (fingerprint.storeModel(fingerprintId) != FINGERPRINT_OK) {
+    Serial.println("ERROR:STORE_FAILED");
+    return;
+  }
+
+  waitForFingerRemoval();
+  Serial.println("ENROLLED:" + String(fingerprintId));
+}
+
+void scanFingerprint() {
+  uint8_t result = fingerprint.getImage();
+  if (result == FINGERPRINT_NOFINGER) {
+    delay(50);
+    return;
+  }
+  if (result != FINGERPRINT_OK) {
     waitForFingerRemoval();
     return;
   }
-  if (fingerprint.storeModel(id) != FINGERPRINT_OK) {
-    Serial.println("ERROR:STORE_FAILED");
+  if (fingerprint.image2Tz() != FINGERPRINT_OK) {
     waitForFingerRemoval();
     return;
   }
 
-  Serial.print("ENROLLED:");
-  Serial.println(id);
+  if (fingerprint.fingerFastSearch() == FINGERPRINT_OK) {
+    uint16_t fingerprintId = fingerprint.fingerID;
+    uint32_t now = millis();
+    if (fingerprintId != lastMatchedId || now - lastMatchAt > 3000) {
+      lastMatchedId = fingerprintId;
+      lastMatchAt = now;
+      Serial.println("MATCH:" + String(fingerprintId));
+    }
+  } else {
+    Serial.println("NO_MATCH");
+  }
   waitForFingerRemoval();
 }
 
-void processCommand(String command) {
-  if (!sensorReady) {
-    Serial.println("ERROR:AS608_NOT_FOUND");
-    return;
-  }
-
+void processSerialCommand(String command) {
+  command.trim();
   if (command.startsWith("ENROLL:")) {
-    String idText = command.substring(7);
-    char *end = nullptr;
-    long id = strtol(idText.c_str(), &end, 10);
-    if (idText.length() == 0 || *end != '\0' || id < 1 || id > 127) {
-      Serial.println("ERROR:ID_MUST_BE_1_TO_127");
-      return;
-    }
-    enrollFingerprint((uint8_t)id);
-    return;
+    uint16_t fingerprintId = (uint16_t) command.substring(7).toInt();
+    processEnroll(fingerprintId);
+  } else if (command.startsWith("DELETE:")) {
+    uint16_t fingerprintId = (uint16_t) command.substring(7).toInt();
+    processDelete(fingerprintId);
+  } else if (command == "PING") {
+    Serial.println(sensorReady ? "READY" : "AS608_NOT_READY");
   }
+}
 
-  if (command.startsWith("DELETE:")) {
-    String idText = command.substring(7);
-    char *end = nullptr;
-    long id = strtol(idText.c_str(), &end, 10);
-    if (idText.length() == 0 || *end != '\0' || id < 1 || id > 127) {
-      Serial.println("ERROR:ID_MUST_BE_1_TO_127");
-      return;
-    }
-    if (fingerprint.deleteModel((uint16_t)id) == FINGERPRINT_OK) {
-      Serial.print("DELETED:");
-      Serial.println(id);
+void setup() {
+  Serial.begin(115200);
+  fingerprintSerial.begin(57600, SERIAL_8N1, AS608_RX_PIN, AS608_TX_PIN);
+  fingerprint.begin(57600);
+  delay(1000);
+
+  sensorReady = fingerprint.verifyPassword();
+  if (sensorReady) {
+    Serial.println("READY");
+  } else {
+    Serial.println("ERROR:AS608_NOT_FOUND");
+  }
+}
+
+void loop() {
+  while (Serial.available() > 0) {
+    char received = (char) Serial.read();
+    if (received == '\n' || received == '\r') {
+      if (serialBuffer.length() > 0) {
+        processSerialCommand(serialBuffer);
+        serialBuffer = "";
+      }
     } else {
-      Serial.println("ERROR:DELETE_FAILED");
+      serialBuffer += received;
+    }
+  }
+
+  if (!sensorReady) {
+    sensorReady = fingerprint.verifyPassword();
+    if (sensorReady) {
+      Serial.println("READY");
+    } else {
+      delay(500);
     }
     return;
   }
 
-  if (command.length() > 0) {
-    Serial.println("ERROR:UNKNOWN_COMMAND");
-  }
+  scanFingerprint();
 }

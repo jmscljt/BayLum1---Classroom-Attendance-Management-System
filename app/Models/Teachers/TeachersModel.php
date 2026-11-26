@@ -72,10 +72,27 @@ class TeachersModel{
                 ];
             }
 
-            $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
-       
+            $idColumnStmt = $this->pdo->query("SHOW COLUMNS FROM teachers LIKE 'id'");
+            $idColumn = $idColumnStmt->fetch(PDO::FETCH_ASSOC);
+            $usesAutoIncrement = $idColumn && stripos((string) ($idColumn['Extra'] ?? ''), 'auto_increment') !== false;
+            $teacherId = null;
+
+            // Auto incrementation for making teachers account
+            if ($usesAutoIncrement) {
+                $query = "INSERT INTO teachers (user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+            } else {
+                $sequenceStmt = $this->pdo->prepare("INSERT INTO teacher_id_sequence () VALUES ()");
+                $sequenceStmt->execute();
+                $teacherId = (int) $this->pdo->lastInsertId();
+
+                $query = "INSERT INTO teachers (id, user_id, full_name, first_name, last_name, email, password, section_id) VALUES (:id, :user_id, :full_name, :first_name, :last_name, :email, :password, :section_id)";
+            }
+
             $stmt = $this->pdo->prepare($query);
-        
+
+            if ($teacherId !== null) {
+                $stmt->bindParam(':id', $teacherId, PDO::PARAM_INT);
+            }
             $stmt->bindParam(':user_id', $uniqueId, PDO::PARAM_STR);
             $stmt->bindParam(':full_name', $fullName, PDO::PARAM_STR);
             $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
@@ -89,7 +106,7 @@ class TeachersModel{
                 return [
                     'success' => true,
                     'user_id' => $uniqueId,
-                    'insert_id' => (int)$this->pdo->lastInsertId(),
+                    'insert_id' => $teacherId ?? (int) $this->pdo->lastInsertId(),
                     'full_name' => $fullName,
                 ];
             }
@@ -97,8 +114,11 @@ class TeachersModel{
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            // Log the error for debugging
-            error_log('Signup error: ' . $e->getMessage());
+            error_log(sprintf(
+                'Signup error: %s (SQLSTATE %s)',
+                $e->getMessage(),
+                $e->getCode()
+            ));
             return ['success' => false, 'message' => 'Unable to create the account. Please try again.'];
         }
 
@@ -145,7 +165,7 @@ class TeachersModel{
     public function getTeacherAccount(int $teacherId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT t.id, t.user_id, t.full_name, t.section_id,
+            'SELECT t.id, t.user_id, t.full_name, t.first_name, t.last_name, t.email, t.section_id,
                 s.grade_level AS assigned_grade_level,
                 s.section_name AS advisory_section
              FROM teachers t
@@ -168,6 +188,91 @@ class TeachersModel{
         );
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateTeacherProfile(
+        int $teacherId,
+        string $firstName,
+        string $lastName,
+        string $email,
+        int $sectionId
+    ): array {
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
+        $fullName = trim($firstName . ' ' . $lastName);
+        $email = trim($email);
+
+        if ($firstName === '' || $lastName === '') {
+            return ['success' => false, 'message' => 'First name and last name cannot be empty.'];
+        }
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return ['success' => false, 'message' => 'Please enter a valid email address.'];
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $teacherStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers WHERE id = ? FOR UPDATE'
+            );
+            $teacherStmt->execute([$teacherId]);
+            if (!$teacherStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Your account could not be found.'];
+            }
+
+            $emailStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers WHERE email = ? AND id <> ? LIMIT 1'
+            );
+            $emailStmt->execute([$email, $teacherId]);
+            if ($emailStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'That email is already registered to another account.'];
+            }
+
+            $sectionStmt = $this->pdo->prepare(
+                'SELECT section_id FROM sections WHERE section_id = ? FOR UPDATE'
+            );
+            $sectionStmt->execute([$sectionId]);
+            if (!$sectionStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'The selected section does not exist.'];
+            }
+
+            $assignedStmt = $this->pdo->prepare(
+                'SELECT id FROM teachers
+                 WHERE section_id = ? AND id <> ?
+                 LIMIT 1 FOR UPDATE'
+            );
+            $assignedStmt->execute([$sectionId, $teacherId]);
+            if ($assignedStmt->fetchColumn()) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'This section is already assigned to another teacher.'];
+            }
+
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE teachers SET first_name = ?, last_name = ?, full_name = ?, email = ?, section_id = ? WHERE id = ?'
+            );
+            $updateStmt->execute([$firstName, $lastName, $fullName, $email, $sectionId, $teacherId]);
+            $this->pdo->commit();
+
+            $account = $this->getTeacherAccount($teacherId);
+            if (!$account) {
+                return ['success' => false, 'message' => 'Unable to refresh your account information.'];
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Profile updated successfully.',
+                'account' => $account,
+            ];
+        } catch (PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log('Teacher profile update error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Unable to update your profile. Please try again.'];
+        }
     }
 
     public function updateTeacherSection(int $teacherId, int $sectionId): array
@@ -255,19 +360,15 @@ class TeachersModel{
         }
 
         try {
-            $this->pdo->beginTransaction();
-
             $stmt = $this->pdo->prepare(
                 'SELECT password
                  FROM teachers
-                 WHERE id = ?
-                 FOR UPDATE'
+                 WHERE id = ?'
             );
             $stmt->execute([$teacherId]);
             $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$teacher || !password_verify($currentPassword, $teacher['password'])) {
-                $this->pdo->rollBack();
                 return ['success' => false, 'message' => 'Current password is incorrect.'];
             }
 
@@ -276,13 +377,9 @@ class TeachersModel{
                 'UPDATE teachers SET password = ? WHERE id = ?'
             );
             $updateStmt->execute([$hashedPassword, $teacherId]);
-            $this->pdo->commit();
 
             return ['success' => true, 'message' => 'Password updated successfully.'];
         } catch (PDOException $e) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
             error_log('Teacher password update error: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Unable to update your password. Please try again.'];
         }
@@ -352,7 +449,7 @@ class TeachersModel{
 
     public function updateStudent(string $currentStudentId, int $sectionId, array $studentData): array
     {
-        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'suffix', 'gender', 'fingerprint_id'] as $field) {
+        foreach (['lrn', 'first_name', 'middle_name', 'last_name', 'suffix', 'gender', 'fingerprint_id', 'clear_fingerprint_id'] as $field) {
             if (isset($studentData[$field]) && !is_string($studentData[$field])) {
                 return ['success' => false, 'message' => 'Enter valid student details and select a gender.'];
             }
@@ -365,6 +462,28 @@ class TeachersModel{
         $suffix = trim($studentData['suffix'] ?? '');
         $gender = trim($studentData['gender'] ?? '');
         $fingerprintId = trim($studentData['fingerprint_id'] ?? '');
+        $clearFingerprint = ($studentData['clear_fingerprint_id'] ?? '') === '1';
+
+        if (!$clearFingerprint && !isset($studentData['fingerprint_id'])) {
+            $currentFingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1'
+            );
+            $currentFingerprintStmt->execute([
+                ':student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+            $existingFingerprintId = $currentFingerprintStmt->fetchColumn();
+            $fingerprintId = $existingFingerprintId === false || $existingFingerprintId === null
+                ? ''
+                : (string) $existingFingerprintId;
+        }
+        if ($clearFingerprint) {
+            $fingerprintId = '';
+        }
 
         if (
             preg_match('/^\d{1,19}$/D', $studentId) !== 1
@@ -384,6 +503,25 @@ class TeachersModel{
             )
         ) {
             return ['success' => false, 'message' => 'AS608 Fingerprint ID must be a number from 1 to 127.'];
+        }
+
+        $deletedFingerprintId = null;
+        if ($clearFingerprint) {
+            $oldFingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1'
+            );
+            $oldFingerprintStmt->execute([
+                ':student_id' => $currentStudentId,
+                ':section_id' => $sectionId,
+            ]);
+            $oldFingerprintId = $oldFingerprintStmt->fetchColumn();
+            if ($oldFingerprintId !== false && $oldFingerprintId !== null) {
+                $deletedFingerprintId = (int) $oldFingerprintId;
+            }
         }
 
         try {
@@ -480,7 +618,11 @@ class TeachersModel{
             }
 
             $this->pdo->commit();
-            return ['success' => true, 'message' => 'Student updated successfully.'];
+            return [
+                'success' => true,
+                'message' => 'Student updated successfully.',
+                'deleted_fingerprint_id' => $deletedFingerprintId,
+            ];
         } catch (PDOException $e) {
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
@@ -502,9 +644,24 @@ class TeachersModel{
     public function deactivateStudent(string $studentId, int $sectionId): array
     {
         try {
+            $fingerprintStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE student_id = :student_id
+                   AND section_id = :section_id
+                   AND is_active = 1
+                 FOR UPDATE'
+            );
+            $fingerprintStmt->execute([
+                ':student_id' => $studentId,
+                ':section_id' => $sectionId,
+            ]);
+            $fingerprintId = $fingerprintStmt->fetchColumn();
+
             $stmt = $this->pdo->prepare(
                 'UPDATE students
-                 SET is_active = 0
+                 SET is_active = 0,
+                     fingerprint_id = NULL
                  WHERE student_id = :student_id
                     AND section_id = :section_id
                     AND is_active = 1'
@@ -517,8 +674,14 @@ class TeachersModel{
             if ($stmt->rowCount() !== 1) {
                 return ['success' => false, 'message' => 'Student not found in your assigned section.'];
             }
-
-            return ['success' => true, 'message' => 'Student removed from the list. Attendance history was preserved.'];
+            $deletedFingerprintId = $fingerprintId !== false && $fingerprintId !== null
+                ? (int) $fingerprintId
+                : null;
+            return [
+                'success' => true,
+                'message' => 'Student removed from the list. Attendance history was preserved.',
+                'deleted_fingerprint_id' => $deletedFingerprintId,
+            ];
         } catch (PDOException $e) {
             error_log('Remove student error: ' . $e->getMessage());
             return [
@@ -569,8 +732,114 @@ class TeachersModel{
         }
     }
 
+    private function ensureManualAttendanceSchema(): void
+    {
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS teacher_attendance_codes (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                code CHAR(4) NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_teacher_attendance_type (teacher_id, attendance_type),
+                UNIQUE KEY uq_teacher_attendance_code (code)
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_sessions (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                section_id BIGINT UNSIGNED NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                attendance_date DATE NOT NULL,
+                opened_at DATETIME NOT NULL,
+                closed_at DATETIME NULL,
+                INDEX idx_manual_session_teacher_active (teacher_id, closed_at),
+                INDEX idx_manual_session_section_date (section_id, attendance_date)
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_records (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                session_id BIGINT UNSIGNED NOT NULL,
+                teacher_id BIGINT UNSIGNED NOT NULL,
+                section_id BIGINT UNSIGNED NOT NULL,
+                student_id VARCHAR(19) NOT NULL,
+                attendance_date DATE NOT NULL,
+                attendance_type VARCHAR(16) NOT NULL,
+                recorded_at DATETIME NOT NULL,
+                attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual",
+                UNIQUE KEY uq_manual_attendance_record
+                    (session_id, student_id, attendance_type),
+                INDEX idx_manual_record_lookup
+                    (teacher_id, section_id, attendance_date, attendance_type)
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_session_sequence (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+            ) ENGINE=InnoDB'
+        );
+        $this->pdo->exec(
+            'CREATE TABLE IF NOT EXISTS manual_attendance_record_sequence (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+            ) ENGINE=InnoDB'
+        );
+
+        $methodColumn = $this->pdo->query(
+            "SHOW COLUMNS FROM manual_attendance_records LIKE 'attendance_method'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (!$methodColumn) {
+            $this->pdo->exec(
+                'ALTER TABLE manual_attendance_records
+                 ADD COLUMN attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual"'
+            );
+        }
+
+        $fingerprintColumn = $this->pdo->query(
+            "SHOW COLUMNS FROM students LIKE 'fingerprint_id'"
+        )->fetch(PDO::FETCH_ASSOC);
+        if (!$fingerprintColumn) {
+            $this->pdo->exec(
+                'ALTER TABLE students
+                 ADD COLUMN fingerprint_id SMALLINT UNSIGNED NULL'
+            );
+        }
+    }
+
+    private function hasAutoIncrementId(string $table): bool
+    {
+        $columnStmt = $this->pdo->query(
+            "SHOW COLUMNS FROM {$table} LIKE 'id'"
+        );
+        $column = $columnStmt->fetch(PDO::FETCH_ASSOC);
+        return $column
+            && stripos((string) ($column['Extra'] ?? ''), 'auto_increment') !== false;
+    }
+
+    private function getNextManualAttendanceId(
+        string $sequenceTable,
+        string $targetTable
+    ): int {
+        $sequenceMax = (int) $this->pdo
+            ->query("SELECT COALESCE(MAX(id), 0) FROM {$sequenceTable}")
+            ->fetchColumn();
+        $targetMax = (int) $this->pdo
+            ->query("SELECT COALESCE(MAX(id), 0) FROM {$targetTable}")
+            ->fetchColumn();
+        $nextId = max($sequenceMax, $targetMax) + 1;
+
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO {$sequenceTable} (id) VALUES (:id)"
+        );
+        $stmt->execute([':id' => $nextId]);
+        return $nextId;
+    }
+
     public function getOrCreateAttendanceCodes(int $teacherId): array
     {
+        $this->ensureManualAttendanceSchema();
         $this->pdo->beginTransaction();
 
         try {
@@ -638,6 +907,7 @@ class TeachersModel{
 
     public function processAttendanceCode(string $code, ?int $browserSessionId = null): array
     {
+        $this->ensureManualAttendanceSchema();
         $codeStmt = $this->pdo->prepare(
             'SELECT teacher_id, attendance_type
              FROM teacher_attendance_codes
@@ -732,19 +1002,42 @@ class TeachersModel{
                 ];
             }
 
-            $openStmt = $this->pdo->prepare(
-                'INSERT INTO manual_attendance_sessions
-                    (teacher_id, section_id, attendance_type, attendance_date, opened_at)
-                 VALUES (:teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
-            );
-            $openStmt->execute([
-                ':teacher_id' => $teacherId,
-                ':section_id' => (int) $sectionId,
-                ':attendance_type' => $attendanceType,
-                ':attendance_date' => date('Y-m-d'),
-                ':opened_at' => date('Y-m-d H:i:s'),
-            ]);
-            $sessionId = (int) $this->pdo->lastInsertId();
+            $sessionId = null;
+            if ($this->hasAutoIncrementId('manual_attendance_sessions')) {
+                $openStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_sessions
+                        (teacher_id, section_id, attendance_type, attendance_date, opened_at)
+                     VALUES (:teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
+                );
+                $openParameters = [
+                    ':teacher_id' => $teacherId,
+                    ':section_id' => (int) $sectionId,
+                    ':attendance_type' => $attendanceType,
+                    ':attendance_date' => date('Y-m-d'),
+                    ':opened_at' => date('Y-m-d H:i:s'),
+                ];
+                $openStmt->execute($openParameters);
+            } else {
+                $sessionId = $this->getNextManualAttendanceId(
+                    'manual_attendance_session_sequence',
+                    'manual_attendance_sessions'
+                );
+                $openStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_sessions
+                        (id, teacher_id, section_id, attendance_type, attendance_date, opened_at)
+                     VALUES (:id, :teacher_id, :section_id, :attendance_type, :attendance_date, :opened_at)'
+                );
+                $openStmt->bindValue(':id', $sessionId, PDO::PARAM_INT);
+                $openStmt->bindValue(':teacher_id', $teacherId, PDO::PARAM_INT);
+                $openStmt->bindValue(':section_id', (int) $sectionId, PDO::PARAM_INT);
+                $openStmt->bindValue(':attendance_type', $attendanceType, PDO::PARAM_STR);
+                $openStmt->bindValue(':attendance_date', date('Y-m-d'), PDO::PARAM_STR);
+                $openStmt->bindValue(':opened_at', date('Y-m-d H:i:s'), PDO::PARAM_STR);
+                $openStmt->execute();
+            }
+            if ($sessionId === null) {
+                $sessionId = (int) $this->pdo->lastInsertId();
+            }
             $this->pdo->commit();
 
             return [
@@ -763,6 +1056,7 @@ class TeachersModel{
 
     public function recordFingerprintAttendance(int $teacherId, int $fingerprintId): array
     {
+        $this->ensureManualAttendanceSchema();
         if ($fingerprintId < 1 || $fingerprintId > 127) {
             return ['success' => false, 'message' => 'The scanner reported an invalid fingerprint ID.'];
         }
@@ -848,6 +1142,7 @@ class TeachersModel{
         string $attendanceMethod = 'Manual'
     ): array
     {
+        $this->ensureManualAttendanceSchema();
         $studentLrn = trim($studentLrn);
         if (preg_match('/^\d{1,19}$/D', $studentLrn) !== 1) {
             return ['success' => false, 'message' => 'Enter a valid student LRN.'];
@@ -912,14 +1207,15 @@ class TeachersModel{
                 ];
             }
 
-            $insertStmt = $this->pdo->prepare(
-                'INSERT INTO manual_attendance_records
-                    (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
-                 VALUES
-                    (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
-            );
-            try {
-                $insertStmt->execute([
+            $recordId = null;
+            if ($this->hasAutoIncrementId('manual_attendance_records')) {
+                $insertStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_records
+                        (session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
+                     VALUES
+                        (:session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
+                );
+                $insertParameters = [
                     ':session_id' => $session['id'],
                     ':teacher_id' => $session['teacher_id'],
                     ':section_id' => $session['section_id'],
@@ -928,7 +1224,34 @@ class TeachersModel{
                     ':attendance_type' => $session['attendance_type'],
                     ':recorded_at' => date('Y-m-d H:i:s'),
                     ':attendance_method' => $attendanceMethod,
-                ]);
+                ];
+            } else {
+                $recordId = $this->getNextManualAttendanceId(
+                    'manual_attendance_record_sequence',
+                    'manual_attendance_records'
+                );
+                $insertStmt = $this->pdo->prepare(
+                    'INSERT INTO manual_attendance_records
+                        (id, session_id, teacher_id, section_id, student_id, attendance_date, attendance_type, recorded_at, attendance_method)
+                     VALUES
+                        (:id, :session_id, :teacher_id, :section_id, :student_id, :attendance_date, :attendance_type, :recorded_at, :attendance_method)'
+                );
+                $insertStmt->bindValue(':id', $recordId, PDO::PARAM_INT);
+                $insertStmt->bindValue(':session_id', (int) $session['id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':teacher_id', (int) $session['teacher_id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':section_id', (int) $session['section_id'], PDO::PARAM_INT);
+                $insertStmt->bindValue(':student_id', $studentLrn, PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_date', $session['attendance_date'], PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_type', $session['attendance_type'], PDO::PARAM_STR);
+                $insertStmt->bindValue(':recorded_at', date('Y-m-d H:i:s'), PDO::PARAM_STR);
+                $insertStmt->bindValue(':attendance_method', $attendanceMethod, PDO::PARAM_STR);
+            }
+            try {
+                if ($recordId === null) {
+                    $insertStmt->execute($insertParameters);
+                } else {
+                    $insertStmt->execute();
+                }
             } catch (PDOException $e) {
                 if ($e->getCode() === '23000') {
                     $this->pdo->rollBack();
@@ -1060,12 +1383,8 @@ class TeachersModel{
     public function checkFingerprintEnrollment(
         int $teacherId,
         string $studentLrn,
-        int $fingerprintId
+        ?int $fingerprintId = null
     ): array {
-        if ($fingerprintId < 1 || $fingerprintId > 127) {
-            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
-        }
-
         $teacherStmt = $this->pdo->prepare(
             'SELECT section_id FROM teachers WHERE id = :teacher_id'
         );
@@ -1090,6 +1409,22 @@ class TeachersModel{
         if ($currentFingerprintId === false) {
             return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
         }
+        if ($currentFingerprintId !== false && $currentFingerprintId !== null) {
+            return [
+                'success' => true,
+                'fingerprint_id' => (int) $currentFingerprintId,
+                'message' => 'This student is already registered. Re-enrollment will replace ID ' . (int) $currentFingerprintId . '.',
+            ];
+        }
+        if ($fingerprintId === null) {
+            $fingerprintId = $this->findAvailableFingerprintId();
+            if ($fingerprintId === null) {
+                return ['success' => false, 'message' => 'All AS608 fingerprint slots from 1 to 127 are currently assigned.'];
+            }
+        }
+        if ($fingerprintId < 1 || $fingerprintId > 127) {
+            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+        }
         $mappingStmt = $this->pdo->prepare(
             'SELECT student_id
              FROM students
@@ -1108,18 +1443,52 @@ class TeachersModel{
         $message = $currentFingerprintId === null
             ? 'Ready to enroll.'
             : 'This will keep or replace the student’s current mapping from ID ' . $currentFingerprintId . '.';
-        return ['success' => true, 'message' => $message];
+        return ['success' => true, 'fingerprint_id' => $fingerprintId, 'message' => $message];
+    }
+
+    public function getFingerprintCapacity(): array
+    {
+        $stmt = $this->pdo->query(
+            'SELECT COUNT(DISTINCT fingerprint_id)
+             FROM students
+             WHERE is_active = 1
+               AND fingerprint_id BETWEEN 1 AND 127'
+        );
+        $used = (int) $stmt->fetchColumn();
+        return [
+            'used' => $used,
+            'available' => 127 - $used,
+            'total' => 127,
+        ];
+    }
+
+    private function findAvailableFingerprintId(): ?int
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT fingerprint_id
+             FROM students
+             WHERE fingerprint_id IS NOT NULL
+               AND is_active = 1'
+        );
+        $stmt->execute();
+
+        $usedIds = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $usedId) {
+            $usedIds[(int) $usedId] = true;
+        }
+        for ($id = 1; $id <= 127; $id++) {
+            if (!isset($usedIds[$id])) {
+                return $id;
+            }
+        }
+        return null;
     }
 
     public function saveFingerprintEnrollment(
         int $teacherId,
         string $studentLrn,
-        int $fingerprintId
+        ?int $fingerprintId = null
     ): array {
-        if ($fingerprintId < 1 || $fingerprintId > 127) {
-            return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
-        }
-
         $this->pdo->beginTransaction();
         try {
             $teacherStmt = $this->pdo->prepare(
@@ -1148,6 +1517,34 @@ class TeachersModel{
             if ($currentFingerprintId === false) {
                 $this->pdo->rollBack();
                 return ['success' => false, 'message' => 'Select an active student in your assigned section.'];
+            }
+            if ($fingerprintId === null) {
+                $fingerprintId = $currentFingerprintId !== null
+                    ? (int) $currentFingerprintId
+                    : $this->findAvailableFingerprintId();
+                if ($fingerprintId === null) {
+                    $this->pdo->rollBack();
+                    return ['success' => false, 'message' => 'All AS608 fingerprint slots from 1 to 127 are currently assigned.'];
+                }
+            }
+            if ($fingerprintId < 1 || $fingerprintId > 127) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Fingerprint ID must be from 1 to 127.'];
+            }
+            $mappingStmt = $this->pdo->prepare(
+                'SELECT student_id
+                 FROM students
+                 WHERE fingerprint_id = :fingerprint_id
+                   AND student_id <> :student_id
+                 LIMIT 1'
+            );
+            $mappingStmt->execute([
+                ':fingerprint_id' => $fingerprintId,
+                ':student_id' => $studentLrn,
+            ]);
+            if ($mappingStmt->fetchColumn() !== false) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Fingerprint ID ' . $fingerprintId . ' is already assigned to another student.'];
             }
             $updateStmt = $this->pdo->prepare(
                 'UPDATE students

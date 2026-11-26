@@ -122,6 +122,8 @@ class StudentsController
     public function handleStudentAbsencesRequest(array $session, array $query): void
     {
         header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
 
         if (empty($session['user_logged_in']) || empty($session['user_id'])) {
             http_response_code(401);
@@ -158,6 +160,8 @@ class StudentsController
     public function handleStudentAbsenceStatusRequest(array $session, array $post): void
     {
         header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
 
         if (empty($session['user_logged_in']) || empty($session['user_id'])) {
             http_response_code(401);
@@ -257,7 +261,23 @@ class StudentsController
                 return;
             }
 
-            echo json_encode(['success' => true]);
+            $masterlist = $this->getStudentsMasterlist((int) ($session['section_id'] ?? 0));
+            $studentSummary = null;
+            foreach ($masterlist as $student) {
+                if ((string) ($student['lrn'] ?? '') === $studentId) {
+                    $studentSummary = [
+                        'present_count' => (int) ($student['present_count'] ?? 0),
+                        'absent_count' => (int) ($student['absent_count'] ?? 0),
+                        'excused_count' => (int) ($student['excused_count'] ?? 0),
+                    ];
+                    break;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'summary' => $studentSummary,
+            ]);
         } catch (PDOException | RuntimeException $e) {
             error_log('Student absence update error: ' . $e->getMessage());
             http_response_code(500);

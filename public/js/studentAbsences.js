@@ -40,13 +40,28 @@ function closeAbsencesModal() {
     }
 }
 
-function updateMasterlistCounts(previousStatus, status) {
-    if (!currentStudentRow || previousStatus === status) {
+function updateMasterlistCounts(previousStatus, status, summary) {
+    if (!currentStudentRow) {
         return;
     }
 
-    const absentCell = currentStudentRow.cells[5];
-    const excusedCell = currentStudentRow.cells[6];
+    const absentCell = currentStudentRow.cells[8];
+    const excusedCell = currentStudentRow.cells[9];
+
+    if (summary) {
+        if (Object.prototype.hasOwnProperty.call(summary, 'absent_count')) {
+            absentCell.textContent = String(Number(summary.absent_count) || 0);
+        }
+        if (Object.prototype.hasOwnProperty.call(summary, 'excused_count')) {
+            excusedCell.textContent = String(Number(summary.excused_count) || 0);
+        }
+        return;
+    }
+
+    if (previousStatus === status) {
+        return;
+    }
+
     let absentCount = Number.parseInt(absentCell.textContent, 10) || 0;
     let excusedCount = Number.parseInt(excusedCell.textContent, 10) || 0;
 
@@ -113,6 +128,7 @@ async function loadAbsences(studentId) {
     try {
         const response = await fetch(url, {
             headers: { Accept: 'application/json' },
+            cache: 'no-store',
             signal: request.signal
         });
         const result = await response.json();
@@ -204,7 +220,7 @@ async function saveAbsenceStatus(absence, status, reason = '', otherRemark = '')
             throw new Error(result.error || 'Unable to update attendance.');
         }
 
-        updateMasterlistCounts(absence.attendance_status, status);
+        updateMasterlistCounts(absence.attendance_status, status, result.summary);
         absenceStatusMessage.hidden = true;
         closeRemarksModal();
         await loadAbsences(currentStudentId);

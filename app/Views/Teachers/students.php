@@ -219,8 +219,11 @@ $currentPage = 'students';
                         </div>
 
                         <div class="form-group">
-                            <label for="edit_fingerprint_id">AS608 Fingerprint ID</label>
-                            <input type="number" id="edit_fingerprint_id" name="fingerprint_id" min="1" max="127" step="1" placeholder="1-127 (blank to unregister)">
+                            <label>
+                                <input type="checkbox" id="clear_fingerprint_id" name="clear_fingerprint_id" value="1">
+                                Remove the registered fingerprint ID
+                            </label>
+                            <p id="edit_fingerprint_status">No fingerprint is currently registered.</p>
                         </div>
 
                         <div class="form-group">

@@ -1,25 +1,26 @@
 <?php
 session_start();
 date_default_timezone_set('Asia/Manila');
-require_once 'config/database.php';
+$projectRoot = __DIR__;
+require_once $projectRoot . '/config/database.php';
 
 // Teachers/Users Controllers
-require_once 'app/Controllers/Teachers/AuthController.php';
-require_once 'app/Controllers/Teachers/LogoutController.php';
-require_once 'app/Controllers/Teachers/TeachersController.php';
-require_once 'app/Controllers/Teachers/DashboardController.php';
-require_once 'app/Controllers/Teachers/ManualAttendanceController.php';
-require_once 'app/Controllers/Teachers/StudentsController.php';
-require_once 'app/Controllers/Teachers/AttendanceLogsController.php';
-require_once 'app/Controllers/Teachers/FingerprintAttendanceController.php';
-require_once 'app/Controllers/Teachers/AttendanceSettingsController.php';
-require_once 'app/Controllers/Teachers/AccountSettingsController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/AuthController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/LogoutController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/TeachersController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/DashboardController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/ManualAttendanceController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/StudentsController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/AttendanceLogsController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/FingerprintAttendanceController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/AttendanceSettingsController.php';
+require_once $projectRoot . '/app/Controllers/Teachers/AccountSettingsController.php';
 
 //Admin Controllers
-require_once 'app/Controllers/Admin/AdminAuthController.php';
-require_once 'app/Controllers/Admin/AdminSectionsController.php';
-require_once 'app/Controllers/Admin/AdminStudentsController.php';
-require_once 'app/Controllers/Admin/AdminTeachersController.php';
+require_once $projectRoot . '/app/Controllers/Admin/AdminAuthController.php';
+require_once $projectRoot . '/app/Controllers/Admin/AdminSectionsController.php';
+require_once $projectRoot . '/app/Controllers/Admin/AdminStudentsController.php';
+require_once $projectRoot . '/app/Controllers/Admin/AdminTeachersController.php';
 
 
 
@@ -38,12 +39,12 @@ if (strpos($page, 'admin_') === 0) {
 
     // Public admin pages
     if ($adminPage === 'login') {
-        $view = 'app/Views/Admin/admin_login.php';
+        $view = $projectRoot . '/app/Views/Admin/admin_login.php';
         include $view;
         exit();
     }
     if ($adminPage === 'signup') {
-        $view = 'app/Views/Admin/admin_signup.php';
+        $view = $projectRoot . '/app/Views/Admin/admin_signup.php';
         include $view;
         exit();
     }
@@ -71,7 +72,7 @@ if (strpos($page, 'admin_') === 0) {
             exit();
 
         case 'dashboard':
-            $view = 'app/Views/Admin/admin_dashboard.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_dashboard.php';
             break;
 
         case 'manage_sections':
@@ -86,7 +87,7 @@ if (strpos($page, 'admin_') === 0) {
             $teachers = $pageData['teachers'];
             $csrfToken = $pageData['csrfToken'];
             $sectionResult = $pageData['result'];
-            $view = 'app/Views/Admin/admin_manage_sections.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_manage_sections.php';
             break;
 
         case 'manage_teachers':
@@ -99,7 +100,7 @@ if (strpos($page, 'admin_') === 0) {
             $teachers = $pageData['teachers'];
             $csrfToken = $pageData['csrfToken'];
             $teacherResult = $pageData['result'];
-            $view = 'app/Views/Admin/admin_manage_teachers.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_manage_teachers.php';
             break;
 
         case 'manage_students':
@@ -113,19 +114,19 @@ if (strpos($page, 'admin_') === 0) {
             $students = $pageData['students'];
             $csrfToken = $pageData['csrfToken'];
             $studentResult = $pageData['result'];
-            $view = 'app/Views/Admin/admin_manage_students.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_manage_students.php';
             break;
 
         case 'activity_logs':
-            $view = 'app/Views/Admin/admin_activity_logs.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_activity_logs.php';
             break;
 
         case 'teacher_logs':
-            $view = 'app/Views/Admin/teacher_activity_logs.php';
+            $view = $projectRoot . '/app/Views/Admin/teacher_activity_logs.php';
             break;
 
         case 'settings':
-            $view = 'app/Views/Admin/admin_settings.php';
+            $view = $projectRoot . '/app/Views/Admin/admin_settings.php';
             break;
 
         default:
@@ -174,13 +175,13 @@ switch ($page) {
     case 'signup':
         $controller = new AuthController($pdo);
         $data = $controller->handleSignupRequest();
-        $view = 'app/Views/Teachers/signup.php';
+        $view = $projectRoot . '/app/Views/Teachers/signup.php';
         break;
 
     case 'login':
         $controller = new AuthController($pdo);
         $data = $controller->handleLoginRequest();
-        $view = 'app/Views/Teachers/login.php';
+        $view = $projectRoot . '/app/Views/Teachers/Login.php';
         break;
 
     case 'logout':
@@ -196,7 +197,7 @@ switch ($page) {
         $absentStudents = $pageData['absentStudents'];
         $analytics = $pageData['analytics'];
         $recentAttendanceActivity = $pageData['recentAttendanceActivity'];
-        $view = 'app/Views/Teachers/dashboard.php';
+        $view = $projectRoot . '/app/Views/Teachers/dashboard.php';
         break;
 
     case 'attendanceLogs':
@@ -207,7 +208,7 @@ switch ($page) {
         $attendanceSummaries = $pageData['attendanceSummaries'];
         $attendanceLogs = $pageData['attendanceLogs'];
         $showLogs = $pageData['showLogs'];
-        $view = 'app/Views/Teachers/attendanceRecords.php';
+        $view = $projectRoot . '/app/Views/Teachers/attendanceRecords.php';
         break;
 
     case 'attendanceSettings':
@@ -216,7 +217,8 @@ switch ($page) {
         $attendanceCodes = $pageData['attendanceCodes'];
         $csrfToken = $pageData['csrfToken'];
         $fingerprintStudents = $pageData['fingerprintStudents'];
-        $view = 'app/Views/Teachers/attendanceSettings.php';
+        $fingerprintCapacity = $pageData['fingerprintCapacity'];
+        $view = $projectRoot . '/app/Views/Teachers/attendanceSettings.php';
         break;
 
     case 'students':
@@ -227,7 +229,7 @@ switch ($page) {
         $inactiveStudents = $pageData['inactiveStudents'];
         $studentCount = $pageData['studentCount'];
         $csrfToken = $pageData['csrfToken'];
-        $view = 'app/Views/Teachers/students.php';
+        $view = $projectRoot . '/app/Views/Teachers/students.php';
         break;
 
     case 'accountSettings':
@@ -245,7 +247,7 @@ switch ($page) {
         $sections = $pageData['sections'];
         $csrfToken = $pageData['csrfToken'];
         $accountResult = $pageData['result'];
-        $view = 'app/Views/Teachers/accountSettings.php';
+        $view = $projectRoot . '/app/Views/Teachers/accountSettings.php';
         break;
 
     case 'studentAbsences':
@@ -278,7 +280,7 @@ switch ($page) {
         exit();
 
     default:
-        $view = 'app/Views/Teachers/dashboard.php';
+        $view = $projectRoot . '/app/Views/Teachers/dashboard.php';
         break;
 }
 
