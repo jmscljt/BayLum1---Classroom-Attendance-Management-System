@@ -1520,7 +1520,7 @@ class TeachersModel{
      */
     public function getMonthlyAttendanceAnalytics(
         int $sectionId,
-        int $monthsBack = 6,
+        int $monthsBack = 12,
         bool $excusedCountsAsAbsent = false
     ): array {
         $monthsBack = max(1, min(12, $monthsBack));

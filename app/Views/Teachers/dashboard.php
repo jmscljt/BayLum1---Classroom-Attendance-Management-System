@@ -75,7 +75,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                     <div class="analytics-header">
                         <div>
                             <h3>Monthly Attendance Analytics</h3>
-                            <p class="analytics-subtitle">Average students per school day · last 6 months</p>
+                            <p class="analytics-subtitle">Average students per school day · last 12 months</p>
                         </div>
                     </div>
 
