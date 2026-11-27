@@ -13,14 +13,14 @@ $sectionsStmt = $pdo->query("SELECT section_id, grade_level, section_name FROM s
 $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="auth-document">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/css/teachers_style.css">
     <title>BL1ES - Sign Up</title>
 </head>
-<body>
+<body class="auth-page signup-page">
     <div class="side-cover">
         <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
         <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">

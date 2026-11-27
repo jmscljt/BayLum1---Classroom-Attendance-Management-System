@@ -1797,3 +1797,87 @@ header {
 }
 
 /* ===== Settings - End ===== */
+
+@media (max-width: 768px) {
+    html.auth-document {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    body.auth-page {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        display: block;
+    }
+
+    .auth-page .side-cover {
+        display: none;
+    }
+
+    .auth-page .form-wrapper {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        padding: 24px 16px;
+        overflow: visible;
+    }
+
+    .auth-page .form-box {
+        max-width: 420px;
+    }
+
+    .auth-page .logo {
+        width: 100px;
+        height: 100px;
+    }
+
+    .auth-page .signup-card h1,
+    .auth-page .login-card h1 {
+        font-size: 34px;
+        margin-bottom: 16px;
+    }
+
+    .auth-page .input-group input,
+    .auth-page .input-group select {
+        height: auto;
+        min-height: 40px;
+        padding: 8px 10px;
+    }
+
+    .auth-page .signup-btn,
+    .auth-page .login-btn {
+        height: 42px;
+    }
+}
+
+@media (max-width: 420px) {
+    .auth-page .form-wrapper {
+        padding: 20px 14px;
+    }
+
+    .auth-page .logo {
+        width: 82px;
+        height: 82px;
+    }
+
+    .auth-page .signup-card h1,
+    .auth-page .login-card h1 {
+        font-size: 30px;
+    }
+
+    .auth-page .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .auth-page .input-row .input-group {
+        width: 100%;
+        flex: none;
+    }
+}

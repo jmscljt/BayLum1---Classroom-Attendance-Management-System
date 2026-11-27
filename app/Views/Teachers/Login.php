@@ -1,31 +1,34 @@
 <?php
 // app/Views/Teachers/login.php
 // Expects $data array with keys: message, message_type, auth_message, auth_message_type
+if (!isset($base_url)) {
+    $base_url = '';
+}
 $message = $data['message'] ?? $_SESSION['auth_message'] ?? '';
 $message_type = $data['message_type'] ?? $_SESSION['auth_message_type'] ?? '';
 unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="auth-document">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/public/css/teachers_style.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/css/teachers_style.css">
     <title>BL1ES - Login</title>
 </head>
-<body>
+<body class="auth-page login-page">
     <div class="side-cover">
-        <img src="/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
-        <img src="/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
-        <img src="/images/BL1-Cover3.png" alt="Cover 3" class="cover-image cover3">
-        <img src="/images/BL1-Cover4.png" alt="Cover 4" class="cover-image cover4">
-        <img src="/images/BL1-Cover5.png" alt="Cover 5" class="cover-image cover5">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover1.png" alt="Cover 1" class="cover-image cover1">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover2.png" alt="Cover 2" class="cover-image cover2">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover3.png" alt="Cover 3" class="cover-image cover3">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover4.png" alt="Cover 4" class="cover-image cover4">
+        <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Cover5.png" alt="Cover 5" class="cover-image cover5">
         <div class="gradient-overlay"></div>
     </div>
 
     <div class="form-wrapper">
         <div class="form-box login">
-            <img src="/images/BL1-Logo.png" alt="Logo" class="logo">
+            <img src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/images/BL1-Logo.png" alt="Logo" class="logo">
             <div class="login-card">
                 <?php if (!empty($message)): ?>
                     <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'error'; ?>">
