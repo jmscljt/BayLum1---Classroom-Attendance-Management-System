@@ -96,6 +96,11 @@ class StudentsController
                 $post['section_id'] = $session['section_id'] ?? null;
                 $session['student_form_result'] = $this->addStudent($post);
             }
+            unset(
+                $session['students_masterlist_cache'],
+                $session['students_masterlist_cache_time'],
+                $session['students_masterlist_cache_section']
+            );
             header('Location: index.php?page=students');
             exit();
         }
@@ -107,7 +112,24 @@ class StudentsController
             $session['csrf_token'] = bin2hex(random_bytes(32));
         }
 
-        $masterlist = $this->getStudentsMasterlist((int) ($session['section_id'] ?? 0));
+        $sectionId = (int) ($session['section_id'] ?? 0);
+        $cachedSection = (int) ($session['students_masterlist_cache_section'] ?? -1);
+        $cachedTime = (int) ($session['students_masterlist_cache_time'] ?? 0);
+        $cachedMasterlist = $session['students_masterlist_cache'] ?? null;
+
+        if (
+            $cachedSection !== $sectionId
+            || time() - $cachedTime >= 30
+            || !is_array($cachedMasterlist)
+        ) {
+            $masterlist = $this->getStudentsMasterlist($sectionId);
+            $session['students_masterlist_cache'] = $masterlist;
+            $session['students_masterlist_cache_time'] = time();
+            $session['students_masterlist_cache_section'] = $sectionId;
+        } else {
+            $masterlist = $cachedMasterlist;
+        }
+
         $inactiveStudents = $this->getInactiveStudents((int) ($session['section_id'] ?? 0));
 
         return [

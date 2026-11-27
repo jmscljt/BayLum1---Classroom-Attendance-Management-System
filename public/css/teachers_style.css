@@ -782,6 +782,10 @@ header {
 }
 /* ===== Dashboard - End ===== */
 
+
+
+
+
 /* ===== Dashboard Analytics - Start ===== */
 .main-content.scrollable {
     height: calc(100vh - 60px);
@@ -824,6 +828,8 @@ header {
 }
 
 /* ===== Dashboard Analytics - End ===== */
+
+
 
 
 
@@ -924,6 +930,7 @@ header {
 }
 
 /* ===== Attendance Record - End ===== */
+
 
 
 

@@ -1624,7 +1624,7 @@ class TeachersModel{
     public function getStudentsMasterlist(int $sectionId): array
     {
         try {
-            $query = "SELECT 
+            $query = "SELECT
                         CASE WHEN s.fingerprint_id IS NULL THEN 'Unregistered' ELSE 'Registered' END AS status,
                         s.fingerprint_id,
                         s.student_id AS lrn,
@@ -1634,68 +1634,81 @@ class TeachersModel{
                         s.suffix,
                         s.gender,
                         (
-                            SELECT COUNT(DISTINCT a.log_date)
-                            FROM attendance_logs a
-                            WHERE a.student_id = s.student_id
-                                AND a.attendance_status = 'Present'
-                        ) + (
-                            SELECT COUNT(DISTINCT r.attendance_date)
-                            FROM manual_attendance_records r
-                            WHERE r.student_id = CAST(s.student_id AS CHAR)
-                                AND r.attendance_type = 'time_in'
-                                AND NOT EXISTS (
-                                    SELECT 1
-                                    FROM attendance_logs a
-                                    WHERE a.student_id = s.student_id
-                                        AND a.log_date = r.attendance_date
-                                )
+                            COALESCE(legacy.present_count, 0)
+                            + COALESCE(manual_present.present_count, 0)
                         ) AS present_count,
                         (
-                            SELECT COUNT(DISTINCT a.log_date)
-                            FROM attendance_logs a
-                            WHERE a.student_id = s.student_id
-                                AND a.attendance_status = 'Absent'
+                            COALESCE(legacy.absent_count, 0)
+                            + COALESCE(manual_absent.absent_count, 0)
+                        ) AS absent_count,
+                        COALESCE(legacy.excused_count, 0) AS excused_count
+                    FROM students s
+                    LEFT JOIN (
+                        SELECT
+                            student_id,
+                            COUNT(DISTINCT CASE WHEN attendance_status = 'Present' THEN log_date END) AS present_count,
+                            COUNT(DISTINCT CASE WHEN attendance_status = 'Absent'
                                 AND NOT EXISTS (
                                     SELECT 1
                                     FROM attendance_logs excused
-                                    WHERE excused.student_id = s.student_id
-                                        AND excused.log_date = a.log_date
+                                    WHERE excused.student_id = attendance_logs.student_id
+                                        AND excused.log_date = attendance_logs.log_date
                                         AND excused.attendance_status = 'Excused'
                                 )
-                        ) + (
-                            SELECT COUNT(DISTINCT mas.attendance_date)
-                            FROM manual_attendance_sessions mas
-                            WHERE mas.section_id = s.section_id
-                                AND mas.attendance_type = 'time_in'
-                                AND mas.closed_at IS NOT NULL
-                                AND NOT EXISTS (
-                                    SELECT 1
-                                    FROM manual_attendance_records r
-                                    WHERE r.section_id = s.section_id
-                                        AND r.student_id = CAST(s.student_id AS CHAR)
-                                        AND r.attendance_date = mas.attendance_date
-                                        AND r.attendance_type = 'time_in'
-                                )
-                                AND NOT EXISTS (
-                                    SELECT 1
-                                    FROM attendance_logs a
-                                    WHERE a.student_id = s.student_id
-                                        AND a.log_date = mas.attendance_date
-                                )
-                        ) AS absent_count,
-                        (
-                            SELECT COUNT(DISTINCT a.log_date)
-                            FROM attendance_logs a
-                            WHERE a.student_id = s.student_id
-                                AND a.attendance_status = 'Excused'
-                        ) AS excused_count
-                    FROM students s
-                    INNER JOIN sections sec ON s.section_id = sec.section_id
-                    WHERE s.section_id = :section_id AND s.is_active = 1
+                                THEN log_date END) AS absent_count,
+                            COUNT(DISTINCT CASE WHEN attendance_status = 'Excused' THEN log_date END) AS excused_count
+                        FROM attendance_logs
+                        GROUP BY student_id
+                    ) legacy ON legacy.student_id = s.student_id
+                    LEFT JOIN (
+                        SELECT r.student_id, COUNT(DISTINCT r.attendance_date) AS present_count
+                        FROM manual_attendance_records r
+                        WHERE r.attendance_type = 'time_in'
+                            AND r.section_id = :manual_present_section
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM attendance_logs a
+                                WHERE a.student_id = r.student_id
+                                    AND a.log_date = r.attendance_date
+                            )
+                        GROUP BY r.student_id
+                    ) manual_present ON manual_present.student_id = CAST(s.student_id AS CHAR)
+                    LEFT JOIN (
+                        SELECT s_abs.student_id,
+                            COUNT(DISTINCT mas.attendance_date) AS absent_count
+                        FROM students s_abs
+                        INNER JOIN manual_attendance_sessions mas
+                            ON mas.section_id = s_abs.section_id
+                            AND mas.attendance_type = 'time_in'
+                            AND mas.closed_at IS NOT NULL
+                        WHERE s_abs.section_id = :manual_absent_section
+                            AND s_abs.is_active = 1
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM manual_attendance_records r
+                                WHERE r.section_id = s_abs.section_id
+                                    AND r.student_id = CAST(s_abs.student_id AS CHAR)
+                                    AND r.attendance_date = mas.attendance_date
+                                    AND r.attendance_type = 'time_in'
+                            )
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM attendance_logs a
+                                WHERE a.student_id = s_abs.student_id
+                                    AND a.log_date = mas.attendance_date
+                            )
+                        GROUP BY s_abs.student_id
+                    ) manual_absent ON manual_absent.student_id = s.student_id
+                    WHERE s.section_id = :section_id
+                        AND s.is_active = 1
                     ORDER BY s.last_name, s.first_name";
 
             $stmt = $this->pdo->prepare($query);
-            $stmt->execute([':section_id' => $sectionId]);
+            $stmt->execute([
+                ':section_id' => $sectionId,
+                ':manual_present_section' => $sectionId,
+                ':manual_absent_section' => $sectionId,
+            ]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Masterlist error: " . $e->getMessage());

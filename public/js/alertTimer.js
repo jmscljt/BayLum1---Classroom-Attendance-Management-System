@@ -4,7 +4,7 @@
 
         window.setTimeout(() => {
             notification.style.opacity = '0';
-            window.setTimeout(() => notification.remove(), 500);
-        }, 3000);
+            window.setTimeout(() => notification.remove(), 300);
+        }, 5000);
     });
 })();

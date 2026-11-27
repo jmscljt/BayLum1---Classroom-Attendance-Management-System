@@ -19,7 +19,21 @@ class DashboardController extends TeachersController
             $sectionId,
             date('Y-m-d')
         );
-        $analytics = $this->getMonthlyAttendanceAnalytics($sectionId);
+
+        $analyticsCacheKey = 'dashboard_analytics_' . $sectionId . '_' . date('Y-m-d');
+        $analyticsCache = $session[$analyticsCacheKey] ?? null;
+        $analyticsCacheTime = (int) ($session[$analyticsCacheKey . '_time'] ?? 0);
+        if (
+            !is_array($analyticsCache)
+            || time() - $analyticsCacheTime >= 60
+        ) {
+            $analytics = $this->getMonthlyAttendanceAnalytics($sectionId);
+            $session[$analyticsCacheKey] = $analytics;
+            $session[$analyticsCacheKey . '_time'] = time();
+        } else {
+            $analytics = $analyticsCache;
+        }
+
         $recentAttendanceActivity = $this->getRecentAttendanceActivity($teacherId, $sectionId);
 
         return [
