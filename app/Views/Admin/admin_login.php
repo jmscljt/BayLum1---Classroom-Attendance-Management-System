@@ -9,6 +9,7 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/images/BL1-Logo.png?v=2">
     <link rel="stylesheet" href="/public/css/admin_style.css">
     <title>BL1ES - Admin Login</title>
 </head>

@@ -59,6 +59,7 @@ class ManualAttendanceController
                 ) {
                     unset($session['manual_attendance_session_id']);
                 }
+                $this->clearAttendanceCaches($session);
             }
 
             return $result;
@@ -76,7 +77,23 @@ class ManualAttendanceController
         if (!empty($result['clear_session'])) {
             unset($session['manual_attendance_session_id']);
         }
+        if (!empty($result['success'])) {
+            $this->clearAttendanceCaches($session);
+        }
 
         return $result;
+    }
+
+    private function clearAttendanceCaches(array &$session): void
+    {
+        foreach (array_keys($session) as $key) {
+            if (
+                str_starts_with($key, 'attendance_summaries_')
+                || str_starts_with($key, 'attendance_logs_')
+                || str_starts_with($key, 'attendance_section_student_count_')
+            ) {
+                unset($session[$key]);
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ require_once __DIR__ . '/TeachersController.php';
 
 class AttendanceLogsController extends TeachersController
 {
-    public function getPageData(array $session, array $query): array
+    public function getPageData(array &$session, array $query): array
     {
         $authenticationRedirect = $this->requireAuthentication($session);
         if ($authenticationRedirect !== null) {
@@ -19,7 +19,6 @@ class AttendanceLogsController extends TeachersController
         if (!$parsedDate || $parsedDate->format('Y-m-d') !== $requestedDate) {
             $requestedDate = null;
         }
-
         $sectionId = (int) ($session['section_id'] ?? 0);
         $teacherId = (int) $session['user_id'];
         $showLogs = ($query['show_logs'] ?? '') === '1';
@@ -30,11 +29,25 @@ class AttendanceLogsController extends TeachersController
         if (!$parsedLogDate || $parsedLogDate->format('Y-m-d') !== $requestedLogDate) {
             $requestedLogDate = null;
         }
-        $attendanceSummaries = $this->getManualAttendanceSummaries(
-            $teacherId,
-            $sectionId,
-            $requestedDate
-        );
+
+        $summaryCacheKey = 'attendance_summaries_'
+            . $teacherId . '_'
+            . $sectionId . '_'
+            . ($requestedDate ?? 'all');
+        $summaryCacheTimeKey = $summaryCacheKey . '_time';
+        $attendanceSummaries = $session[$summaryCacheKey] ?? null;
+        $attendanceSummariesAge = time() - (int) ($session[$summaryCacheTimeKey] ?? 0);
+
+        if (!is_array($attendanceSummaries) || $attendanceSummariesAge >= 30) {
+            $attendanceSummaries = $this->getManualAttendanceSummaries(
+                $teacherId,
+                $sectionId,
+                $requestedDate
+            );
+            $session[$summaryCacheKey] = $attendanceSummaries;
+            $session[$summaryCacheTimeKey] = time();
+        }
+
         $today = date('Y-m-d');
         if (
             ($requestedDate === null || $requestedDate === $today)
@@ -48,7 +61,17 @@ class AttendanceLogsController extends TeachersController
                 'present_count' => 0,
             ]);
         }
-        $totalStudents = $this->getSectionStudentCount($sectionId);
+
+        $studentCountKey = 'attendance_section_student_count_' . $sectionId;
+        $studentCountTimeKey = $studentCountKey . '_time';
+        $totalStudents = (int) ($session[$studentCountKey] ?? 0);
+        $studentCountAge = time() - (int) ($session[$studentCountTimeKey] ?? 0);
+        if ($totalStudents < 1 || $studentCountAge >= 60) {
+            $totalStudents = $this->getSectionStudentCount($sectionId);
+            $session[$studentCountKey] = $totalStudents;
+            $session[$studentCountTimeKey] = time();
+        }
+
         foreach ($attendanceSummaries as &$summary) {
             $summary['present_count'] = (int) $summary['present_count'];
             $summary['absent_count'] = max(0, $totalStudents - $summary['present_count']);
@@ -59,7 +82,12 @@ class AttendanceLogsController extends TeachersController
             ? []
             : ($requestedLogDate === null
                 ? []
-                : $this->getManualAttendanceLogs($teacherId, $sectionId, $requestedLogDate));
+                : $this->getCachedAttendanceLogs(
+                    $session,
+                    $teacherId,
+                    $sectionId,
+                    $requestedLogDate
+                ));
 
         return [
             'searchDate' => $requestedDate,
@@ -68,5 +96,24 @@ class AttendanceLogsController extends TeachersController
             'attendanceLogs' => $attendanceLogs,
             'showLogs' => $showLogs,
         ];
+    }
+
+    private function getCachedAttendanceLogs(
+        array &$session,
+        int $teacherId,
+        int $sectionId,
+        string $date
+    ): array {
+        $cacheKey = 'attendance_logs_' . $teacherId . '_' . $sectionId . '_' . $date;
+        $timeKey = $cacheKey . '_time';
+        $logs = $session[$cacheKey] ?? null;
+
+        if (!is_array($logs) || time() - (int) ($session[$timeKey] ?? 0) >= 30) {
+            $logs = $this->getManualAttendanceLogs($teacherId, $sectionId, $date);
+            $session[$cacheKey] = $logs;
+            $session[$timeKey] = time();
+        }
+
+        return $logs;
     }
 }

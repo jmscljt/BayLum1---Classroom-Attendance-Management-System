@@ -22,6 +22,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/images/BL1-Logo.png?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/teachers_style.css">
     <title>BL1ES - Attendance Records</title>
@@ -85,7 +86,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                                                     'show_logs' => '1',
                                             ]);
                                             ?>
-                                            <button type="button" class="view-btn" onclick="<?php echo $searchDate !== null && !$showLogs ? 'openAttendanceModal()' : 'window.location.href=\'' . htmlspecialchars($logsUrl, ENT_QUOTES, 'UTF-8') . '\''; ?>">
+                                            <button type="button" class="view-btn" onclick="window.location.href='<?php echo htmlspecialchars($logsUrl, ENT_QUOTES, 'UTF-8'); ?>'">
                                                 View Records
                                             </button>
                                         </td>

@@ -14,7 +14,7 @@ class FingerprintAttendanceController
     }
 
     public function handleRequest(
-        array $session,
+        array &$session,
         string $requestMethod,
         string $rawInput,
         string $csrfToken
@@ -94,6 +94,18 @@ class FingerprintAttendanceController
             if (!$result['success']) {
                 $this->respond(422, ['error' => $result['message']]);
                 return;
+            }
+
+            if ($action === 'attendance') {
+                foreach (array_keys($session) as $key) {
+                    if (
+                        str_starts_with($key, 'attendance_summaries_')
+                        || str_starts_with($key, 'attendance_logs_')
+                        || str_starts_with($key, 'attendance_section_student_count_')
+                    ) {
+                        unset($session[$key]);
+                    }
+                }
             }
 
             $this->respond(200, [
