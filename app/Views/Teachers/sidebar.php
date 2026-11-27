@@ -12,6 +12,17 @@ $displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
     <img src="/images/BL1-Logo.png" alt="Logo" class="sidebar-logo">
     <div class="nav-links">
 
+        <?php if ($currentPage !== 'attendanceSettings'): ?>
+            <div class="fingerprint-reader-status" id="fingerprint-reader"
+                data-endpoint="index.php?page=fingerprintAttendance"
+                data-csrf-token="<?php echo htmlspecialchars($fingerprintCsrfToken ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                data-auto-connect="1">
+                <span id="fingerprintReaderStatus" role="status" aria-live="polite">Checking fingerprint reader...</span>
+                <button type="button" id="connectFingerprintReaderButton" hidden>Connect ESP32 Reader</button>
+            </div>
+            <script src="/public/js/fingerprintAttendance.js"></script>
+        <?php endif; ?>
+
         <a href="<?php echo $base_url; ?>/index.php?page=dashboard" class="<?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>">
             <i class="fa-solid fa-house"></i>Dashboard</a>
         

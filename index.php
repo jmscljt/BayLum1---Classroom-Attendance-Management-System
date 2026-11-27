@@ -170,6 +170,11 @@ if (
     }
 }
 
+if (!empty($_SESSION['user_logged_in']) && !empty($_SESSION['user_id']) && empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$fingerprintCsrfToken = $_SESSION['csrf_token'] ?? '';
+
 switch ($page) {
 
     case 'signup':

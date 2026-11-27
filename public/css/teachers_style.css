@@ -451,6 +451,18 @@ body {
     text-align: center;
 }
 
+.fingerprint-reader-status {
+    padding: 4px 14px;
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.fingerprint-reader-status span {
+    display: block;
+}
+
 .logout-btn {
     margin-top: auto; 
 }
@@ -1596,6 +1608,13 @@ header {
     .nav-links a i {
         width: auto;
         font-size: 16px;
+    }
+
+    .fingerprint-reader-status {
+        padding: 4px 2px;
+        font-size: 8px;
+        line-height: 1.25;
+        text-align: center;
     }
 
     .overview-header-row.dashboard-overview-header-row {
