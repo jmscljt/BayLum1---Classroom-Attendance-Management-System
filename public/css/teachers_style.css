@@ -400,6 +400,7 @@ body {
     align-items: center;
     padding-top: 20px;
     padding-bottom: 20px;
+    box-sizing: border-box;
 }
 
 .sidebar-logo {
@@ -463,7 +464,7 @@ body {
 /* ===== Dashboard- Start ===== */
 
 header {
-    width: 100%;
+    width: calc(100% - 250px);
     margin-left: 250px;
     height: 60px;
     background-color: #0056b3;
@@ -476,6 +477,7 @@ header {
     padding-left: 30px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 100;
+    box-sizing: border-box;
 }
 
 .dashboard-header h1{
@@ -505,7 +507,7 @@ header {
 .dashboard-content-grid {
     display: grid;
     grid-template-columns: minmax(160px, 2fr) minmax(0, 12fr);
-    grid-template-rows: minmax(360px, auto) minmax(300px, auto);
+    grid-template-rows: 260px 262px;
     grid-template-areas:
         "metrics analytics"
         "metrics table";
@@ -555,6 +557,18 @@ header {
     flex: 1;
     min-height: 0;
     overflow: auto;
+}
+
+.dashboard-content-grid > .table-section-card:not(.analytics-section) .table-responsive {
+    flex: 0 0 180px;
+    max-height: 180px;
+}
+
+.dashboard-content-grid .data-table th,
+.dashboard-content-grid .data-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .dashboard-content-grid .data-table thead th {
@@ -793,12 +807,13 @@ header {
 .analytics-subtitle {
     font-size: 12px;
     color: #718096;
+    margin: 0;
 }
 
 .analytics-chart-wrap {
     position: relative;
     width: 100%;
-    height: 260px;
+    height: 160px;
 }
 
 .analytics-empty {
@@ -1464,6 +1479,40 @@ header {
     .student-masterlist-table {
         min-width: 1020px;
     }
+
+    .dashboard-content-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: 130px 262px;
+        grid-template-areas:
+            "metrics metrics"
+            "analytics table";
+    }
+
+    .dashboard-content-grid .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-content-grid .metric-card {
+        height: 130px;
+        min-width: 0;
+        padding: 14px;
+    }
+
+    .dashboard-content-grid .table-section-card {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 1000px) {
+    .dashboard-content-grid {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 260px 262px;
+        grid-template-areas:
+            "metrics"
+            "analytics"
+            "table";
+    }
 }
 
 @media (max-width: 700px) {
@@ -1486,22 +1535,89 @@ header {
     }
 
     .analytics-chart-wrap {
-        height: 280px;
+        height: 220px;
     }
 
     .dashboard-content-grid .table-section-card {
-        min-height: 320px;
+        min-height: 260px;
     }
 
     .main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 16px;
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding: 12px;
+    }
+
+    header {
+        margin-left: 80px;
+        width: calc(100% - 80px);
+        padding-left: 12px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 16px;
+    }
+
+    .sidebar {
+        width: 80px;
+        padding: 12px 4px;
+    }
+
+    .sidebar-logo {
+        width: 50px;
+        height: 50px;
+        margin: 4px 0 16px;
+    }
+
+    .nav-links {
+        box-sizing: border-box;
+        padding: 0 4px;
+        gap: 6px;
+    }
+
+    .nav-links a {
+        box-sizing: border-box;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 2px;
+        font-size: 9px;
+        line-height: 1.1;
+        text-align: center;
+    }
+
+    .nav-links a i {
+        width: auto;
+        font-size: 16px;
+    }
+
+    .overview-header-row.dashboard-overview-header-row {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .dashboard-content-grid .metrics-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .dashboard-content-grid .metric-card {
-        max-width: 180px;
-        align-self: center;
+        width: 100%;
+        max-width: none;
+        height: auto;
+        min-height: 90px;
+        align-self: stretch;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .dashboard-content-grid .metric-title {
+        font-size: 11px;
+    }
+
+    .dashboard-content-grid .metric-value {
+        min-height: 0;
+        font-size: 22px;
     }
 
     .student-buttons-section {
@@ -1517,6 +1633,20 @@ header {
         width: calc(100% - 24px);
         max-width: none;
         padding: 20px;
+    }
+}
+
+@media (max-width: 420px) {
+    .dashboard-header h1 {
+        font-size: 14px;
+    }
+
+    .dashboard-content-grid .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-content-grid .metric-card:last-child {
+        grid-column: 1 / -1;
     }
 }
 

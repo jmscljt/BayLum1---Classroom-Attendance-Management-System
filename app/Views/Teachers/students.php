@@ -38,8 +38,8 @@ $currentPage = 'students';
             <div class="student-buttons-section">
                 <div class="student-actions-right">
                     <h4 class="student_count">Total Students: <?php echo (int)($studentCount ?? 0); ?></h4>
-                    <!-- <button class="import_excel_btn">Import Excel</button>
-                    <button class="export_excel_btn">Export Excel</button> -->
+                    <button class="import_excel_btn">Import Excel</button>
+                    <button class="export_excel_btn">Export Excel</button>
                     <button type="button" class="add-student-btn">Add Student</button>
                     <button type="button" class="view-inactive-btn" id="viewInactiveStudentsBtn">View Inactive Students</button>
                 </div>
