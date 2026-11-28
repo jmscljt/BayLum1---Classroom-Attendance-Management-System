@@ -1227,17 +1227,24 @@ class TeachersModel{
                 s.last_name,
                 s.suffix,
                 s.gender,
+                CASE
+                    WHEN MAX(CASE WHEN r.attendance_type = 'time_in' THEN r.recorded_at END) IS NOT NULL
+                    THEN 'Present'
+                    ELSE 'Absent'
+                END AS attendance_status,
                 GROUP_CONCAT(DISTINCT r.attendance_method ORDER BY r.attendance_method SEPARATOR ', ') AS methods,
                 MAX(CASE WHEN r.attendance_type = 'time_in' THEN r.recorded_at END) AS time_in,
                 MAX(CASE WHEN r.attendance_type = 'time_out' THEN r.recorded_at END) AS time_out
-             FROM manual_attendance_records r
-             INNER JOIN students s
-                ON s.student_id = r.student_id AND s.section_id = r.section_id
-             WHERE r.teacher_id = :teacher_id
-                AND r.section_id = :section_id
+             FROM students s
+             LEFT JOIN manual_attendance_records r
+                ON r.student_id = s.student_id
+                AND r.section_id = s.section_id
+                AND r.teacher_id = :teacher_id
                 AND r.attendance_date = :attendance_date
+             WHERE s.section_id = :section_id
+                AND s.is_active = 1
              GROUP BY s.student_id, s.first_name, s.middle_name, s.last_name, s.suffix, s.gender
-             ORDER BY s.last_name, s.first_name"
+             ORDER BY s.last_name ASC, s.first_name ASC"
         );
         $stmt->execute([
             ':teacher_id' => $teacherId,

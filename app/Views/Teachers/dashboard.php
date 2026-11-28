@@ -109,10 +109,15 @@ unset($_SESSION['auth_message'], $_SESSION['auth_message_type']);
                                         <?php
                                         $attendanceType = $activity['attendance_type'];
                                         $statusLabel = $attendanceType === 'time_in' ? 'Time - In' : 'Time - Out';
+                                        $middleName = trim((string) ($activity['middle_name'] ?? ''));
+                                        $middleInitial = '';
+                                        if ($middleName !== '' && preg_match('/^./u', $middleName, $middleInitialMatch) === 1) {
+                                            $middleInitial = $middleInitialMatch[0] . '.';
+                                        }
                                         $studentName = trim(
                                             $activity['last_name'] . ', ' .
                                             $activity['first_name'] . ' ' .
-                                            ($activity['middle_name'] ?? '') . ' ' .
+                                            $middleInitial . ' ' .
                                             ($activity['suffix'] ?? '')
                                         );
                                         ?>

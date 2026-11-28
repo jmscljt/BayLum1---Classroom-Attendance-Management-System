@@ -51,7 +51,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
             </div>
 
             <div class="table-section-card">
-                <h3>Attendance Record Summary of <?php echo htmlspecialchars($assignedGrade . ' ' . $advisorySection); ?></h3>
+                <h3><span class="attendance-records-label">Attendance Records -</span> <strong><?php echo htmlspecialchars($assignedGrade . ' ' . $advisorySection); ?></strong></h3>
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
@@ -114,6 +114,7 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                                 <th>LRN</th>
                                 <th>Name</th>
                                 <th>Gender</th>
+                                <th>Status</th>
                                 <th>Time In</th>
                                 <th>Time Out</th>
                                 <th>Method</th>
@@ -122,18 +123,32 @@ $displaySearchDate = $logDate !== null ? date('M j, Y', strtotime($logDate)) : '
                         <tbody>
                             <?php if (empty($attendanceLogs)): ?>
                                 <tr>
-                                    <td colspan="7" class="empty-state">No attendance record for this day.</td>
+                                    <td colspan="8" class="empty-state">No students found for this day.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($attendanceLogs as $log): ?>
+                                    <?php
+                                    $middleName = trim((string) ($log['middle_name'] ?? ''));
+                                    $middleInitial = '';
+                                    if ($middleName !== '' && preg_match('/^./u', $middleName, $middleInitialMatch) === 1) {
+                                        $middleInitial = $middleInitialMatch[0] . '.';
+                                    }
+                                    $studentName = trim(
+                                        $log['last_name'] . ', ' .
+                                        $log['first_name'] . ' ' .
+                                        $middleInitial . ' ' .
+                                        ($log['suffix'] ?? '')
+                                    );
+                                    ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars(date('M j, Y', strtotime($logDate)), ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['lrn'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars(trim($log['last_name'] . ', ' . $log['first_name'] . ' ' . ($log['middle_name'] ?? '') . ' ' . ($log['suffix'] ?? '')), ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($studentName, ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($log['gender'] ?? '', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($log['attendance_status'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo $log['time_in'] ? htmlspecialchars(date('h:i A', strtotime($log['time_in'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
                                         <td><?php echo $log['time_out'] ? htmlspecialchars(date('h:i A', strtotime($log['time_out'])), ENT_QUOTES, 'UTF-8') : '-'; ?></td>
-                                        <td><?php echo htmlspecialchars($log['methods'] ?? 'Manual', ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo htmlspecialchars($log['methods'] ?? '-', ENT_QUOTES, 'UTF-8'); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

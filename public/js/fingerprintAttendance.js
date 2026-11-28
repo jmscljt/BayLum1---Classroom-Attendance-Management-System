@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const panel = document.getElementById('fingerprint-reader');
-    const status = document.getElementById('fingerprintReaderStatus');
+    const statusElements = document.querySelectorAll('[data-fingerprint-reader-status]');
     const directEnrollmentStatus = document.getElementById('directFingerprintEnrollmentStatus');
     const connectButton = document.getElementById('connectFingerprintReaderButton');
     const enrollForm = document.getElementById('fingerprintEnrollForm');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentSelect = document.getElementById('fingerprintStudent');
     const enrollButton = document.getElementById('enrollFingerprintButton');
     const clearTeacherButton = document.getElementById('clearTeacherFingerprintsButton');
-    if (!panel || !status) {
+    if (!panel || statusElements.length === 0) {
         return;
     }
 
@@ -83,7 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let reconnectAttempts = 0;
 
     function showStatus(message) {
-        status.textContent = message;
+        statusElements.forEach((statusElement) => {
+            statusElement.textContent = message;
+        });
         if (directEnrollmentStatus) {
             directEnrollmentStatus.textContent = message;
         }

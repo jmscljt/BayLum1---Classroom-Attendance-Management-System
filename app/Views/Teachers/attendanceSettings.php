@@ -51,14 +51,11 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
                 </div>
             </section>
 
-            <section class="table-section-card" id="fingerprint-reader"
-                data-endpoint="index.php?page=fingerprintAttendance"
-                data-csrf-token="<?= $escape($csrfToken) ?>"
-                data-auto-connect="1">
+            <section class="table-section-card">
                 <h3>AS608 Fingerprint Attendance</h3>
                 <p>Choose an active student. On first use, click Connect and approve the ESP32. It will reconnect automatically on later module visits. The next available sensor ID from 1 to 127 is assigned automatically.</p>
                 <p><strong>AS608 capacity:</strong> <?= (int) $fingerprintCapacity['used'] ?> of <?= (int) $fingerprintCapacity['total'] ?> slots used; <?= (int) $fingerprintCapacity['available'] ?> available.</p>
-                <p id="fingerprintReaderStatus" role="status" aria-live="polite">ESP32 is not connected. Connect it through this browser.</p>
+                <p data-fingerprint-reader-status role="status" aria-live="polite">ESP32 is not connected. Connect it through this browser.</p>
                 <button type="button" class="view-btn" id="connectFingerprintReaderButton">Connect ESP32 Reader</button>
 
                 <form id="fingerprintEnrollForm">
