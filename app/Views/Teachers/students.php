@@ -107,8 +107,21 @@ $currentPage = 'students';
 
             <!-- students.php View -->
             <div class="table-section-card">
+                <div class="student-table-toolbar">
+                    <label class="student-search-field" for="studentMasterlistSearch">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input
+                            id="studentMasterlistSearch"
+                            type="search"
+                            placeholder="Search by LRN or student name..."
+                            aria-label="Search the students masterlist"
+                            autocomplete="off"
+                        >
+                    </label>
+                    <span id="studentSearchCount" class="student-search-count" aria-live="polite"></span>
+                </div>
                 <div class="table-responsive">
-                    <table class="data-table student-masterlist-table">
+                    <table class="data-table student-masterlist-table" id="studentMasterlistTable">
                         <thead>
                             <tr>
                                 <th>AS608 Fingerprint ID</th>
@@ -124,10 +137,10 @@ $currentPage = 'students';
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="studentMasterlistTableBody">
                             <?php if (!empty($masterlist)): ?>
                                 <?php foreach ($masterlist as $student): ?>
-                                    <tr>
+                                    <tr class="student-masterlist-row">
                                         <td>
                                             <?php
                                             $fingerprintId = trim((string) ($student['fingerprint_id'] ?? ''));
@@ -176,10 +189,13 @@ $currentPage = 'students';
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr>
+                                <tr id="studentMasterlistNoData">
                                     <td colspan="11" class="no-data-cell">No students record found.</td>
                                 </tr>
                             <?php endif; ?>
+                            <tr id="studentSearchEmptyState" hidden>
+                                <td colspan="11" class="no-data-cell">No students match your search.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -452,6 +468,7 @@ $currentPage = 'students';
 
     <script src="/public/js/studentAbsences.js"></script>
     <script src="/public/js/addStudentModal.js"></script>
+    <script src="/public/js/studentMasterlistSearch.js"></script>
     <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>
