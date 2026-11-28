@@ -38,7 +38,10 @@ $currentPage = 'students';
 
             <div class="student-buttons-section">
                 <div class="student-actions-right">
-                    <h4 class="student_count">Total Students: <?php echo (int)($studentCount ?? 0); ?></h4>
+                    <h4 class="student_count">
+                        <span class="student-count-label">Total Students:</span>
+                        <span class="student-count-value"><?php echo (int)($studentCount ?? 0); ?></span>
+                    </h4>
                     <button class="import_excel_btn">Import Excel</button>
                     <button class="export_excel_btn">Export Excel</button>
                     <button type="button" class="add-student-btn">Add Student</button>
@@ -120,7 +123,7 @@ $currentPage = 'students';
                     </label>
                     <span id="studentSearchCount" class="student-search-count" aria-live="polite"></span>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive student-masterlist-scroll">
                     <table class="data-table student-masterlist-table" id="studentMasterlistTable">
                         <thead>
                             <tr>
