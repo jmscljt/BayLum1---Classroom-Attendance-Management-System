@@ -732,82 +732,6 @@ class TeachersModel{
         }
     }
 
-    private function ensureManualAttendanceSchema(): void
-    {
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS teacher_attendance_codes (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                teacher_id BIGINT UNSIGNED NOT NULL,
-                attendance_type VARCHAR(16) NOT NULL,
-                code CHAR(4) NOT NULL,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                UNIQUE KEY uq_teacher_attendance_type (teacher_id, attendance_type),
-                UNIQUE KEY uq_teacher_attendance_code (code)
-            ) ENGINE=InnoDB'
-        );
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS manual_attendance_sessions (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                teacher_id BIGINT UNSIGNED NOT NULL,
-                section_id BIGINT UNSIGNED NOT NULL,
-                attendance_type VARCHAR(16) NOT NULL,
-                attendance_date DATE NOT NULL,
-                opened_at DATETIME NOT NULL,
-                closed_at DATETIME NULL,
-                INDEX idx_manual_session_teacher_active (teacher_id, closed_at),
-                INDEX idx_manual_session_section_date (section_id, attendance_date)
-            ) ENGINE=InnoDB'
-        );
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS manual_attendance_records (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                session_id BIGINT UNSIGNED NOT NULL,
-                teacher_id BIGINT UNSIGNED NOT NULL,
-                section_id BIGINT UNSIGNED NOT NULL,
-                student_id VARCHAR(19) NOT NULL,
-                attendance_date DATE NOT NULL,
-                attendance_type VARCHAR(16) NOT NULL,
-                recorded_at DATETIME NOT NULL,
-                attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual",
-                UNIQUE KEY uq_manual_attendance_record
-                    (session_id, student_id, attendance_type),
-                INDEX idx_manual_record_lookup
-                    (teacher_id, section_id, attendance_date, attendance_type)
-            ) ENGINE=InnoDB'
-        );
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS manual_attendance_session_sequence (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-            ) ENGINE=InnoDB'
-        );
-        $this->pdo->exec(
-            'CREATE TABLE IF NOT EXISTS manual_attendance_record_sequence (
-                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
-            ) ENGINE=InnoDB'
-        );
-
-        $methodColumn = $this->pdo->query(
-            "SHOW COLUMNS FROM manual_attendance_records LIKE 'attendance_method'"
-        )->fetch(PDO::FETCH_ASSOC);
-        if (!$methodColumn) {
-            $this->pdo->exec(
-                'ALTER TABLE manual_attendance_records
-                 ADD COLUMN attendance_method VARCHAR(16) NOT NULL DEFAULT "Manual"'
-            );
-        }
-
-        $fingerprintColumn = $this->pdo->query(
-            "SHOW COLUMNS FROM students LIKE 'fingerprint_id'"
-        )->fetch(PDO::FETCH_ASSOC);
-        if (!$fingerprintColumn) {
-            $this->pdo->exec(
-                'ALTER TABLE students
-                 ADD COLUMN fingerprint_id SMALLINT UNSIGNED NULL'
-            );
-        }
-    }
-
     private function hasAutoIncrementId(string $table): bool
     {
         $columnStmt = $this->pdo->query(
@@ -839,7 +763,6 @@ class TeachersModel{
 
     public function getOrCreateAttendanceCodes(int $teacherId): array
     {
-        $this->ensureManualAttendanceSchema();
         $this->pdo->beginTransaction();
 
         try {
@@ -907,7 +830,6 @@ class TeachersModel{
 
     public function processAttendanceCode(string $code, ?int $browserSessionId = null): array
     {
-        $this->ensureManualAttendanceSchema();
         $codeStmt = $this->pdo->prepare(
             'SELECT teacher_id, attendance_type
              FROM teacher_attendance_codes
@@ -1056,7 +978,6 @@ class TeachersModel{
 
     public function recordFingerprintAttendance(int $teacherId, int $fingerprintId): array
     {
-        $this->ensureManualAttendanceSchema();
         if ($fingerprintId < 1 || $fingerprintId > 127) {
             return ['success' => false, 'message' => 'The scanner reported an invalid fingerprint ID.'];
         }
@@ -1142,7 +1063,6 @@ class TeachersModel{
         string $attendanceMethod = 'Manual'
     ): array
     {
-        $this->ensureManualAttendanceSchema();
         $studentLrn = trim($studentLrn);
         if (preg_match('/^\d{1,19}$/D', $studentLrn) !== 1) {
             return ['success' => false, 'message' => 'Enter a valid student LRN.'];
@@ -1784,20 +1704,26 @@ class TeachersModel{
                     FROM students s
                     LEFT JOIN (
                         SELECT
-                            student_id,
-                            COUNT(DISTINCT CASE WHEN attendance_status = 'Present' THEN log_date END) AS present_count,
-                            COUNT(DISTINCT CASE WHEN attendance_status = 'Absent'
+                            attendance.student_id,
+                            COUNT(DISTINCT CASE WHEN attendance.attendance_status = 'Present'
+                                THEN attendance.log_date END) AS present_count,
+                            COUNT(DISTINCT CASE WHEN attendance.attendance_status = 'Absent'
                                 AND NOT EXISTS (
                                     SELECT 1
                                     FROM attendance_logs excused
-                                    WHERE excused.student_id = attendance_logs.student_id
-                                        AND excused.log_date = attendance_logs.log_date
+                                    WHERE excused.student_id = attendance.student_id
+                                        AND excused.log_date = attendance.log_date
                                         AND excused.attendance_status = 'Excused'
                                 )
-                                THEN log_date END) AS absent_count,
-                            COUNT(DISTINCT CASE WHEN attendance_status = 'Excused' THEN log_date END) AS excused_count
-                        FROM attendance_logs
-                        GROUP BY student_id
+                                THEN attendance.log_date END) AS absent_count,
+                            COUNT(DISTINCT CASE WHEN attendance.attendance_status = 'Excused'
+                                THEN attendance.log_date END) AS excused_count
+                        FROM attendance_logs attendance
+                        INNER JOIN students scoped_student
+                            ON scoped_student.student_id = attendance.student_id
+                        WHERE scoped_student.section_id = :legacy_section
+                            AND scoped_student.is_active = 1
+                        GROUP BY attendance.student_id
                     ) legacy ON legacy.student_id = s.student_id
                     LEFT JOIN (
                         SELECT r.student_id, COUNT(DISTINCT r.attendance_date) AS present_count
@@ -1845,6 +1771,7 @@ class TeachersModel{
             $stmt = $this->pdo->prepare($query);
             $stmt->execute([
                 ':section_id' => $sectionId,
+                ':legacy_section' => $sectionId,
                 ':manual_present_section' => $sectionId,
                 ':manual_absent_section' => $sectionId,
             ]);

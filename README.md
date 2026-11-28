@@ -33,3 +33,5 @@ Do not use the local XAMPP database as the production database. The application 
 After importing the database, run `database/migrations/20261124_fix_teacher_id_autoincrement.sql` in TiDB. The `teachers.id` column must use `AUTO_INCREMENT` because account signup inserts a teacher without supplying the ID.
 
 Run `database/migrations/20261125_add_manual_attendance_schema.sql` as well. It creates the manual-attendance code, session, and record tables when they do not already exist.
+
+Then apply `database/migrations/20261127_optimize_attendance_queries.sql` and `database/migrations/20261128_optimize_recent_attendance.sql` to add indexes used by the attendance and dashboard queries. Apply each migration once. Attendance requests expect the required schema to be installed; schema creation and inspection are intentionally kept out of the request path to avoid extra round trips to the remote database.
