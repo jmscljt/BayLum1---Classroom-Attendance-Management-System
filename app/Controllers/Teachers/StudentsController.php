@@ -51,8 +51,8 @@ class StudentsController
     public function getPageData(array &$session, array $post, string $requestMethod): array
     {
         if ($requestMethod === 'POST') {
-            $action = $post['action'] ?? '';
-            if (in_array($action, ['edit_student', 'remove_student', 'reactivate_student'], true)) {
+            $action = $post['action'] ?? 'add_student';
+            if (in_array($action, ['add_student', 'edit_student', 'remove_student', 'reactivate_student'], true)) {
                 $csrfToken = $post['csrf_token'] ?? '';
                 $sessionToken = $session['csrf_token'] ?? '';
                 if (
@@ -65,6 +65,19 @@ class StudentsController
                         'success' => false,
                         'message' => 'Your session expired. Refresh the page and try again.',
                     ];
+                } elseif ($action === 'add_student') {
+                    $post['section_id'] = $session['section_id'] ?? null;
+                    $session['student_form_result'] = $this->addStudent($post);
+                    $studentLrn = $post['lrn'] ?? '';
+                    $studentLrn = is_string($studentLrn) ? trim($studentLrn) : '';
+                    if (
+                        !empty($session['student_form_result']['success'])
+                        && ($post['register_fingerprint'] ?? '') === '1'
+                        && preg_match('/^\d{1,19}$/D', $studentLrn) === 1
+                    ) {
+                        $session['fingerprint_enrollment_student_lrn'] = $studentLrn;
+                        $session['student_form_result']['message'] .= ' Continue to fingerprint registration in the next step.';
+                    }
                 } else {
                     $studentId = $action === 'edit_student'
                         ? ($post['current_student_id'] ?? '')
@@ -93,8 +106,10 @@ class StudentsController
                     }
                 }
             } else {
-                $post['section_id'] = $session['section_id'] ?? null;
-                $session['student_form_result'] = $this->addStudent($post);
+                $session['student_form_result'] = [
+                    'success' => false,
+                    'message' => 'Unknown student action.',
+                ];
             }
             unset(
                 $session['students_masterlist_cache'],
@@ -131,6 +146,20 @@ class StudentsController
         }
 
         $inactiveStudents = $this->getInactiveStudents((int) ($session['section_id'] ?? 0));
+        $fingerprintEnrollmentStudent = null;
+        $pendingFingerprintLrn = $session['fingerprint_enrollment_student_lrn'] ?? null;
+        unset($session['fingerprint_enrollment_student_lrn']);
+        if (is_string($pendingFingerprintLrn) && preg_match('/^\d{1,19}$/D', $pendingFingerprintLrn) === 1) {
+            foreach ($masterlist as $student) {
+                if (
+                    (string) ($student['lrn'] ?? '') === $pendingFingerprintLrn
+                    && empty($student['fingerprint_id'])
+                ) {
+                    $fingerprintEnrollmentStudent = $student;
+                    break;
+                }
+            }
+        }
 
         return [
             'result' => $result,
@@ -138,6 +167,7 @@ class StudentsController
             'inactiveStudents' => $inactiveStudents,
             'studentCount' => count($masterlist),
             'csrfToken' => $session['csrf_token'],
+            'fingerprintEnrollmentStudent' => $fingerprintEnrollmentStudent,
         ];
     }
 

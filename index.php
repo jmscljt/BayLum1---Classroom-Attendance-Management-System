@@ -234,6 +234,7 @@ switch ($page) {
         $inactiveStudents = $pageData['inactiveStudents'];
         $studentCount = $pageData['studentCount'];
         $csrfToken = $pageData['csrfToken'];
+        $fingerprintEnrollmentStudent = $pageData['fingerprintEnrollmentStudent'];
         $view = $projectRoot . '/app/Views/Teachers/students.php';
         break;
 

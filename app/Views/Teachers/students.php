@@ -132,9 +132,9 @@ $currentPage = 'students';
                                             <?php
                                             $fingerprintId = trim((string) ($student['fingerprint_id'] ?? ''));
                                             if ($fingerprintId !== '') {
-                                                echo '<span class="as608-id">' . htmlspecialchars($fingerprintId, ENT_QUOTES, 'UTF-8') . '</span>';
+                                                echo '<span class="as608-id" data-fingerprint-student-lrn="' . htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($fingerprintId, ENT_QUOTES, 'UTF-8') . '</span>';
                                             } else {
-                                                echo '<span class="as608-unregistered">Unregistered</span>';
+                                                echo '<span class="as608-unregistered" data-fingerprint-student-lrn="' . htmlspecialchars((string) $student['lrn'], ENT_QUOTES, 'UTF-8') . '">Unregistered</span>';
                                             }
                                             ?>
                                         </td>
@@ -280,6 +280,8 @@ $currentPage = 'students';
                         <span class="close-modal">&times;</span>
                     </div>
                     <form id="addStudentForm" action="index.php?page=students" method="POST">
+                        <input type="hidden" name="action" value="add_student">
+                        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>">
                         <div class="form-group">
                             <label for="lrn">LRN</label>
                             <input type="text" id="lrn" name="lrn" placeholder="Enter LRN" required>
@@ -313,6 +315,11 @@ $currentPage = 'students';
                             </select>
                         </div>
 
+                        <label class="fingerprint-enrollment-option" for="register_fingerprint">
+                            <input type="checkbox" id="register_fingerprint" name="register_fingerprint" value="1" checked>
+                            <span>Register fingerprint after saving this student (optional)</span>
+                        </label>
+
                         <div class="modal-actions">
                             <button type="button" class="cancel-btn">Cancel</button>
                             <button type="submit" class="submit-btn">Save Student</button>
@@ -320,6 +327,58 @@ $currentPage = 'students';
                     </form>
                 </div>
             </div>
+
+            <?php if (!empty($fingerprintEnrollmentStudent)): ?>
+                <?php
+                $pendingFingerprintLrn = (string) $fingerprintEnrollmentStudent['lrn'];
+                $pendingFingerprintName = trim(
+                    ($fingerprintEnrollmentStudent['last_name'] ?? '') . ', ' .
+                    ($fingerprintEnrollmentStudent['first_name'] ?? '') . ' ' .
+                    ($fingerprintEnrollmentStudent['middle_name'] ?? '') . ' ' .
+                    ($fingerprintEnrollmentStudent['suffix'] ?? '')
+                );
+                $pendingFingerprintLabel = $pendingFingerprintName . ' (LRN ' . $pendingFingerprintLrn . ')';
+                ?>
+                <div id="directFingerprintEnrollmentModal" class="modal-overlay" aria-hidden="true" data-open="1">
+                    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="directFingerprintEnrollmentTitle">
+                        <div class="modal-header">
+                            <h3 id="directFingerprintEnrollmentTitle">Register Fingerprint</h3>
+                            <button type="button" class="close-modal" aria-label="Close">&times;</button>
+                        </div>
+                        <p>Student saved: <strong><?= htmlspecialchars($pendingFingerprintLabel, ENT_QUOTES, 'UTF-8') ?></strong></p>
+                        <p>Connect the ESP32 reader using the button in the sidebar, then follow the prompts to scan the same finger twice.</p>
+                        <p id="directFingerprintEnrollmentStatus" role="status" aria-live="polite">Select the student and enroll a fingerprint, or close this dialog to do it later.</p>
+                        <form id="fingerprintEnrollForm">
+                            <div class="form-group">
+                                <label for="fingerprintStudentSearch">Student being enrolled</label>
+                                <input
+                                    type="search"
+                                    id="fingerprintStudentSearch"
+                                    value="<?= htmlspecialchars($pendingFingerprintLabel, ENT_QUOTES, 'UTF-8') ?>"
+                                    autocomplete="off"
+                                    readonly
+                                    aria-describedby="fingerprintStudentSearchStatus"
+                                >
+                                <p id="fingerprintStudentSearchStatus" role="status" aria-live="polite">New student selected.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="fingerprintStudent">Student</label>
+                                <select id="fingerprintStudent" name="student_lrn" data-initial-lrn="<?= htmlspecialchars($pendingFingerprintLrn, ENT_QUOTES, 'UTF-8') ?>" required disabled>
+                                    <option value="">Select the new student</option>
+                                    <option
+                                        value="<?= htmlspecialchars($pendingFingerprintLrn, ENT_QUOTES, 'UTF-8') ?>"
+                                        data-student-name="<?= htmlspecialchars($pendingFingerprintLabel, ENT_QUOTES, 'UTF-8') ?>"
+                                    ><?= htmlspecialchars($pendingFingerprintLabel, ENT_QUOTES, 'UTF-8') ?></option>
+                                </select>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="cancel-btn">Skip registration</button>
+                                <button type="submit" class="submit-btn" id="enrollFingerprintButton" disabled>Enroll Fingerprint</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
 
 
 

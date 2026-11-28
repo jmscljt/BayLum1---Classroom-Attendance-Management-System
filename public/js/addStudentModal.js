@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const editModal = document.getElementById("editStudentModal");
     const removeModal = document.getElementById("removeStudentModal");
     const inactiveStudentsModal = document.getElementById("inactiveStudentsModal");
+    const directFingerprintEnrollmentModal = document.getElementById("directFingerprintEnrollmentModal");
     const addBtn = document.querySelector(".add-student-btn");
     const viewInactiveBtn = document.getElementById("viewInactiveStudentsBtn");
 
@@ -41,6 +42,12 @@ document.addEventListener("DOMContentLoaded", function() {
     bindModal(editModal);
     bindModal(removeModal);
     bindModal(inactiveStudentsModal);
+    bindModal(directFingerprintEnrollmentModal);
+
+    if (directFingerprintEnrollmentModal && directFingerprintEnrollmentModal.dataset.open === "1") {
+        directFingerprintEnrollmentModal.style.display = "flex";
+        directFingerprintEnrollmentModal.setAttribute("aria-hidden", "false");
+    }
 
     if (removeModal) {
         const removeStudentId = document.getElementById("remove_student_id");

@@ -467,6 +467,33 @@ body {
     display: block;
 }
 
+.fingerprint-reader-status button {
+    margin-top: 6px;
+    padding: 5px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #0056b3;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.fingerprint-enrollment-option {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.fingerprint-enrollment-option input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
 .logout-btn {
     margin-top: auto; 
 }

@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const panel = document.getElementById('fingerprint-reader');
     const status = document.getElementById('fingerprintReaderStatus');
+    const directEnrollmentStatus = document.getElementById('directFingerprintEnrollmentStatus');
     const connectButton = document.getElementById('connectFingerprintReaderButton');
     const enrollForm = document.getElementById('fingerprintEnrollForm');
     const studentSearch = document.getElementById('fingerprintStudentSearch');
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentOptions = studentSelect
         ? Array.from(studentSelect.options).slice(1)
         : [];
+    let initialStudentLrn = studentSelect ? studentSelect.dataset.initialLrn || '' : '';
     const autoConnect = panel.dataset.autoConnect === '1';
     const preferredPortStorageKey = 'bl1esFingerprintReaderPort';
 
@@ -34,12 +36,24 @@ document.addEventListener('DOMContentLoaded', () => {
         studentSelect.disabled = matches.length === 0;
         enrollButton.disabled = true;
 
+        let selectedInitialStudent = false;
+        if (initialStudentLrn) {
+            const initialOption = matches.find((option) => option.value === initialStudentLrn);
+            if (initialOption) {
+                studentSelect.value = initialStudentLrn;
+                initialStudentLrn = '';
+                selectedInitialStudent = true;
+            }
+        }
+
         if (!query) {
             studentSearchStatus.textContent = studentOptions.length
                 ? 'Type a name or LRN to find a student.'
                 : 'No active students are available to enroll.';
         } else if (matches.length === 0) {
             studentSearchStatus.textContent = 'No students found. Check the spelling or LRN and try again.';
+        } else if (selectedInitialStudent) {
+            studentSearchStatus.textContent = 'New student selected. Click Enroll Fingerprint to continue.';
         } else {
             studentSearchStatus.textContent = `${matches.length} student${matches.length === 1 ? '' : 's'} found. Select the correct student below.`;
         }
@@ -65,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showStatus(message) {
         status.textContent = message;
+        if (directEnrollmentStatus) {
+            directEnrollmentStatus.textContent = message;
+        }
     }
 
     function getPortIdentity(port) {
@@ -217,11 +234,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!port) {
                 if (ports.length > 1) {
-                    showStatus('Multiple serial devices are authorized. Open Attendance Settings and select the ESP32 once.');
+                    showStatus('Multiple serial devices are authorized. Click Connect ESP32 Reader and select the ESP32.');
                 } else if (ports.length === 0 && preferredIdentity) {
                     showStatus('Authorized ESP32 not detected. Plug it in and it will reconnect automatically.');
                 } else {
-                    showStatus('Reader not authorized yet. Open Attendance Settings and click Connect ESP32 Reader once.');
+                    showStatus('Reader not authorized yet. Click Connect ESP32 Reader and select the ESP32.');
                 }
                 return;
             }
@@ -233,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 reconnectAttempts = 0;
             }
         } catch (error) {
-            showStatus(error.message || 'Automatic reconnect failed. Open Attendance Settings to connect manually.');
+            showStatus(error.message || 'Automatic reconnect failed. Click Connect ESP32 Reader to connect manually.');
         }
     }
 
@@ -324,6 +341,21 @@ document.addEventListener('DOMContentLoaded', () => {
             enrollment.option.textContent = `${enrollment.studentName} (registered: ID ${fingerprintId})`;
             studentSelect.value = enrollment.studentLrn;
             showStatus(result.message);
+
+            const fingerprintStatus = document.querySelector(
+                `[data-fingerprint-student-lrn="${enrollment.studentLrn}"]`
+            );
+            if (fingerprintStatus) {
+                fingerprintStatus.classList.remove('as608-unregistered');
+                fingerprintStatus.classList.add('as608-id');
+                fingerprintStatus.textContent = String(fingerprintId);
+            }
+
+            const directEnrollmentModal = document.getElementById('directFingerprintEnrollmentModal');
+            if (directEnrollmentModal) {
+                directEnrollmentModal.style.display = 'none';
+                directEnrollmentModal.setAttribute('aria-hidden', 'true');
+            }
         } catch (error) {
             showStatus(
                 `The sensor stored slot ${fingerprintId}, but the student mapping was not saved: `
