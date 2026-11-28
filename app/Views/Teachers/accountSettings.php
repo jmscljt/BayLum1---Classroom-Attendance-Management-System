@@ -99,14 +99,14 @@ $result = $accountResult ?? null;
                             </select>
                         </div>
                     </div>
-                    <p class="teacher-settings-note">NOTE: Changing your grade or section will also change the grade and section associated with your records.</p>
-                    <button type="submit" class="settings-button">Update Profile</button>
+                    <p class="teacher-settings-note"><strong>NOTE:</strong> Changing your grade or section will also change the grade and section associated with your records.</p>
+                    <button type="submit" class="settings-button">Save Changes</button>
                 </form>
             </section>
 
             <section class="table-section-card teacher-settings-card">
                 <h3>Change Password</h3>
-                <form action="index.php?page=accountSettings" method="POST" class="teacher-settings-form">
+                <form action="index.php?page=accountSettings" method="POST" id="passwordForm" class="teacher-settings-form">
                     <input type="hidden" name="action" value="update_password">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="settings-form-row settings-password-fields">

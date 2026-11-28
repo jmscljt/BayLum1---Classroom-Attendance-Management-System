@@ -18,7 +18,6 @@ $displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
                 data-csrf-token="<?php echo htmlspecialchars($fingerprintCsrfToken ?? '', ENT_QUOTES, 'UTF-8'); ?>"
                 data-auto-connect="1">
                 <span id="fingerprintReaderStatus" role="status" aria-live="polite">Checking fingerprint reader...</span>
-                <button type="button" id="connectFingerprintReaderButton" <?= $currentPage === 'students' ? '' : 'hidden' ?>>Connect ESP32 Reader</button>
             </div>
             <script src="/public/js/fingerprintAttendance.js"></script>
         <?php endif; ?>

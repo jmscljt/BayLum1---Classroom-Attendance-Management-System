@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentSelect = document.getElementById('fingerprintStudent');
     const enrollButton = document.getElementById('enrollFingerprintButton');
     const clearTeacherButton = document.getElementById('clearTeacherFingerprintsButton');
-    if (!panel || !status || !connectButton) {
+    if (!panel || !status) {
         return;
     }
 
@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialStudentLrn = studentSelect ? studentSelect.dataset.initialLrn || '' : '';
     const autoConnect = panel.dataset.autoConnect === '1';
     const preferredPortStorageKey = 'bl1esFingerprintReaderPort';
+    const manualConnectionInstruction = connectButton
+        ? 'Click Connect ESP32 Reader'
+        : 'Open Attendance Settings and click Connect ESP32 Reader';
 
     function filterStudents() {
         if (!hasEnrollmentUi) {
@@ -153,8 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             reconnectAttempts = 0;
             serialWriter = port.writable.getWriter();
             serialReader = port.readable.getReader();
-            connectButton.textContent = 'ESP32 Reader Connected';
-            connectButton.disabled = true;
+            if (connectButton) {
+                connectButton.textContent = 'ESP32 Reader Connected';
+                connectButton.disabled = true;
+            }
             showStatus('ESP32 serial port opened. Waiting for the reader...');
 
             const decoder = new TextDecoder();
@@ -198,8 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             serialPort = null;
             serialConnectionInProgress = false;
-            connectButton.disabled = false;
-            connectButton.textContent = 'Connect ESP32 Reader';
+            if (connectButton) {
+                connectButton.disabled = false;
+                connectButton.textContent = 'Connect ESP32 Reader';
+            }
             scheduleReconnect();
             if (clearTeacherButton) {
                 clearTeacherButton.disabled = true;
@@ -223,13 +230,17 @@ document.addEventListener('DOMContentLoaded', () => {
             esp32Connected = false;
             serialWriter = null;
             serialReader = null;
-            connectButton.disabled = false;
-            connectButton.textContent = 'Connect ESP32 Reader';
+            if (connectButton) {
+                connectButton.disabled = false;
+                connectButton.textContent = 'Connect ESP32 Reader';
+            }
             showStatus(error.message || 'Could not connect to the ESP32 reader.');
         }
     }
 
-    connectButton.addEventListener('click', connectSerial);
+    if (connectButton) {
+        connectButton.addEventListener('click', connectSerial);
+    }
 
     async function reconnectAuthorizedPort() {
         if (!autoConnect || !('serial' in navigator) || serialConnectionInProgress) {
@@ -245,23 +256,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!port) {
                 if (ports.length > 1) {
-                    showStatus('Multiple serial devices are authorized. Click Connect ESP32 Reader and select the ESP32.');
+                    showStatus(`Multiple serial devices are authorized. ${manualConnectionInstruction} and select the ESP32.`);
                 } else if (ports.length === 0 && preferredIdentity) {
                     showStatus('Authorized ESP32 not detected. Plug it in and it will reconnect automatically.');
                 } else {
-                    showStatus('Reader not authorized yet. Click Connect ESP32 Reader and select the ESP32.');
+                    showStatus(`Reader not authorized yet. ${manualConnectionInstruction} and select the ESP32.`);
                 }
                 return;
             }
 
-            connectButton.disabled = true;
+            if (connectButton) {
+                connectButton.disabled = true;
+            }
             showStatus('Automatically reconnecting to the authorized ESP32...');
             const opened = await readFromPort(port);
             if (opened) {
                 reconnectAttempts = 0;
             }
         } catch (error) {
-            showStatus(error.message || 'Automatic reconnect failed. Click Connect ESP32 Reader to connect manually.');
+            showStatus(error.message || `Automatic reconnect failed. ${manualConnectionInstruction} to connect manually.`);
         }
     }
 
@@ -491,7 +504,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus(hasEnrollmentUi
                 ? 'AS608 connected. Scan a registered finger or enroll a student below.'
                 : 'AS608 connected. Fingerprint attendance is active.');
-            connectButton.disabled = true;
+            if (connectButton) {
+                connectButton.disabled = true;
+            }
             if (hasEnrollmentUi) {
                 enrollButton.disabled = !studentSelect.value || Boolean(pendingEnrollment);
             }
@@ -556,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enrollForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             if (!esp32Connected) {
-                showStatus('Click Connect ESP32 Reader and select the ESP32 serial port first.');
+                showStatus(`${manualConnectionInstruction} and select the ESP32 serial port first.`);
                 return;
             }
             if (pendingEnrollment || pendingTeacherClear || requestInProgress) {

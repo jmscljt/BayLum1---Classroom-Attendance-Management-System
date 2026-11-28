@@ -1,6 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
     const gradeSelect = document.getElementById('settingsGrade');
     const sectionSelect = document.getElementById('settingsSection');
+    const profileForm = document.getElementById('profileForm');
+    const passwordForm = document.getElementById('passwordForm');
+
+    profileForm.addEventListener('submit', function (event) {
+        if (!window.confirm('Are you sure you want to save these profile changes?')) {
+            event.preventDefault();
+        }
+    });
+
+    passwordForm.addEventListener('submit', function (event) {
+        if (!window.confirm('Are you sure you want to update your password?')) {
+            event.preventDefault();
+        }
+    });
 
     const grades = [...new Set(accountSections.map(section => section.grade_level))];
     grades.forEach(grade => {
