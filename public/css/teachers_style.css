@@ -1815,6 +1815,27 @@ header {
     background: #f1f5f9;
 }
 
+.teacher-settings-danger-card {
+    border: 1px solid #fecaca;
+}
+
+.teacher-settings-danger-message {
+    margin: 0 0 16px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.settings-danger-button,
+.settings-danger-button:hover {
+    background: #b91c1c;
+}
+
+.settings-danger-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .teacher-settings-note {
     max-width: 900px;
     color: #64748b;

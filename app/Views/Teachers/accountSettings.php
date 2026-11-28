@@ -119,6 +119,16 @@ $result = $accountResult ?? null;
                 </form>
             </section>
 
+            <section class="table-section-card teacher-settings-card teacher-settings-danger-card">
+                <h3>Delete Account</h3>
+                <p class="teacher-settings-danger-message">
+                    Deleting your account will remove your access to the teacher portal. Account deletion is not currently available here. Please contact your school administrator for assistance.
+                </p>
+                <button type="button" class="settings-button settings-danger-button" disabled>
+                    Delete Account
+                </button>
+            </section>
+
         </div>
     </main>
     <script>
