@@ -346,7 +346,7 @@ $currentPage = 'students';
                             <button type="button" class="close-modal" aria-label="Close">&times;</button>
                         </div>
                         <p>Student saved: <strong><?= htmlspecialchars($pendingFingerprintLabel, ENT_QUOTES, 'UTF-8') ?></strong></p>
-                        <p>Connect the ESP32 reader using the button in the sidebar, then follow the prompts to scan the same finger twice.</p>
+                        <p>Connect the ESP32 reader using the button in the sidebar, then follow the prompts to scan the same finger three (3) times.</p>
                         <p id="directFingerprintEnrollmentStatus" role="status" aria-live="polite">Select the student and enroll a fingerprint, or close this dialog to do it later.</p>
                         <form id="fingerprintEnrollForm">
                             <div class="form-group">

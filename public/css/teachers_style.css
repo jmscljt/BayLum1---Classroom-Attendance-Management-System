@@ -323,6 +323,12 @@ body {
     margin-top: 10px;
 }
 
+#connectFingerprintReaderButton,
+#enrollFingerprintButton{
+    width: 180px;
+    max-width: 180px;
+}
+
 .signup-btn:hover {
     background-color: #004085;
 }

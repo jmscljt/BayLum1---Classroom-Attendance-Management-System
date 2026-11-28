@@ -418,10 +418,12 @@ document.addEventListener('DOMContentLoaded', () => {
             showStatus('Remove the finger, then place the same finger again when prompted.');
         } else if (line === 'ENROLL:PLACE_AGAIN') {
             showStatus('Place the same finger on the reader a second time.');
+        } else if (line === 'ENROLL:PLACE_THIRD') {
+            showStatus('Place the same finger on the reader a third time.');
         } else if (line.startsWith('ERROR:')) {
             const messages = {
                 'ERROR:ID_IN_USE': 'That AS608 slot contains an old fingerprint. Clearing it and restarting enrollment.',
-                'ERROR:FINGER_MISMATCH': 'The two scans did not match. Start enrollment again using the same finger.',
+                'ERROR:FINGER_MISMATCH': 'The three scans did not match. Start enrollment again using the same finger.',
                 'ERROR:AS608_NOT_FOUND': 'The ESP32 cannot communicate with the AS608. Check power and sensor wiring.',
                 'ERROR:STORE_FAILED': 'The AS608 could not save the fingerprint template.',
                 'ERROR:IMAGE_CAPTURE': 'The AS608 could not read the finger. Try again.',
@@ -477,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fingerprintId: result.fingerprint_id,
                     option
                 };
-                showStatus(result.message + ` Assigned AS608 ID ${result.fingerprint_id}. Follow the instructions and scan the same finger twice.`);
+                showStatus(result.message + ` Assigned AS608 ID ${result.fingerprint_id}. Follow the instructions and scan the same finger three (3) times.`);
                 await writeSerial(`ENROLL:${result.fingerprint_id}`);
             } catch (error) {
                 pendingEnrollment = null;

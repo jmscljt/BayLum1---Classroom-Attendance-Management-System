@@ -70,6 +70,19 @@ void processEnroll(uint16_t fingerprintId) {
     Serial.println("ERROR:FINGER_MISMATCH");
     return;
   }
+
+  Serial.println("ENROLL:REMOVE_FINGER");
+  waitForFingerRemoval();
+  Serial.println("ENROLL:PLACE_THIRD");
+
+  if (!captureFingerprint(2)) {
+    Serial.println("ERROR:IMAGE_CAPTURE");
+    return;
+  }
+  if (fingerprint.createModel() != FINGERPRINT_OK) {
+    Serial.println("ERROR:FINGER_MISMATCH");
+    return;
+  }
   if (fingerprint.storeModel(fingerprintId) != FINGERPRINT_OK) {
     Serial.println("ERROR:STORE_FAILED");
     return;
