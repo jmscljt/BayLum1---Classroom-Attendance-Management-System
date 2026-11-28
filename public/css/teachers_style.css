@@ -291,6 +291,10 @@ body {
     flex: 1;
 }
 
+.signup-page .email-domain-suffix {
+    padding: 0 10px;
+}
+
 /* Create Account Button and Login Button */
 .signup-btn, .sync-btn, .view-btn {
     width: 100%;
@@ -1770,6 +1774,33 @@ header {
     margin-bottom: 16px;
 }
 
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-visibility-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.password-visibility-toggle:focus-visible {
+    outline: 2px solid #0056b3;
+    outline-offset: 1px;
+}
+
 .settings-field {
     display: flex;
     flex: 1 1 180px;
@@ -1788,6 +1819,38 @@ header {
     background: #ffffff;
     color: #333333;
     font-size: 14px;
+}
+
+.settings-field input[readonly] {
+    color: #6c757d;
+}
+
+.password-input-wrapper input {
+    padding-right: 42px;
+}
+
+.email-input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.email-input-group input {
+    flex: 1;
+    min-width: 0;
+    border-radius: 6px 0 0 6px;
+}
+
+.email-domain-suffix {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1.5px solid #a4b0be;
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    background: #f1f5f9;
+    color: #4a5568;
+    font-size: 14px;
+    white-space: nowrap;
 }
 
 .settings-button {
@@ -1841,6 +1904,7 @@ header {
     color: #64748b;
     font-size: 13px;
     margin: 0;
+    margin-bottom: 5px;
 }
 
 /* ===== Settings - End ===== */

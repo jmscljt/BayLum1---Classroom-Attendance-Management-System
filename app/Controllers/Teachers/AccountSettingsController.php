@@ -32,9 +32,10 @@ class AccountSettingsController extends TeachersController
                 if ($action === 'update_profile') {
                     $firstName = trim((string) ($post['first_name'] ?? ''));
                     $lastName = trim((string) ($post['last_name'] ?? ''));
-                    $email = trim((string) ($post['email'] ?? ''));
+                    $emailUsername = trim((string) ($post['email_username'] ?? ''));
+                    $email = $emailUsername . '@gmail.com';
                     $sectionId = filter_var($post['section_id'] ?? null, FILTER_VALIDATE_INT);
-                    if ($firstName === '' || $lastName === '' || $email === '' || $sectionId === false || $sectionId < 1) {
+                    if ($firstName === '' || $lastName === '' || $emailUsername === '' || $sectionId === false || $sectionId < 1) {
                         $session['account_form_result'] = [
                             'success' => false,
                             'message' => 'Please enter your first name, last name, and email, and select a valid grade and section.',

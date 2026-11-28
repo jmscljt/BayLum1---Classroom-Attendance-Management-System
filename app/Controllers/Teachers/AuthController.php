@@ -7,7 +7,8 @@ require_once __DIR__ . '/TeachersController.php';
         {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $uniqueId           = $_POST['unique_id'] ?? '';
-                $email              = $_POST['email'] ?? '';
+                $emailUsername      = trim((string) ($_POST['email_username'] ?? ''));
+                $email              = $emailUsername . '@gmail.com';
                 $password           = $_POST['password'] ?? '';
                 $confirmPassword    = $_POST['confirm_password'] ?? '';
                 

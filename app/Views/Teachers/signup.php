@@ -17,6 +17,7 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/images/BL1-Logo.png?v=2">
     <link rel="stylesheet" href="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/css/teachers_style.css">
     <title>BL1ES - Sign Up</title>
@@ -63,17 +64,30 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="input-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        <div class="email-input-group">
+                            <input type="text" id="email" name="email_username" placeholder="Enter your email username" pattern="[^@\s]+" title="Enter only the part before @gmail.com." required>
+                            <span class="email-domain-suffix" aria-hidden="true">@gmail.com</span>
+                        </div>
                     </div>
 
                     <div class="input-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                            <button type="button" class="password-visibility-toggle" aria-controls="password" aria-label="Show password" aria-pressed="false" data-password-label="password">
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="input-group">
                         <label for="confirm_password">Confirm Password</label>
-                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                            <button type="button" class="password-visibility-toggle" aria-controls="confirm_password" aria-label="Show password confirmation" aria-pressed="false" data-password-label="password confirmation">
+                                <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="input-row" id="advisory-container">
@@ -109,6 +123,7 @@ $sections = $sectionsStmt->fetchAll(PDO::FETCH_ASSOC);
         window.allSections = <?= json_encode($sections, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     </script>
     <script src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/js/gradeLevelSectionSignup.js"></script>
+    <script src="<?= htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8') ?>/public/js/passwordVisibility.js"></script>
     <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>

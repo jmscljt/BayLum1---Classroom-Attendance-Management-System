@@ -8,6 +8,8 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
 $teacherName = $_SESSION['user_name'] ?? 'Teacher Name';
 $teacherUniqueId = $_SESSION['user_unique_id'] ?? 'Not available';
 $teacherEmail = $_SESSION['user_email'] ?? ($account['email'] ?? 'Not available');
+$emailParts = explode('@', (string) $teacherEmail, 2);
+$teacherEmailLocalPart = count($emailParts) === 2 ? $emailParts[0] : '';
 $teacherFirstName = $account['first_name'] ?? ($_SESSION['user_first_name'] ?? '');
 $teacherLastName = $account['last_name'] ?? ($_SESSION['user_last_name'] ?? '');
 if ($teacherFirstName === '' && $teacherLastName === '') {
@@ -59,9 +61,18 @@ $result = $accountResult ?? null;
                     <input type="hidden" name="action" value="update_profile">
                     <input type="hidden" name="csrf_token" value="<?= $escape($csrfToken) ?>">
                     <div class="teacher-settings-details">
-                        <div class="settings-detail">
-                            <span class="settings-label">Unique ID (View Only)</span>
-                            <span class="settings-value"><?= $escape($teacherUniqueId) ?></span>
+                        <div class="settings-form-row profile-name-fields">
+                            <div class="settings-field">
+                                <label for="teacherUniqueId">Unique ID (View Only)</label>
+                                <input type="text" id="teacherUniqueId" value="<?= $escape($teacherUniqueId) ?>" readonly>
+                            </div>
+                            <div class="settings-field">
+                                <label for="teacherEmail">Email</label>
+                                <div class="email-input-group">
+                                    <input type="text" id="teacherEmail" name="email_username" value="<?= $escape($teacherEmailLocalPart) ?>" pattern="[^@\s]+" title="Enter only the part before @gmail.com." required>
+                                    <span class="email-domain-suffix" aria-hidden="true">@gmail.com</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="settings-form-row profile-name-fields">
                             <div class="settings-field">
@@ -72,10 +83,6 @@ $result = $accountResult ?? null;
                                 <label for="teacherLastName">Last Name</label>
                                 <input type="text" id="teacherLastName" name="last_name" value="<?= $escape($teacherLastName) ?>" required>
                             </div>
-                        </div>
-                        <div class="settings-detail settings-field">
-                            <label for="teacherEmail">Email</label>
-                            <input type="email" id="teacherEmail" name="email" value="<?= $escape($teacherEmail) ?>" required>
                         </div>
                     </div>
                     <div class="settings-form-row">
@@ -92,6 +99,7 @@ $result = $accountResult ?? null;
                             </select>
                         </div>
                     </div>
+                    <p class="teacher-settings-note">NOTE: Changing your grade or section will also change the grade and section associated with your records.</p>
                     <button type="submit" class="settings-button">Update Profile</button>
                 </form>
             </section>
@@ -104,15 +112,30 @@ $result = $accountResult ?? null;
                     <div class="settings-form-row settings-password-fields">
                         <div class="settings-field">
                             <label for="currentPassword">Current Password</label>
-                            <input type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="currentPassword" name="current_password" autocomplete="current-password" required>
+                                <button type="button" class="password-visibility-toggle" aria-controls="currentPassword" aria-label="Show current password" aria-pressed="false" data-password-label="current password">
+                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="settings-field">
                             <label for="newPassword">New Password</label>
-                            <input type="password" id="newPassword" name="new_password" minlength="8" autocomplete="new-password" required>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="newPassword" name="new_password" minlength="8" autocomplete="new-password" required>
+                                <button type="button" class="password-visibility-toggle" aria-controls="newPassword" aria-label="Show new password" aria-pressed="false" data-password-label="new password">
+                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="settings-field">
                             <label for="confirmNewPassword">Confirm New Password</label>
-                            <input type="password" id="confirmNewPassword" name="confirm_password" minlength="8" autocomplete="new-password" required>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="confirmNewPassword" name="confirm_password" minlength="8" autocomplete="new-password" required>
+                                <button type="button" class="password-visibility-toggle" aria-controls="confirmNewPassword" aria-label="Show password confirmation" aria-pressed="false" data-password-label="password confirmation">
+                                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button type="submit" class="settings-button">Update Password</button>
@@ -120,12 +143,12 @@ $result = $accountResult ?? null;
             </section>
 
             <section class="table-section-card teacher-settings-card teacher-settings-danger-card">
-                <h3>Delete Account</h3>
+                <h3>Deactivate Account</h3>
                 <p class="teacher-settings-danger-message">
-                    Deleting your account will remove your access to the teacher portal. Account deletion is not currently available here. Please contact your school administrator for assistance.
+                    Deactivating your account will remove your access to the teacher portal. Account deactivation is not currently available due to not having a proper account deactivation process in place.
                 </p>
                 <button type="button" class="settings-button settings-danger-button" disabled>
-                    Delete Account
+                    Deactivate Account
                 </button>
             </section>
 
@@ -137,6 +160,7 @@ $result = $accountResult ?? null;
         const assignedSection = <?= json_encode($advisorySection) ?>;
     </script>
     <script src="<?= $escape($base_url) ?>/public/js/accountSettings.js"></script>
+    <script src="<?= $escape($base_url) ?>/public/js/passwordVisibility.js"></script>
     <script src="/public/js/alertTimer.js"></script>
 </body>
 </html>
