@@ -52,7 +52,17 @@ class FingerprintAttendanceController
         $fingerprintId = $payload['fingerprint_id'] ?? null;
         if (
             !is_string($action)
-            || !in_array($action, ['attendance', 'check_enrollment', 'save_enrollment'], true)
+            || !in_array(
+                $action,
+                [
+                    'attendance',
+                    'check_enrollment',
+                    'save_enrollment',
+                    'get_teacher_fingerprint_ids',
+                    'clear_teacher_fingerprint_mappings',
+                ],
+                true
+            )
         ) {
             $this->respond(400, ['error' => 'Choose a valid fingerprint action.']);
             return;
@@ -71,6 +81,30 @@ class FingerprintAttendanceController
                 $result = $this->teachersModel->recordFingerprintAttendance(
                     (int) $session['user_id'],
                     (int) $fingerprintId
+                );
+            } elseif ($action === 'get_teacher_fingerprint_ids') {
+                $result = $this->teachersModel->getTeacherFingerprintIds(
+                    (int) $session['user_id']
+                );
+            } elseif ($action === 'clear_teacher_fingerprint_mappings') {
+                $requestedIds = $payload['fingerprint_ids'] ?? null;
+                if (!is_array($requestedIds)) {
+                    $this->respond(400, ['error' => 'A list of fingerprint IDs is required.']);
+                    return;
+                }
+                $validatedIds = [];
+                foreach ($requestedIds as $requestedId) {
+                    $isValidId = is_int($requestedId)
+                        || is_string($requestedId) && ctype_digit($requestedId);
+                    if (!$isValidId || (int) $requestedId < 1 || (int) $requestedId > 127) {
+                        $this->respond(400, ['error' => 'Fingerprint IDs must be from 1 to 127.']);
+                        return;
+                    }
+                    $validatedIds[] = (int) $requestedId;
+                }
+                $result = $this->teachersModel->clearTeacherFingerprintMappings(
+                    (int) $session['user_id'],
+                    $validatedIds
                 );
             } else {
                 $studentLrn = $payload['student_lrn'] ?? '';
@@ -115,6 +149,8 @@ class FingerprintAttendanceController
                 'command_id' => $result['command_id'] ?? null,
                 'connected' => $result['connected'] ?? null,
                 'sensor_ready' => $result['sensor_ready'] ?? null,
+                'fingerprint_ids' => $result['fingerprint_ids'] ?? null,
+                'cleared_count' => $result['cleared_count'] ?? null,
             ]);
         } catch (PDOException | RuntimeException $e) {
             error_log('Fingerprint attendance error: ' . $e->getMessage());

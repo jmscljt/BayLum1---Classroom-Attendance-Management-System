@@ -104,6 +104,14 @@ $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QU
                     <button type="submit" class="view-btn" id="enrollFingerprintButton" disabled>Enroll Selected Student</button>
                 </form>
             </section>
+
+            <section class="table-section-card" id="teacher-fingerprint-clear-section">
+                <h3>Clear Students Fingerprint Records</h3>
+                <p>This will remove <strong>ALL</strong> fingerprint assignment records of all your students in your section. Records assigned to other sections will not be affected.</p>
+                <button type="button" class="view-btn" id="clearTeacherFingerprintsButton" disabled>
+                    Clear Fingerprint Records
+                </button>
+            </section>
         </div>
     </main>
     <script src="/public/js/fingerprintAttendance.js"></script>

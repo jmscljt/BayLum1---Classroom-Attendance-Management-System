@@ -324,9 +324,18 @@ body {
 }
 
 #connectFingerprintReaderButton,
-#enrollFingerprintButton{
+#enrollFingerprintButton,
+#clearTeacherFingerprintsButton {
     width: 180px;
     max-width: 180px;
+}
+
+#clearTeacherFingerprintsButton {
+    background-color: #dc3545;
+}
+
+#clearTeacherFingerprintsButton:hover {
+    background-color: #bd2130;
 }
 
 .signup-btn:hover {

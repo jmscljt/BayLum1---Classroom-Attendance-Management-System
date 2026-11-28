@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const studentSearchStatus = document.getElementById('fingerprintStudentSearchStatus');
     const studentSelect = document.getElementById('fingerprintStudent');
     const enrollButton = document.getElementById('enrollFingerprintButton');
+    const clearTeacherButton = document.getElementById('clearTeacherFingerprintsButton');
     if (!panel || !status || !connectButton) {
         return;
     }
@@ -69,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let requestInProgress = false;
     let pendingEnrollment = null;
     let pendingSlotReplacement = null;
+    let pendingTeacherClear = null;
     let esp32Connected = false;
     let serialConnectionInProgress = false;
     let serialPort = null;
@@ -181,6 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 serialWriter.releaseLock();
                 serialWriter = null;
             }
+            if (pendingTeacherClear) {
+                pendingTeacherClear.failedIds.push(...pendingTeacherClear.remainingIds);
+                pendingTeacherClear.remainingIds = [];
+                pendingTeacherClear.currentId = null;
+                await finishTeacherClear();
+            }
             if (opened && activePort) {
                 try {
                     await activePort.close();
@@ -193,6 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
             connectButton.disabled = false;
             connectButton.textContent = 'Connect ESP32 Reader';
             scheduleReconnect();
+            if (clearTeacherButton) {
+                clearTeacherButton.disabled = true;
+            }
         }
 
         return opened;
@@ -300,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (
             requestInProgress
             || pendingEnrollment
+            || pendingTeacherClear
             || (lastFingerprintId === fingerprintId && now - lastScanAt < 3000)
         ) {
             return;
@@ -320,6 +332,72 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             requestInProgress = false;
         }
+    }
+
+    async function finishTeacherClear() {
+        const clearState = pendingTeacherClear;
+        if (!clearState) {
+            return;
+        }
+        pendingTeacherClear = null;
+
+        if (clearState.deletedIds.length === 0) {
+            showStatus(
+                `No scanner records were deleted. ${clearState.failedIds.length} record(s) could not be removed;`
+                + ' their system assignments were left unchanged.'
+            );
+            if (clearTeacherButton) {
+                clearTeacherButton.disabled = !esp32Connected;
+            }
+            return;
+        }
+
+        try {
+            const result = await postRequest({
+                action: 'clear_teacher_fingerprint_mappings',
+                fingerprint_ids: clearState.deletedIds
+            });
+            const failureSummary = clearState.failedIds.length
+                ? ` ${clearState.failedIds.length} scanner record(s) could not be deleted; their assignments remain.`
+                : '';
+            showStatus(result.message + failureSummary);
+            window.setTimeout(() => window.location.reload(), clearState.failedIds.length ? 4000 : 1200);
+        } catch (error) {
+            showStatus(
+                `${clearState.deletedIds.length} scanner record(s) were deleted, but their system assignments `
+                + `could not be cleared: ${error.message || 'unknown server error'}`
+            );
+        } finally {
+            if (clearTeacherButton) {
+                clearTeacherButton.disabled = !esp32Connected;
+            }
+        }
+    }
+
+    function sendNextTeacherDelete() {
+        const clearState = pendingTeacherClear;
+        if (!clearState) {
+            return;
+        }
+        if (clearState.remainingIds.length === 0) {
+            finishTeacherClear();
+            return;
+        }
+
+        const fingerprintId = clearState.remainingIds[0];
+        clearState.currentId = fingerprintId;
+        const completedCount = clearState.totalCount - clearState.remainingIds.length + 1;
+        showStatus(`Clearing scanner record ${completedCount} of ${clearState.totalCount}...`);
+        writeSerial(`DELETE:${fingerprintId}`).catch((error) => {
+            if (pendingTeacherClear !== clearState) {
+                return;
+            }
+            clearState.failedIds.push(fingerprintId);
+            clearState.remainingIds.shift();
+            clearState.currentId = null;
+            showStatus(error.message || `Could not send delete command for scanner slot ${fingerprintId}.`);
+            sendNextTeacherDelete();
+        });
     }
 
     async function finishEnrollment(fingerprintId) {
@@ -388,6 +466,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleted = /^DELETED:(\d{1,3})$/.exec(line);
         if (deleted) {
             const fingerprintId = Number(deleted[1]);
+            if (pendingTeacherClear && pendingTeacherClear.currentId === fingerprintId) {
+                pendingTeacherClear.deletedIds.push(fingerprintId);
+                pendingTeacherClear.remainingIds.shift();
+                pendingTeacherClear.currentId = null;
+                sendNextTeacherDelete();
+                return;
+            }
             if (pendingSlotReplacement === fingerprintId) {
                 pendingSlotReplacement = null;
                 showStatus(`Cleared old fingerprint slot ${fingerprintId}. Starting re-enrollment...`);
@@ -410,6 +495,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hasEnrollmentUi) {
                 enrollButton.disabled = !studentSelect.value || Boolean(pendingEnrollment);
             }
+            if (clearTeacherButton) {
+                clearTeacherButton.disabled = Boolean(pendingTeacherClear);
+            }
         } else if (line === 'NO_MATCH') {
             showStatus('Fingerprint not recognized. Enroll this finger to a student before taking attendance.');
         } else if (line === 'ENROLL:PLACE_FINGER') {
@@ -427,9 +515,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 'ERROR:AS608_NOT_FOUND': 'The ESP32 cannot communicate with the AS608. Check power and sensor wiring.',
                 'ERROR:STORE_FAILED': 'The AS608 could not save the fingerprint template.',
                 'ERROR:IMAGE_CAPTURE': 'The AS608 could not read the finger. Try again.',
-                'ERROR:IMAGE_CONVERSION': 'The AS608 could not process the fingerprint. Try again.'
+                'ERROR:IMAGE_CONVERSION': 'The AS608 could not process the fingerprint. Try again.',
+                'ERROR:DELETE_FAILED': 'The AS608 could not delete that fingerprint record.'
             };
-            if (line === 'ERROR:ID_IN_USE' && pendingEnrollment) {
+            if (
+                line === 'ERROR:DELETE_FAILED'
+                && pendingTeacherClear
+                && pendingTeacherClear.currentId !== null
+            ) {
+                pendingTeacherClear.failedIds.push(pendingTeacherClear.currentId);
+                pendingTeacherClear.remainingIds.shift();
+                pendingTeacherClear.currentId = null;
+                sendNextTeacherDelete();
+                return;
+            } else if (pendingTeacherClear) {
+                pendingTeacherClear.failedIds.push(...pendingTeacherClear.remainingIds);
+                pendingTeacherClear.remainingIds = [];
+                pendingTeacherClear.currentId = null;
+                showStatus(messages[line] || line);
+                finishTeacherClear();
+                return;
+            } else if (line === 'ERROR:ID_IN_USE' && pendingEnrollment) {
                 pendingSlotReplacement = pendingEnrollment.fingerprintId;
                 showStatus(messages[line]);
                 writeSerial(`DELETE:${pendingEnrollment.fingerprintId}`).catch((error) => {
@@ -453,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showStatus('Click Connect ESP32 Reader and select the ESP32 serial port first.');
                 return;
             }
-            if (pendingEnrollment || requestInProgress) {
+            if (pendingEnrollment || pendingTeacherClear || requestInProgress) {
                 return;
             }
 
@@ -494,5 +600,57 @@ document.addEventListener('DOMContentLoaded', () => {
             enrollButton.disabled = !esp32Connected || !studentSelect.value || Boolean(pendingEnrollment);
         });
         studentSearch.addEventListener('input', filterStudents);
+    }
+
+    if (clearTeacherButton) {
+        clearTeacherButton.addEventListener('click', async () => {
+            if (!esp32Connected) {
+                showStatus('Connect the ESP32 reader before clearing fingerprint records.');
+                return;
+            }
+            if (pendingEnrollment || pendingTeacherClear || requestInProgress) {
+                return;
+            }
+            if (!window.confirm(
+                'Delete fingerprint records assigned to students in your section from the scanner and clear their assignments? Other sections will not be affected.'
+            )) {
+                return;
+            }
+
+            requestInProgress = true;
+            clearTeacherButton.disabled = true;
+            showStatus('Finding fingerprint records assigned to your section...');
+            try {
+                const result = await postRequest({ action: 'get_teacher_fingerprint_ids' });
+                const fingerprintIds = result.fingerprint_ids;
+                if (
+                    !Array.isArray(fingerprintIds)
+                    || fingerprintIds.some((id) => !Number.isInteger(id) || id < 1 || id > 127)
+                ) {
+                    throw new Error('The server returned an invalid fingerprint ID list.');
+                }
+                if (fingerprintIds.length === 0) {
+                    showStatus(result.message);
+                    return;
+                }
+
+                pendingTeacherClear = {
+                    remainingIds: fingerprintIds.slice(),
+                    deletedIds: [],
+                    failedIds: [],
+                    currentId: null,
+                    totalCount: fingerprintIds.length
+                };
+                showStatus(`Found ${fingerprintIds.length} fingerprint record(s). Starting scanner cleanup...`);
+                sendNextTeacherDelete();
+            } catch (error) {
+                showStatus(error.message || 'Could not load fingerprint records for your section.');
+            } finally {
+                requestInProgress = false;
+                if (!pendingTeacherClear) {
+                    clearTeacherButton.disabled = !esp32Connected;
+                }
+            }
+        });
     }
 });

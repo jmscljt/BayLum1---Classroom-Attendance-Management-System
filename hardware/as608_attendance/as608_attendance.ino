@@ -35,7 +35,8 @@ void waitForFingerRemoval() {
 }
 
 void processDelete(uint16_t fingerprintId) {
-  if (fingerprint.deleteModel(fingerprintId) == FINGERPRINT_OK) {
+  uint8_t result = fingerprint.deleteModel(fingerprintId);
+  if (result == FINGERPRINT_OK || result == FINGERPRINT_NOTFOUND) {
     Serial.println("DELETED:" + String(fingerprintId));
   } else {
     Serial.println("ERROR:DELETE_FAILED");

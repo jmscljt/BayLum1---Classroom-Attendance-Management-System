@@ -929,7 +929,7 @@ class TeachersModel{
             );
             $teacherStmt->execute([':teacher_id' => $teacherId]);
             $sectionId = $teacherStmt->fetchColumn();
-            if ($sectionId === false) {
+            if ($sectionId === false || $sectionId === null) {
                 throw new RuntimeException('Teacher account was not found.');
             }
 
@@ -1460,6 +1460,145 @@ class TeachersModel{
             'available' => 127 - $used,
             'total' => 127,
         ];
+    }
+
+    public function getTeacherFingerprintIds(int $teacherId): array
+    {
+        $teacherStmt = $this->pdo->prepare(
+            'SELECT section_id FROM teachers WHERE id = :teacher_id'
+        );
+        $teacherStmt->execute([':teacher_id' => $teacherId]);
+        $sectionId = $teacherStmt->fetchColumn();
+        if ($sectionId === false || $sectionId === null) {
+            return ['success' => false, 'message' => 'Teacher account was not found.'];
+        }
+
+        $fingerprintStmt = $this->pdo->prepare(
+            'SELECT DISTINCT fingerprint_id
+             FROM students
+             WHERE section_id = :section_id
+               AND fingerprint_id BETWEEN 1 AND 127
+             ORDER BY fingerprint_id'
+        );
+        $fingerprintStmt->execute([':section_id' => $sectionId]);
+        $fingerprintIds = array_map('intval', $fingerprintStmt->fetchAll(PDO::FETCH_COLUMN));
+        if ($fingerprintIds === []) {
+            return [
+                'success' => true,
+                'fingerprint_ids' => [],
+                'message' => 'No fingerprint records are assigned to students in your section.',
+            ];
+        }
+
+        $placeholders = [];
+        $parameters = [':section_id' => $sectionId];
+        foreach ($fingerprintIds as $index => $fingerprintId) {
+            $placeholder = ':fingerprint_id_' . $index;
+            $placeholders[] = $placeholder;
+            $parameters[$placeholder] = $fingerprintId;
+        }
+        $conflictStmt = $this->pdo->prepare(
+            'SELECT fingerprint_id
+             FROM students
+            WHERE (section_id <> :section_id OR section_id IS NULL)
+               AND fingerprint_id IN (' . implode(', ', $placeholders) . ')
+             ORDER BY fingerprint_id'
+        );
+        $conflictStmt->execute($parameters);
+        $conflictingIds = array_values(array_unique(
+            array_map('intval', $conflictStmt->fetchAll(PDO::FETCH_COLUMN))
+        ));
+        if ($conflictingIds !== []) {
+            return [
+                'success' => false,
+                'message' => 'Cannot clear fingerprint IDs also assigned outside your section: '
+                    . implode(', ', $conflictingIds) . '. Resolve the duplicate assignments first.',
+            ];
+        }
+
+        return [
+            'success' => true,
+            'fingerprint_ids' => $fingerprintIds,
+            'message' => 'Found ' . count($fingerprintIds) . ' fingerprint record(s) for your section.',
+        ];
+    }
+
+    public function clearTeacherFingerprintMappings(int $teacherId, array $fingerprintIds): array
+    {
+        $fingerprintIds = array_values(array_unique($fingerprintIds));
+        foreach ($fingerprintIds as $fingerprintId) {
+            if (!is_int($fingerprintId) || $fingerprintId < 1 || $fingerprintId > 127) {
+                return ['success' => false, 'message' => 'Fingerprint IDs must be from 1 to 127.'];
+            }
+        }
+        if ($fingerprintIds === []) {
+            return [
+                'success' => true,
+                'message' => 'No fingerprint assignments needed to be cleared.',
+                'cleared_count' => 0,
+            ];
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $teacherStmt = $this->pdo->prepare(
+                'SELECT section_id FROM teachers WHERE id = :teacher_id FOR UPDATE'
+            );
+            $teacherStmt->execute([':teacher_id' => $teacherId]);
+            $sectionId = $teacherStmt->fetchColumn();
+            if ($sectionId === false || $sectionId === null) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Teacher account was not found.'];
+            }
+
+            $placeholders = [];
+            $parameters = [':section_id' => $sectionId];
+            foreach ($fingerprintIds as $index => $fingerprintId) {
+                $placeholder = ':fingerprint_id_' . $index;
+                $placeholders[] = $placeholder;
+                $parameters[$placeholder] = $fingerprintId;
+            }
+            $conflictStmt = $this->pdo->prepare(
+                'SELECT fingerprint_id
+                 FROM students
+                 WHERE (section_id <> :section_id OR section_id IS NULL)
+                   AND fingerprint_id IN (' . implode(', ', $placeholders) . ')
+                 FOR UPDATE'
+            );
+            $conflictStmt->execute($parameters);
+            $conflictingIds = array_values(array_unique(
+                array_map('intval', $conflictStmt->fetchAll(PDO::FETCH_COLUMN))
+            ));
+            if ($conflictingIds !== []) {
+                $this->pdo->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Cannot clear fingerprint IDs also assigned outside your section: '
+                        . implode(', ', $conflictingIds) . '. Resolve the duplicate assignments first.',
+                ];
+            }
+
+            $updateStmt = $this->pdo->prepare(
+                'UPDATE students
+                 SET fingerprint_id = NULL
+                 WHERE section_id = :section_id
+                   AND fingerprint_id IN (' . implode(', ', $placeholders) . ')'
+            );
+            $updateStmt->execute($parameters);
+            $clearedCount = $updateStmt->rowCount();
+            $this->pdo->commit();
+
+            return [
+                'success' => true,
+                'message' => 'Cleared ' . $clearedCount . ' fingerprint assignment(s) for your section.',
+                'cleared_count' => $clearedCount,
+            ];
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
     }
 
     private function findAvailableFingerprintId(): ?int
