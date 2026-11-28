@@ -976,6 +976,24 @@ class TeachersModel{
         }
     }
 
+    public function closeManualAttendanceSession(int $sessionId, int $teacherId): bool
+    {
+        $closeStmt = $this->pdo->prepare(
+            'UPDATE manual_attendance_sessions
+             SET closed_at = :closed_at
+             WHERE id = :session_id
+               AND teacher_id = :teacher_id
+               AND closed_at IS NULL'
+        );
+        $closeStmt->execute([
+            ':closed_at' => date('Y-m-d H:i:s'),
+            ':session_id' => $sessionId,
+            ':teacher_id' => $teacherId,
+        ]);
+
+        return $closeStmt->rowCount() > 0;
+    }
+
     public function recordFingerprintAttendance(int $teacherId, int $fingerprintId): array
     {
         if ($fingerprintId < 1 || $fingerprintId > 127) {

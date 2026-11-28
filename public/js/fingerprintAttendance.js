@@ -465,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match) {
             const fingerprintId = Number(match[1]);
             if (fingerprintId >= 1 && fingerprintId <= 127) {
+                window.dispatchEvent(new Event('attendance-input'));
                 recordFingerprint(fingerprintId);
             }
             return;

@@ -275,6 +275,15 @@ switch ($page) {
         }
         break;
 
+    case 'closeIdleAttendance':
+        $controller = new ManualAttendanceController($pdo);
+        $controller->handleIdleCloseRequest(
+            $_SESSION,
+            $_SERVER['REQUEST_METHOD'],
+            $_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''
+        );
+        exit();
+
     case 'fingerprintAttendance':
         $controller = new FingerprintAttendanceController($pdo);
         $controller->handleRequest(

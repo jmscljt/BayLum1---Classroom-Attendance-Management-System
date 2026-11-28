@@ -22,6 +22,14 @@ $displayGrade = preg_replace('/^Grade\s*/i', '', trim($assignedGrade));
             <script src="/public/js/fingerprintAttendance.js"></script>
         <?php endif; ?>
 
+        <?php if (!empty($_SESSION['manual_attendance_session_id'])): ?>
+            <div id="attendance-idle-timer" hidden
+                data-endpoint="index.php?page=closeIdleAttendance"
+                data-csrf-token="<?php echo htmlspecialchars($fingerprintCsrfToken ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                data-session-id="<?php echo (int) $_SESSION['manual_attendance_session_id']; ?>"></div>
+            <script src="/public/js/attendanceIdleTimer.js" defer></script>
+        <?php endif; ?>
+
         <a href="<?php echo $base_url; ?>/index.php?page=dashboard" class="<?php echo ($currentPage == 'dashboard') ? 'active' : ''; ?>">
             <i class="fa-solid fa-house"></i>Dashboard</a>
         

@@ -42,6 +42,54 @@ class ManualAttendanceController
         return ['redirect' => 'index.php?page=' . $redirectPage];
     }
 
+    public function handleIdleCloseRequest(
+        array &$session,
+        string $requestMethod,
+        string $csrfToken
+    ): void {
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($requestMethod !== 'POST') {
+            $this->respond(405, ['error' => 'POST is required.']);
+            return;
+        }
+
+        if (empty($session['user_logged_in']) || empty($session['user_id'])) {
+            $this->respond(401, ['error' => 'Please sign in as a teacher.']);
+            return;
+        }
+
+        $sessionToken = $session['csrf_token'] ?? '';
+        if (
+            !is_string($csrfToken)
+            || !is_string($sessionToken)
+            || $sessionToken === ''
+            || !hash_equals($sessionToken, $csrfToken)
+        ) {
+            $this->respond(403, ['error' => 'Your session expired. Refresh the page and try again.']);
+            return;
+        }
+
+        $attendanceSessionId = (int) ($session['manual_attendance_session_id'] ?? 0);
+        if ($attendanceSessionId < 1) {
+            $this->respond(409, ['error' => 'There is no active attendance session to close.']);
+            return;
+        }
+
+        try {
+            $closed = $this->teachersModel->closeManualAttendanceSession(
+                $attendanceSessionId,
+                (int) $session['user_id']
+            );
+            unset($session['manual_attendance_session_id']);
+            $this->clearAttendanceCaches($session);
+            $this->respond(200, ['success' => true, 'closed' => $closed]);
+        } catch (PDOException | RuntimeException $e) {
+            error_log('Idle attendance close error: ' . $e->getMessage());
+            $this->respond(500, ['error' => 'Unable to close attendance right now.']);
+        }
+    }
+
     public function process(string $input, array &$session): array
     {
         $input = trim($input);
@@ -95,5 +143,11 @@ class ManualAttendanceController
                 unset($session[$key]);
             }
         }
+    }
+
+    private function respond(int $statusCode, array $payload): void
+    {
+        http_response_code($statusCode);
+        echo json_encode($payload, JSON_INVALID_UTF8_SUBSTITUTE);
     }
 }
